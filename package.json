@@ -1,0 +1,22 @@
+{
+  "name": "thegrid",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "format": "prettier ./src ./index.html --write"
+  },
+  "devDependencies": {
+    "prettier": "3.8.4",
+    "typescript": "~6.0.2",
+    "vite": "^8.1.0"
+  },
+  "dependencies": {
+    "install": "0.13.0",
+    "normalize.css": "8.0.1",
+    "npm": "11.17.0"
+  }
+}
