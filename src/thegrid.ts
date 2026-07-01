@@ -5,12 +5,14 @@ import { extractPropertiesFromObjects } from "@/helpers/extractpropertiesfromobj
 import { CellType } from "@/shared/enums";
 import { calculateRenderArea } from "./rendering/calculaterenderarea";
 import { debounce } from "throttle-debounce";
+import { List } from "immutable";
+import { Collection } from "./data/collection";
 
 type GridSizes = "full" | "none" | { width: number | string; height: number | string };
 
 interface Options<T extends Record<string, any>> {
-    data: T[];
-    columns?: ColumnOptions[];
+    data?: ArrayLike<T>;
+    columns?: ArrayLike<ColumnOptions>;
     size?: GridSizes;
 }
 
@@ -26,21 +28,27 @@ export class TheGrid<T extends Record<string, any>> {
     #cellsElement: HTMLElement;
 
     #columns = new ColumnCollection();
-    #size?: GridSizes;
-    #data: T[];
+    #size: GridSizes = "full";
+    #collection: Collection<T>;
     #cellSize = 30;
 
-    constructor(hostElement: HTMLElement, options?: Options<T>) {
+    constructor(hostElement: HTMLElement, options: Options<T> = { data: [], columns: undefined }) {
         gridReferences.add(new WeakRef(this));
         this.#hostElement = hostElement;
         this.#hostElement.innerHTML = HTML;
         this.#cellsElement = this.#hostElement.querySelector<HTMLElement>("[data-area='cells']")!;
 
-        this.#data = options?.data ?? [];
-        this.#size = options?.size ?? "full";
+        this.#collection = new Collection({
+            data: options.data ?? [],
+        });
 
-        const columns =
-            options?.columns ?? extractPropertiesFromObjects(options?.data ?? []).map(binding => ({ binding }));
+        if (options.size) {
+            this.#size = options.size;
+        }
+
+        const columns = !options.columns
+            ? extractPropertiesFromObjects(this.#collection.items).map(binding => ({ binding }))
+            : Array.from(options.columns);
 
         for (const columnOptions of columns) {
             this.#columns.add(new Column(columnOptions));
@@ -68,8 +76,8 @@ export class TheGrid<T extends Record<string, any>> {
         return this.#hostElement;
     }
 
-    get data(): T[] {
-        return this.#data;
+    get collection(): Collection<T> {
+        return this.#collection;
     }
 
     get columns(): ColumnCollection {
@@ -154,7 +162,7 @@ export class TheGrid<T extends Record<string, any>> {
                 continue;
             }
 
-            const column = this.#columns.items[x];
+            const column = this.#columns.items.get(x)!;
 
             const cell = this.#createCell(CellType.Cell, y, x);
             cell.style.left = `${column.fromLeft}px`;
@@ -162,7 +170,7 @@ export class TheGrid<T extends Record<string, any>> {
             cell.style.width = `${column.width}px`;
             cell.style.height = `${this.#cellSize}px`;
 
-            const content = this.data[y][column.binding];
+            const content = this.#collection.items.get(y)![column.binding];
             cell.textContent = String(content);
 
             fragment.append(cell);
@@ -180,7 +188,7 @@ export class TheGrid<T extends Record<string, any>> {
 
     #updateExpander() {
         const x = this.columns.items.reduce((value, column) => value + column.width, 0);
-        const y = this.data.length * this.cellSize;
+        const y = this.#collection.items.size * this.cellSize;
         const he = this.#hostElement;
         he.style.setProperty("--internal-expander-translate-x", `${x}px`, "important");
         he.style.setProperty("--internal-expander-translate-y", `${y}px`, "important");

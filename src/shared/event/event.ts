@@ -2,6 +2,7 @@ import type { Callback } from "./types.js";
 import { UnraiseableEvent } from "./unraisableevent.js";
 
 export class Event<T extends Callback> {
+    // TODO immutable
     #subscriptions: Callback[] = [];
 
     /**

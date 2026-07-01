@@ -15,17 +15,9 @@ export class Expander {
 
     updateExpanders() {
         const x = this.#grid.columns.items.reduce((prev, cur) => prev + cur.width, 0);
-        const y = this.#grid.data.length * this.#grid.cellSize;
+        const y = this.#grid.collection.items.size * this.#grid.cellSize;
 
-        this.#grid.hostElement.style.setProperty(
-            "--internal-expander-translate-x",
-            `${x}px`,
-            "important",
-        );
-        this.#grid.hostElement.style.setProperty(
-            "--internal-expander-translate-y",
-            `${y}px`,
-            "important",
-        );
+        this.#grid.hostElement.style.setProperty("--internal-expander-translate-x", `${x}px`, "important");
+        this.#grid.hostElement.style.setProperty("--internal-expander-translate-y", `${y}px`, "important");
     }
 }

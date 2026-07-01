@@ -6,13 +6,11 @@ export class Calculator {
     #grid: TheGrid<Record<string, any>>;
     #cellsElement: HTMLDivElement;
     #columns: ColumnCollection;
-    #data: unknown[];
 
     constructor(grid: TheGrid<Record<string, any>>) {
         this.#grid = grid;
         this.#cellsElement = grid.hostElement.querySelector<HTMLDivElement>("[data-area='cells']")!;
         this.#columns = grid.columns;
-        this.#data = grid.data;
     }
 
     #getFirstColumn() {
@@ -42,19 +40,19 @@ export class Calculator {
         const items = this.#columns.items;
         const width = this.#cellsElement.clientWidth;
         const scrollRight = this.#cellsElement.scrollLeft + width;
-        for (const column of items.toReversed()) {
+        for (const column of items.reverse()) {
             const leftEdge = column.fromLeft;
             if (leftEdge <= scrollRight) {
                 return column.index;
             }
         }
-        return items[items.length - 1].index;
+        return items.last()?.index ?? -1;
     }
 
     #getLastRow() {
         const scrollTop = this.#cellsElement.scrollTop;
         const height = this.#cellsElement.clientHeight - 1;
-        const max = this.#data.length;
+        const max = this.#grid.collection.items.size;
         return Math.min(max, Math.ceil((scrollTop + height) / this.#grid.cellSize));
     }
 

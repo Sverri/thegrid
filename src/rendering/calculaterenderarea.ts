@@ -25,17 +25,17 @@ function getStartPoint(grid: TheGrid<object>, cellsElement: HTMLDivElement): Poi
     return new Point(x, y);
 }
 
-function getLastColumn(columns: ColumnCollection, cellsElement: HTMLDivElement) {
+function getLastColumn(columns: ColumnCollection, cellsElement: HTMLDivElement): number {
     const items = columns.items;
     const width = cellsElement.clientWidth;
     const scrollRight = cellsElement.scrollLeft + width;
-    for (const column of items.toReversed()) {
+    for (const column of items.reverse()) {
         const leftEdge = column.fromLeft;
         if (leftEdge <= scrollRight) {
             return column.index;
         }
     }
-    return items[items.length - 1].index;
+    return items.last()?.index ?? -1;
 }
 
 function getLastRow(cellsElement: HTMLDivElement, dataLength: number, cellSize: number) {
@@ -46,7 +46,7 @@ function getLastRow(cellsElement: HTMLDivElement, dataLength: number, cellSize: 
 
 function getEndPoint(grid: TheGrid<object>, cellsElement: HTMLDivElement): Point {
     const x = getLastColumn(grid.columns, cellsElement);
-    const y = getLastRow(cellsElement, grid.data.length, grid.cellSize);
+    const y = getLastRow(cellsElement, grid.collection.items.size, grid.cellSize);
     return new Point(x, y);
 }
 

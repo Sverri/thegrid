@@ -2,6 +2,7 @@ import type { Column } from "@/column/column";
 import { Event } from "@/shared/event/event";
 import type { UnraiseableEvent } from "@/shared/event/unraisableevent";
 import { debounce } from "throttle-debounce";
+import { List } from "immutable";
 
 /**
  * Represents a collection of Column instances within a grid.
@@ -10,7 +11,7 @@ import { debounce } from "throttle-debounce";
  * It provides an event that fires whenever the collection or any of its columns change.
  */
 export class ColumnCollection {
-    #columns: Column[] = [];
+    #columns = List<Column>([]);
     #onChange = new Event<() => void>();
 
     /**
@@ -22,7 +23,7 @@ export class ColumnCollection {
      */
     add(...columns: Column[]): void {
         for (const column of columns) {
-            this.#columns.push(column);
+            this.#columns = this.#columns.push(column);
             column.onChange.subscribe(this.#columnOnChangeHandler);
         }
         this.#onChange.raise();
@@ -39,7 +40,7 @@ export class ColumnCollection {
         for (const column of columns) {
             const index = this.#columns.indexOf(column);
             if (index !== -1) {
-                this.#columns.splice(index, 1);
+                this.#columns = this.#columns.delete(index);
                 column.onChange.unsubscribe(this.#columnOnChangeHandler);
             }
         }
@@ -51,7 +52,7 @@ export class ColumnCollection {
      *
      * @returns A readonly array of Column instances.
      */
-    get items(): readonly Column[] {
+    get items(): List<Column> {
         return this.#columns;
     }
 
