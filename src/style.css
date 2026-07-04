@@ -102,13 +102,13 @@
         overflow: hidden;
 
         &.thegrid-cell-column-header {
-            /* todo */
+            border-bottom: none;
         }
         &.thegrid-cell-row-header {
-            /* todo */
+            border-right: none;
         }
         &.thegrid-cell-topleft {
-            /* todo */
+            border: none;
         }
     }
 }

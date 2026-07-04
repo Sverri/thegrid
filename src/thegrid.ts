@@ -1,12 +1,10 @@
-import { ColumnCollection } from "@/column/columncollection";
+import { ColumnManager } from "@/column/columnmanager";
 import { Column, type ColumnOptions } from "@/column/column";
 import { gridReferences } from "@/shared/meta";
 import { extractPropertiesFromObjects } from "@/helpers/extractpropertiesfromobjects";
-import { CellType } from "@/shared/enums";
-import { calculateRenderArea } from "./rendering/calculaterenderarea";
 import { debounce } from "throttle-debounce";
-import { List } from "immutable";
-import { Collection } from "./data/collection";
+import { Source } from "@/data/source";
+import { Renderer } from "@/rendering/renderer";
 
 type GridSizes = "full" | "none" | { width: number | string; height: number | string };
 
@@ -24,72 +22,104 @@ const HTML = `
 `;
 
 export class TheGrid<T extends Record<string, any>> {
+    // Elements
     #hostElement: HTMLElement;
     #cellsElement: HTMLElement;
+    #columnHeadersElement: HTMLElement;
+    #rowHeadersElement: HTMLElement;
 
-    #columns = new ColumnCollection();
+    #columnManager: ColumnManager;
+    #source: Source<T>;
+
+    #renderer: Renderer;
     #size: GridSizes = "full";
-    #collection: Collection<T>;
-    #cellSize = 30;
+    #cellSize: number;
 
     constructor(hostElement: HTMLElement, options: Options<T> = { data: [], columns: undefined }) {
         gridReferences.add(new WeakRef(this));
+
+        // Host element
         this.#hostElement = hostElement;
         this.#hostElement.innerHTML = HTML;
-        this.#cellsElement = this.#hostElement.querySelector<HTMLElement>("[data-area='cells']")!;
+        this.#hostElement.classList.add("thegrid");
 
-        this.#collection = new Collection({
-            data: options.data ?? [],
+        // Cells element
+        this.#cellsElement = this.#hostElement.querySelector<HTMLElement>("[data-area='cells']")!;
+        this.#cellsElement.addEventListener("scroll", () => {
+            this.#renderer.render();
         });
 
-        if (options.size) {
-            this.#size = options.size;
-        }
+        this.#columnHeadersElement = this.#hostElement.querySelector<HTMLElement>(
+            "[data-area='columns-headers']",
+        )!;
+        this.#rowHeadersElement = this.#hostElement.querySelector<HTMLElement>(
+            "[data-area='row-headers']",
+        )!;
 
-        const columns = !options.columns
-            ? extractPropertiesFromObjects(this.#collection.items).map(binding => ({ binding }))
-            : Array.from(options.columns);
+        // Source
+        this.#source = new Source(options.data ?? []);
+        this.#source.onChange.subscribe(this.invalidate);
 
-        for (const columnOptions of columns) {
-            this.#columns.add(new Column(columnOptions));
-        }
+        // Columns
+        this.#columnManager = new ColumnManager(this.#getColumns(options.columns));
+        this.#columnManager.onChange.subscribe(this.invalidate);
 
-        // Kick off rendering
-        this.#setupHostElement();
+        this.#renderer = new Renderer({ grid: this });
 
+        // Set size
+        this.size = options.size ?? "full";
+
+        // Detect cell size based on styling
         this.#cellSize = Number.parseInt(
             window.getComputedStyle(this.#hostElement).getPropertyValue("--cell-size"),
             10,
         );
 
-        this.#updateExpander();
-
-        // Add event handlers
-        this.#columns.onChange.subscribe(this.render);
-
-        this.render();
-
         this.#registerResizeObserver();
+        this.invalidate();
+    }
+
+    invalidate() {
+        this.#renderer.render();
     }
 
     get hostElement(): HTMLElement {
         return this.#hostElement;
     }
 
-    get collection(): Collection<T> {
-        return this.#collection;
+    get cellsElement(): HTMLElement {
+        return this.#cellsElement;
     }
 
-    get columns(): ColumnCollection {
-        return this.#columns;
+    get columnHeadersElement(): HTMLElement {
+        return this.#columnHeadersElement;
+    }
+
+    get rowHeadersElement(): HTMLElement {
+        return this.#rowHeadersElement;
+    }
+
+    get source(): Source<T> {
+        return this.#source;
+    }
+
+    get columns(): ColumnManager {
+        return this.#columnManager;
     }
 
     get cellSize(): number {
         return this.#cellSize;
     }
 
-    #setupHostElement(): void {
-        this.#hostElement.classList.add("thegrid");
+    get size(): GridSizes {
+        return this.#size;
+    }
+
+    set size(size: GridSizes) {
+        this.#size = size;
+        this.#hostElement.classList.remove("full-size", "no-size");
+        this.#hostElement.style.removeProperty("width");
+        this.#hostElement.style.removeProperty("height");
         switch (this.#size) {
             case "full": {
                 this.#hostElement.classList.add("full-size");
@@ -106,99 +136,20 @@ export class TheGrid<T extends Record<string, any>> {
                 break;
             }
         }
-        if (this.#size === "full") {
-            this.#hostElement.classList.add("full-size");
-        }
-        const cellsElement = this.#hostElement.querySelector<HTMLElement>("[data-area='cells']")!;
-        cellsElement.addEventListener(
-            "scroll",
-            () => {
-                this.render();
-            },
-            // { passive: true },
-        );
     }
 
-    #createCell(type: CellType, row: number, column: number): HTMLDivElement {
-        const div = document.createElement("div");
-        div.classList.add("thegrid-cell");
-        div.dataset.column = column.toString();
-        div.dataset.row = row.toString();
-        switch (type) {
-            case CellType.ColumnHeader: {
-                div.classList.add("thegrid-cell-column-header");
-                break;
-            }
-            case CellType.RowHeader: {
-                div.classList.add("thegrid-cell-row-header");
-                break;
-            }
-            case CellType.TopLeft: {
-                div.classList.add("thegrid-cell-topleft");
-                break;
-            }
-        }
-        return div;
-    }
+    #getColumns(columns: ArrayLike<ColumnOptions> | undefined): Column[] {
+        const columnOptions = !columns
+            ? extractPropertiesFromObjects(this.#source.items).map(binding => ({ binding }))
+            : Array.from(columns);
 
-    *#generateRenderCoordinates() {
-        const renderArea = calculateRenderArea(this);
-        for (let y = renderArea.top; y < renderArea.bottom; y++) {
-            for (let x = renderArea.left; x <= renderArea.right; x++) {
-                yield { x, y };
-            }
-        }
-    }
-
-    render(): void {
-        const cells = Array.from(this.#cellsElement.children) as HTMLDivElement[];
-        const fragment = new DocumentFragment();
-
-        for (const { x, y } of this.#generateRenderCoordinates()) {
-            // Skip already rendered cells
-            const index = cells.findIndex(cell => cell.dataset.row == String(y) && cell.dataset.column == String(x));
-            if (index !== -1) {
-                cells.splice(index, 1);
-                continue;
-            }
-
-            const column = this.#columns.items.get(x)!;
-
-            const cell = this.#createCell(CellType.Cell, y, x);
-            cell.style.left = `${column.fromLeft}px`;
-            cell.style.top = `${y * this.#cellSize}px`;
-            cell.style.width = `${column.width}px`;
-            cell.style.height = `${this.#cellSize}px`;
-
-            const content = this.#collection.items.get(y)![column.binding];
-            cell.textContent = String(content);
-
-            fragment.append(cell);
-        }
-
-        this.#cellsElement.append(fragment);
-
-        // Remove unused cells
-        if (cells.length > 0) {
-            for (const cell of cells) {
-                cell.remove();
-            }
-        }
-    }
-
-    #updateExpander() {
-        const x = this.columns.items.reduce((value, column) => value + column.width, 0);
-        const y = this.#collection.items.size * this.cellSize;
-        const he = this.#hostElement;
-        he.style.setProperty("--internal-expander-translate-x", `${x}px`, "important");
-        he.style.setProperty("--internal-expander-translate-y", `${y}px`, "important");
+        return columnOptions.map(c => new Column(c));
     }
 
     #registerResizeObserver() {
         const resizeObserver = new ResizeObserver(
-            debounce(100, () => {
-                this.#updateExpander();
-                this.render();
+            debounce(100, (): void => {
+                this.#renderer.render();
             }),
         );
         resizeObserver.observe(this.#hostElement);

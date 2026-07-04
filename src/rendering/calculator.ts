@@ -1,11 +1,11 @@
-import type { ColumnCollection } from "@/column/columncollection";
+import type { ColumnManager } from "@/column/columnmanager";
 import type { TheGrid } from "@/thegrid";
 import { Point } from "@/shared/point";
 
 export class Calculator {
     #grid: TheGrid<Record<string, any>>;
     #cellsElement: HTMLDivElement;
-    #columns: ColumnCollection;
+    #columns: ColumnManager;
 
     constructor(grid: TheGrid<Record<string, any>>) {
         this.#grid = grid;
@@ -52,7 +52,7 @@ export class Calculator {
     #getLastRow() {
         const scrollTop = this.#cellsElement.scrollTop;
         const height = this.#cellsElement.clientHeight - 1;
-        const max = this.#grid.collection.items.size;
+        const max = this.#grid.source.items.size;
         return Math.min(max, Math.ceil((scrollTop + height) / this.#grid.cellSize));
     }
 

@@ -2,15 +2,11 @@ import { List, Record } from "immutable";
 import { Event } from "@/shared/event/event";
 import type { UnraiseableEvent } from "@/shared/event/unraisableevent";
 
-interface CollectionOptions<T> {
-    data?: ArrayLike<T>;
-}
-
-export class Collection<T extends object> {
+export class Source<T extends object> {
     #items: List<T>;
     #onChange = new Event<() => void>();
 
-    constructor({ data = [] }: CollectionOptions<T>) {
+    constructor(data: ArrayLike<T>) {
         this.#items = List(data);
     }
 

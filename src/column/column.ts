@@ -56,15 +56,15 @@ export interface ColumnOptions {
 /**
  * Represents a column in a data grid.
  *
- * A Column manages configuration and state for a single column including binding, display properties,
- * sizing constraints, and visibility. Columns can be organized within a grid and provide change
- * notifications when their properties are modified.
+ * A Column manages configuration and state for a single column including binding, display
+ * properties, sizing constraints, and visibility. Columns can be organized within a grid and
+ * provide change notifications when their properties are modified.
  *
  * @class Column
  */
 export class Column {
     #binding: string;
-    #header: string;
+    #header?: string;
     #dataType: ColumnType;
     #width: number;
     #minWidth: number | undefined;
@@ -79,11 +79,11 @@ export class Column {
      */
     constructor(options: ColumnOptions) {
         this.#binding = options.binding;
-        this.#header = options.header ?? options.binding;
+        this.#header = options.header;
         this.#dataType = options.dataType ?? ColumnType.String;
         this.#width = options.width ?? 100;
-        this.#minWidth = options.minWidth ?? undefined;
-        this.#maxWidth = options.maxWidth ?? undefined;
+        this.#minWidth = options.minWidth ?? 1;
+        this.#maxWidth = options.maxWidth ?? 999999;
         this.#visible = options.visible ?? true;
     }
 
@@ -113,7 +113,7 @@ export class Column {
      * @returns The header text displayed at the top of the column
      */
     get header(): string {
-        return this.#header;
+        return this.#header ?? this.#binding;
     }
 
     /**
@@ -263,8 +263,8 @@ export class Column {
     }
 
     /**
-     * Gets the cumulative pixel distance from the left edge of the grid to the left edge of this column.
-     * Calculated by summing the widths of all columns to the left of this one.
+     * Gets the cumulative pixel distance from the left edge of the grid to the left edge of this
+     * column. Calculated by summing the widths of all columns to the left of this one.
      *
      * @returns The pixel distance from the left, or -1 if not in a grid
      */

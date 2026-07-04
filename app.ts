@@ -1,5 +1,6 @@
 import "normalize.css";
 import { TheGrid, ColumnType } from "./src/index";
+import { faker } from "@faker-js/faker";
 
 const hostElement = document.querySelector<HTMLDivElement>(".grid");
 
@@ -11,12 +12,10 @@ interface User {
     salary?: number;
     email?: string;
     website?: string;
-    postcode?: number;
+    postcode?: string;
     country?: string;
-    telprefix?: number;
-    telephone?: number;
-    faxprefix?: number;
-    faxephone?: number;
+    telephone?: string;
+    faxephone?: string;
     subscribed?: boolean;
     summary?: string;
     note?: string;
@@ -27,22 +26,20 @@ const users: User[] = [];
 for (let i = 0; i < 1000; i++) {
     users.push({
         id: i,
-        name: `User ${i}`,
-        age: Math.floor(Math.random() * 100),
-        dob: new Date(),
-        salary: Math.floor(Math.random() * 100000),
-        email: "test@test.test",
-        website: "http://google.com/",
-        postcode: Math.floor(Math.random() * 10000),
-        country: "Greenland",
-        telprefix: Math.floor(Math.random() * 100),
-        telephone: Math.floor(Math.random() * 100000000),
-        faxprefix: Math.floor(Math.random() * 100),
-        faxephone: Math.floor(Math.random() * 100000000),
-        subscribed: Math.random() > 0.5,
-        summary: "This is a summary of something and contains more text so the text breaks.",
-        note: "This is a note",
-        children: Math.floor(Math.random() * 100),
+        name: faker.person.fullName(),
+        age: faker.number.int({ min: 18, max: 130 }),
+        dob: faker.date.birthdate(),
+        salary: faker.number.float({ min: 10_000, max: 500_000, fractionDigits: 2 }),
+        email: faker.internet.email(),
+        website: faker.internet.url(),
+        postcode: faker.location.zipCode(),
+        country: faker.location.country(),
+        telephone: faker.phone.number(),
+        faxephone: faker.phone.number(),
+        subscribed: faker.datatype.boolean(),
+        summary: faker.person.bio(),
+        note: faker.lorem.sentence(),
+        children: faker.number.int({ min: 0, max: 4 }),
     });
 }
 
@@ -57,12 +54,10 @@ const grid = new TheGrid<User>(hostElement!, {
         { binding: "salary", header: "Salary", width: 150, dataType: ColumnType.Decimal },
         { binding: "email", header: "Email address", width: 300, dataType: ColumnType.Email },
         { binding: "website", header: "Website", width: 300, dataType: ColumnType.URL },
-        { binding: "postcode", header: "Post code", width: 150, dataType: ColumnType.Integer },
+        { binding: "postcode", header: "Post code", width: 150, dataType: ColumnType.String },
         { binding: "country", header: "Country", width: 250 },
-        { binding: "telprefix", header: "Tel. prefix", width: 100, dataType: ColumnType.Integer },
-        { binding: "telephone", header: "Telephone", width: 175, dataType: ColumnType.Integer },
-        { binding: "faxprefix", header: "Tel. prefix", width: 100, dataType: ColumnType.Integer },
-        { binding: "faxephone", header: "Telephone", width: 175, dataType: ColumnType.Integer },
+        { binding: "telephone", header: "Telephone", width: 175, dataType: ColumnType.String },
+        { binding: "faxephone", header: "Telephone", width: 175, dataType: ColumnType.String },
         { binding: "subscribed", header: "Subscribed", width: 100, dataType: ColumnType.Boolean },
         { binding: "summary", header: "Summary", width: 400, dataType: ColumnType.Text },
         { binding: "note", header: "Note", width: 300, dataType: ColumnType.Text },

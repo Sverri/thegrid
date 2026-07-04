@@ -10,14 +10,19 @@ import { List } from "immutable";
  * The ColumnCollection manages the addition, removal, and change tracking of columns in a grid.
  * It provides an event that fires whenever the collection or any of its columns change.
  */
-export class ColumnCollection {
+export class ColumnManager {
     #columns = List<Column>([]);
     #onChange = new Event<() => void>();
+
+    constructor(columns: Column[] = []) {
+        this.add(...columns);
+    }
 
     /**
      * Adds one or more columns to the collection.
      *
-     * Subscribes to the onChange event of each column to propagate changes to the collection's onChange event.
+     * Subscribes to the onChange event of each column to propagate changes to the collection's
+     * onChange event.
      *
      * @param columns
      */
@@ -32,7 +37,8 @@ export class ColumnCollection {
     /**
      * Removes one or more columns from the collection.
      *
-     * Unsubscribes from the onChange event of each column to stop propagating changes to the collection's onChange event.
+     * Unsubscribes from the onChange event of each column to stop propagating changes to the
+     * collection's onChange event.
      *
      * @param columns
      */
@@ -58,7 +64,8 @@ export class ColumnCollection {
 
     /**
      * Gets the change event for this column collection.
-     * Subscribe to this event to be notified when the collection changes or when any column in the collection changes.
+     * Subscribe to this event to be notified when the collection changes or when any column in the
+     * collection changes.
      */
     get onChange(): UnraiseableEvent<() => void> {
         return this.#onChange.unraisable;
@@ -67,7 +74,7 @@ export class ColumnCollection {
     /**
      * Handles changes to any column in the collection.
      */
-    #columnOnChangeHandler = debounce(10, () => {
+    #columnOnChangeHandler = debounce(16, () => {
         this.#onChange.raise();
     });
 }
