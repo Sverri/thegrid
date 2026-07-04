@@ -37,6 +37,7 @@
         background: var(--background-header);
         border-right: var(--border);
         border-bottom: var(--border);
+        z-index: 1;
     }
 
     [data-area="columns-headers"] {

@@ -45,9 +45,6 @@ export class TheGrid<T extends Record<string, any>> {
 
         // Cells element
         this.#cellsElement = this.#hostElement.querySelector<HTMLElement>("[data-area='cells']")!;
-        this.#cellsElement.addEventListener("scroll", () => {
-            this.#renderer.render();
-        });
 
         this.#columnHeadersElement = this.#hostElement.querySelector<HTMLElement>(
             "[data-area='columns-headers']",
