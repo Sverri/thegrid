@@ -61,7 +61,7 @@ export class TheGrid<T extends Record<string, any>> {
         this.#columnManager = new ColumnManager(this.#getColumns(options.columns));
         this.#columnManager.onChange.subscribe(this.invalidate);
 
-        this.#renderer = new Renderer({ grid: this });
+        this.#renderer = new Renderer(this);
 
         // Set size
         this.size = options.size ?? "full";
