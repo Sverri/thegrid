@@ -9,19 +9,35 @@ export class Range {
         this.#point2 = new Point(x2, y2);
     }
 
-    get left() {
+    get x1(): number {
+        return this.#point1.x;
+    }
+
+    get x2(): number {
+        return this.#point2.x;
+    }
+
+    get y1(): number {
+        return this.#point1.y;
+    }
+
+    get y2(): number {
+        return this.#point2.y;
+    }
+
+    get left(): number {
         return Math.min(this.#point1.x, this.#point2.x);
     }
 
-    get right() {
+    get right(): number {
         return Math.max(this.#point1.x, this.#point2.x);
     }
 
-    get top() {
+    get top(): number {
         return Math.min(this.#point1.y, this.#point2.y);
     }
 
-    get bottom() {
+    get bottom(): number {
         return Math.max(this.#point1.y, this.#point2.y);
     }
 

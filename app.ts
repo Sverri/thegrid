@@ -1,6 +1,7 @@
 import "normalize.css";
 import { TheGrid, ColumnType } from "./src/index";
 import { faker } from "@faker-js/faker";
+import { Range } from "@/shared/range";
 
 const hostElement = document.querySelector<HTMLDivElement>(".grid");
 
@@ -46,8 +47,9 @@ for (let i = 0; i < 1000; i++) {
 const grid = new TheGrid<User>(hostElement!, {
     data: users,
     size: "full",
+    zebra: true,
     columns: [
-        { binding: "id", header: "Id", width: 100, dataType: ColumnType.Text, visible: false },
+        { binding: "id", header: "Id", width: 100, dataType: ColumnType.Text },
         { binding: "name", header: "Name", width: 200, dataType: ColumnType.String },
         { binding: "age", header: "Age", width: 100, dataType: ColumnType.Integer },
         { binding: "dob", header: "Date of birth", width: 400, dataType: ColumnType.Date },
@@ -65,4 +67,15 @@ const grid = new TheGrid<User>(hostElement!, {
     ],
 });
 
-// console.log(grid);
+grid.selection = new Range(2, 2, 5, 5);
+
+// setTimeout(() => {
+//     grid.columns.update(columns => {
+//         return columns.map(column => {
+//             if (column.binding === "age") {
+//                 column.visible = false;
+//             }
+//             return column;
+//         });
+//     });
+// }, 1000);

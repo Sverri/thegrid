@@ -1,4 +1,4 @@
 import "@/style.css";
+export type { ColumnOptions } from "@/column/column";
 export { TheGrid } from "@/thegrid";
-export { Column, type ColumnOptions } from "@/column/column";
 export { ColumnType, CellType } from "@/shared/enums";

@@ -28,7 +28,7 @@ export class Event<T extends Callback> {
      */
     raise(...args: Parameters<T>): void {
         for (const callback of this.#subscriptions) {
-            callback.call(undefined, ...args);
+            callback(...args);
         }
     }
 

@@ -1,8 +1,6 @@
 /**
  * Cell type
  */
-export type CellType = (typeof CellType)[keyof typeof CellType];
-
 export const CellType = Object.freeze({
     Cell: "cell",
     TopLeft: "topleft",
@@ -10,17 +8,21 @@ export const CellType = Object.freeze({
     RowHeader: "rowheader",
 } as const);
 
+export type CellType = (typeof CellType)[keyof typeof CellType];
+
 /**
  * Column type
  */
-export type ColumnType = (typeof ColumnType)[keyof typeof ColumnType];
-
 export const ColumnType = Object.freeze({
-    String: "string",
-    Text: "text",
-    Boolean: "boolean",
-    Decimal: "decimal",
-    Integer: "integer",
-    URL: "url",
-    Email: "email",
+    String: Symbol("string column type"),
+    Text: Symbol("text column type"),
+    Boolean: Symbol("boolean column type"),
+    Decimal: Symbol("decimal column type"),
+    Date: Symbol("date column type"),
+    Integer: Symbol("integer column type"),
+    URL: Symbol("url column type"),
+    Email: Symbol("email column type"),
+    Currency: Symbol("currency column type"),
 } as const);
+
+export type ColumnType = (typeof ColumnType)[keyof typeof ColumnType];

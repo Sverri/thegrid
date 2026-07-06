@@ -1,8 +1,9 @@
-import type { Column } from "@/column/column";
-import { Event } from "@/shared/event/event";
 import type { UnraiseableEvent } from "@/shared/event/unraisableevent";
-import { debounce } from "throttle-debounce";
+import type { Column, ColumnOptions } from "@/column/column";
+import type { TheGrid } from "@/thegrid";
+import { Event } from "@/shared/event/event";
 import { List } from "immutable";
+import { ColumnType } from "@/shared/enums";
 
 /**
  * Represents a collection of Column instances within a grid.
@@ -11,46 +12,92 @@ import { List } from "immutable";
  * It provides an event that fires whenever the collection or any of its columns change.
  */
 export class ColumnManager {
-    #columns = List<Column>([]);
+    #grid: TheGrid<any>;
+    #items = List<Column>([]);
     #onChange = new Event<() => void>();
 
-    constructor(columns: Column[] = []) {
-        this.add(...columns);
+    constructor(grid: TheGrid<any>, columns: ColumnOptions[]) {
+        this.#grid = grid;
+        this.update(() => List(columns));
     }
 
     /**
-     * Adds one or more columns to the collection.
+     * Update multiple columns
      *
-     * Subscribes to the onChange event of each column to propagate changes to the collection's
-     * onChange event.
+     * The callback is given an immutable list containing all the columns in the grid and must
+     * returns a new immutable list.
      *
-     * @param columns
+     * @param callback
+     *
+     * @example
+     * ```typescript
+     * // Remove a column
+     * grid.columns.update(columns => {
+     *     return columns.filter(column => column.binding !== "name");
+     * });
+     * ```
+     *
+     * @example
+     * ```typescript
+     * // Replace a column
+     * grid.columns.update(columns => {
+     *     const index = columns.findIndex(column => column.binding === "oldsalary");
+     *     return columns
+     *         .remove(index)
+     *         .insert(index, new Column({ binding: "salary" }));
+     * });
+     *
+     * ```
+     * @example
+     * ```typescript
+     * // Sort columns
+     * grid.columns.update(columns => {
+     *     return columns.sortBy(column => column.header)
+     * });
+     * ```
      */
-    add(...columns: Column[]): void {
-        for (const column of columns) {
-            this.#columns = this.#columns.push(column);
-            column.onChange.subscribe(this.#columnOnChangeHandler);
-        }
-        this.#onChange.raise();
-    }
+    update(callback: (columns: List<ColumnOptions>) => List<ColumnOptions>): void {
+        const options = this.#extractOptions(this.#items);
+        const newColumns = callback(options);
 
-    /**
-     * Removes one or more columns from the collection.
-     *
-     * Unsubscribes from the onChange event of each column to stop propagating changes to the
-     * collection's onChange event.
-     *
-     * @param columns
-     */
-    remove(...columns: Column[]): void {
-        for (const column of columns) {
-            const index = this.#columns.indexOf(column);
-            if (index !== -1) {
-                this.#columns = this.#columns.delete(index);
-                column.onChange.unsubscribe(this.#columnOnChangeHandler);
+        let visibleIndex = 0;
+        let fromLeft = 0;
+
+        this.#items = newColumns.map<Column>((column, index) => {
+            const visible = column.visible ?? true;
+            const width = column.width ?? 100;
+            const data = {
+                binding: column.binding,
+                header: column.header ?? column.binding,
+                dataType: column.dataType ?? ColumnType.String,
+                width: column.width ?? 100,
+                minWidth: column.minWidth ?? 1,
+                maxWidth: column.maxWidth ?? 999999,
+                visible: visible,
+                grid: this.#grid,
+                index: index,
+                visibleIndex: visibleIndex,
+                fromLeft: fromLeft,
+            };
+            if (visible) {
+                visibleIndex++;
+                fromLeft += width;
             }
-        }
+            return data;
+        });
         this.#onChange.raise();
+    }
+
+    #extractOptions(columns: List<Column>) {
+        return columns.map<ColumnOptions>(column => ({
+            binding: column.binding,
+            header: column.header,
+            dataType: column.dataType,
+            width: column.width,
+            minWidth: column.minWidth,
+            maxWidth: column.maxWidth,
+            visible: column.visible,
+        }));
     }
 
     /**
@@ -59,7 +106,7 @@ export class ColumnManager {
      * @returns A readonly array of Column instances.
      */
     get items(): List<Column> {
-        return this.#columns;
+        return this.#items;
     }
 
     /**
@@ -70,11 +117,4 @@ export class ColumnManager {
     get onChange(): UnraiseableEvent<() => void> {
         return this.#onChange.unraisable;
     }
-
-    /**
-     * Handles changes to any column in the collection.
-     */
-    #columnOnChangeHandler = debounce(16, () => {
-        this.#onChange.raise();
-    });
 }
