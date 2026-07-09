@@ -90,11 +90,10 @@ export class Renderer {
             if (!visible) {
                 continue;
             }
-            const cell = createCell(CellType.ColumnHeader, 0, columnIndex, {
-                transform: `translateX(${fromLeft - scrollLeft}px)`,
-                width: `${width}px`,
-                height: `${cellSize}px`,
-            });
+            const cell = createCell(CellType.ColumnHeader, 0, columnIndex);
+            cell.style.transform = `translateX(${fromLeft - scrollLeft}px)`;
+            cell.style.width = `${width}px`;
+            cell.style.height = `${cellSize}px`;
 
             if (selection) {
                 if (index >= selection.left && index <= selection.right) {
@@ -124,11 +123,10 @@ export class Renderer {
         const fragment = new DocumentFragment();
 
         for (let rowIndex = top; rowIndex <= bottom; rowIndex++) {
-            const cell = createCell(CellType.RowHeader, rowIndex, 0, {
-                transform: `translateY(${rowIndex * cellSize - scrollTop}px)`,
-                width: `${cellSize}px`,
-                height: `${cellSize}px`,
-            });
+            const cell = createCell(CellType.RowHeader, rowIndex, 0);
+            cell.style.transform = `translateY(${rowIndex * cellSize - scrollTop}px)`;
+            cell.style.width = `${cellSize}px`;
+            cell.style.height = `${cellSize}px`;
 
             if (selection) {
                 if (rowIndex >= selection.top && rowIndex <= selection.bottom) {
@@ -146,11 +144,10 @@ export class Renderer {
         const { columns, cellSize, selection } = this.#grid;
         const { fromLeft, width, dataType } = columns.items.get(columnIndex)!;
 
-        const cell = createCell(CellType.Cell, rowIndex, columnIndex, {
-            transform: `translate(${fromLeft}px, ${rowIndex * cellSize}px)`,
-            width: `${width}px`,
-            height: `${cellSize}px`,
-        });
+        const cell = createCell(CellType.Cell, rowIndex, columnIndex);
+        cell.style.transform = `translate(${fromLeft}px, ${rowIndex * cellSize}px)`;
+        cell.style.width = `${width}px`;
+        cell.style.height = `${cellSize}px`;
         cell.tabIndex = 0;
 
         if (selection) {
