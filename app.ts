@@ -1,7 +1,7 @@
 import "normalize.css";
-import { TheGrid, ColumnType } from "./src/index";
+import { TheGrid, DataType } from "./src/index";
 import { faker } from "@faker-js/faker";
-import { Range } from "@/shared/range";
+import { createRange } from "@/shared/range";
 
 const hostElement = document.querySelector<HTMLDivElement>(".grid");
 
@@ -49,25 +49,25 @@ const grid = new TheGrid<User>(hostElement!, {
     size: "full",
     zebra: true,
     columns: [
-        { binding: "id", header: "Id", width: 100, dataType: ColumnType.Text },
-        { binding: "name", header: "Name", width: 200, dataType: ColumnType.String },
-        { binding: "age", header: "Age", width: 100, dataType: ColumnType.Integer },
-        { binding: "dob", header: "Date of birth", width: 400, dataType: ColumnType.Date },
-        { binding: "salary", header: "Salary", width: 150, dataType: ColumnType.Decimal },
-        { binding: "email", header: "Email address", width: 300, dataType: ColumnType.Email },
-        { binding: "website", header: "Website", width: 300, dataType: ColumnType.URL },
-        { binding: "postcode", header: "Post code", width: 150, dataType: ColumnType.String },
+        { binding: "id", header: "Id", width: 100, dataType: DataType.Text },
+        { binding: "name", header: "Name", width: 200, dataType: DataType.String },
+        { binding: "age", header: "Age", width: 100, dataType: DataType.Integer },
+        { binding: "dob", header: "Date of birth", width: 400, dataType: DataType.Date },
+        { binding: "salary", header: "Salary", width: 150, dataType: DataType.Decimal },
+        { binding: "email", header: "Email address", width: 300, dataType: DataType.Email },
+        { binding: "website", header: "Website", width: 300, dataType: DataType.URL },
+        { binding: "postcode", header: "Post code", width: 150, dataType: DataType.String },
         { binding: "country", header: "Country", width: 250 },
-        { binding: "telephone", header: "Telephone", width: 175, dataType: ColumnType.String },
-        { binding: "faxephone", header: "Telephone", width: 175, dataType: ColumnType.String },
-        { binding: "subscribed", header: "Subscribed", width: 100, dataType: ColumnType.Boolean },
-        { binding: "summary", header: "Summary", width: 400, dataType: ColumnType.Text },
-        { binding: "note", header: "Note", width: 300, dataType: ColumnType.Text },
-        { binding: "children", header: "Children", width: 100, dataType: ColumnType.Integer },
+        { binding: "telephone", header: "Telephone", width: 175, dataType: DataType.String },
+        { binding: "faxephone", header: "Telephone", width: 175, dataType: DataType.String },
+        { binding: "subscribed", header: "Subscribed", width: 100, dataType: DataType.Boolean },
+        { binding: "summary", header: "Summary", width: 400, dataType: DataType.Text },
+        { binding: "note", header: "Note", width: 300, dataType: DataType.Text },
+        { binding: "children", header: "Children", width: 100, dataType: DataType.Integer },
     ],
 });
 
-grid.selection = new Range(2, 2, 5, 5);
+grid.selection = createRange(2, 2, 5, 5);
 
 // setTimeout(() => {
 //     grid.columns.update(columns => {

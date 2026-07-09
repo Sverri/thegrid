@@ -1,46 +1,51 @@
-import type { TheGrid } from "@/thegrid";
-import { CellType, ColumnType } from "@/shared/enums";
-import { Range } from "@/shared/range";
+import type { TheGrid } from "@/grid";
+import { CellType, DataType } from "@/shared/enums";
+import { type Range } from "@/shared/range";
+import { getElementScrollDimensions, type ElementScrollDimensions } from "./helpers/getelementscrolldimensions";
+import { createCell } from "@/helpers/createcell";
+import { calculateRenderArea } from "@/render/calculaterenderarea";
 
 interface Options {
     grid: TheGrid<any>;
     zebra: boolean;
 }
 
-interface RenderMeta {
-    scrollLeft: number;
-    scrollTop: number;
-    clientWidth: number;
-    clientHeight: number;
-}
-
 export class Renderer {
-    #grid: TheGrid<any>;
+    #grid: TheGrid<object>;
     #zebra: boolean;
+
+    /**
+     * Render ahead (outside viewport) to make sure cells are visible when user
+     * scrolls, to prevent empty space. This is not a panacea, but it does make
+     * it look nicer when you scroll using the mouse scroll-wheel or similar.
+     */
+    #renderAhead = {
+        columns: 1,
+        rows: 3,
+    };
 
     constructor({ grid, zebra }: Options) {
         this.#grid = grid;
         this.#zebra = zebra;
-        if (this.#zebra) {
-            this.#grid.cellsElement.classList.add("thegrid-enable-zebra");
-        }
+        this.#grid.cellsElement.classList.toggle("thegrid-enable-zebra", this.#zebra);
         this.#grid.cellsElement.addEventListener("scroll", () => {
             this.render();
         });
     }
 
     render(): void {
-        const meta = {
-            scrollLeft: this.#grid.cellsElement.scrollLeft,
-            scrollTop: this.#grid.cellsElement.scrollTop,
-            clientWidth: this.#grid.cellsElement.clientWidth,
-            clientHeight: this.#grid.cellsElement.clientHeight,
-        };
-        const range = this.#calculateRenderRange(meta);
+        const dimensions = getElementScrollDimensions(this.#grid.cellsElement);
+        const renderArea = calculateRenderArea({
+            columns: this.#grid.columns.items,
+            source: this.#grid.source.items,
+            cellSize: this.#grid.cellSize,
+            renderAhead: this.#renderAhead,
+            dimensions,
+        });
         this.#updateExpander();
-        this.#renderCells(range);
-        this.#renderColumnHeaders(range, meta);
-        this.#renderRowHeaders(range, meta);
+        this.#renderCells(renderArea);
+        this.#renderColumnHeaders(renderArea, dimensions);
+        this.#renderRowHeaders(renderArea, dimensions);
     }
 
     #renderCells({ left, right, top, bottom }: Range): void {
@@ -69,7 +74,7 @@ export class Renderer {
         }
     }
 
-    #renderColumnHeaders({ left, right }: Range, meta: RenderMeta): void {
+    #renderColumnHeaders({ left, right }: Range, { scrollLeft }: ElementScrollDimensions): void {
         const { columnHeadersElement, columns, cellSize, selection } = this.#grid;
         const cells = Array.from(columnHeadersElement.children) as HTMLDivElement[];
         for (const cellElement of cells) {
@@ -85,11 +90,11 @@ export class Renderer {
             if (!visible) {
                 continue;
             }
-            const cell = this.#createCell(CellType.ColumnHeader, 0, columnIndex);
-            const { scrollLeft } = meta;
-            cell.style.transform = `translateX(${fromLeft - scrollLeft}px)`;
-            cell.style.width = `${width}px`;
-            cell.style.height = `${cellSize}px`;
+            const cell = createCell(CellType.ColumnHeader, 0, columnIndex, {
+                transform: `translateX(${fromLeft - scrollLeft}px)`,
+                width: `${width}px`,
+                height: `${cellSize}px`,
+            });
 
             if (selection) {
                 if (index >= selection.left && index <= selection.right) {
@@ -104,7 +109,7 @@ export class Renderer {
         columnHeadersElement.append(fragment);
     }
 
-    #renderRowHeaders({ top, bottom }: Range, meta: RenderMeta): void {
+    #renderRowHeaders({ top, bottom }: Range, { scrollTop }: ElementScrollDimensions): void {
         const { rowHeadersElement, cellSize, selection } = this.#grid;
         const cells = Array.from(rowHeadersElement.children) as HTMLDivElement[];
 
@@ -119,11 +124,11 @@ export class Renderer {
         const fragment = new DocumentFragment();
 
         for (let rowIndex = top; rowIndex <= bottom; rowIndex++) {
-            const cell = this.#createCell(CellType.RowHeader, rowIndex, 0);
-            const { scrollTop } = meta;
-            cell.style.transform = `translateY(${rowIndex * cellSize - scrollTop}px)`;
-            cell.style.width = `${cellSize}px`;
-            cell.style.height = `${cellSize}px`;
+            const cell = createCell(CellType.RowHeader, rowIndex, 0, {
+                transform: `translateY(${rowIndex * cellSize - scrollTop}px)`,
+                width: `${cellSize}px`,
+                height: `${cellSize}px`,
+            });
 
             if (selection) {
                 if (rowIndex >= selection.top && rowIndex <= selection.bottom) {
@@ -137,37 +142,16 @@ export class Renderer {
         rowHeadersElement.append(fragment);
     }
 
-    #createCell(type: CellType, row: number, column: number): HTMLDivElement {
-        const div = document.createElement("div");
-        div.classList.add("thegrid-cell");
-        div.dataset.column = column.toString();
-        div.dataset.row = row.toString();
-        switch (type) {
-            case CellType.ColumnHeader: {
-                div.classList.add("thegrid-cell-column-header");
-                break;
-            }
-            case CellType.RowHeader: {
-                div.classList.add("thegrid-cell-row-header");
-                break;
-            }
-            case CellType.TopLeft: {
-                div.classList.add("thegrid-cell-topleft");
-                break;
-            }
-        }
-        return div;
-    }
-
     #renderCell(rowIndex: number, columnIndex: number): HTMLDivElement {
         const { columns, cellSize, selection } = this.#grid;
         const { fromLeft, width, dataType } = columns.items.get(columnIndex)!;
 
-        const cell = this.#createCell(CellType.Cell, rowIndex, columnIndex);
+        const cell = createCell(CellType.Cell, rowIndex, columnIndex, {
+            transform: `translate(${fromLeft}px, ${rowIndex * cellSize}px)`,
+            width: `${width}px`,
+            height: `${cellSize}px`,
+        });
         cell.tabIndex = 0;
-        cell.style.transform = `translate(${fromLeft}px, ${rowIndex * cellSize}px)`;
-        cell.style.width = `${width}px`;
-        cell.style.height = `${cellSize}px`;
 
         if (selection) {
             this.#renderSelectionBorders(cell, rowIndex, columnIndex);
@@ -207,35 +191,30 @@ export class Renderer {
         }
     }
 
-    #setCellContent(
-        cell: HTMLElement,
-        columnType: ColumnType,
-        rowIndex: number,
-        columnIndex: number,
-    ): void {
+    #setCellContent(cell: HTMLElement, columnType: DataType, rowIndex: number, columnIndex: number): void {
         const cellData = this.#grid.getCellData(rowIndex, columnIndex);
         if (cellData != undefined) {
             switch (columnType) {
-                case ColumnType.Boolean: {
+                case DataType.Boolean: {
                     cell.textContent = String(cellData === true);
                     break;
                 }
-                case ColumnType.Decimal: {
+                case DataType.Decimal: {
                     cell.textContent = Number(cellData).toFixed(2);
                     break;
                 }
-                case ColumnType.Integer: {
+                case DataType.Integer: {
                     cell.textContent = Number(cellData).toFixed(0);
                     break;
                 }
-                case ColumnType.String:
-                case ColumnType.Text:
-                case ColumnType.URL:
-                case ColumnType.Email: {
+                case DataType.String:
+                case DataType.Text:
+                case DataType.URL:
+                case DataType.Email: {
                     cell.textContent = String(cellData);
                     break;
                 }
-                case ColumnType.Date: {
+                case DataType.Date: {
                     cell.textContent = new Date(cellData as Date).toDateString();
                     break;
                 }
@@ -247,35 +226,9 @@ export class Renderer {
 
     #updateExpander() {
         const { columns, source, hostElement, cellSize } = this.#grid;
-        const x = columns.items.reduce(
-            (value, { visible, width }) => (visible ? value + width : 0),
-            0,
-        );
+        const x = columns.items.reduce((value, { visible, width }) => (visible ? value + width : 0), 0);
         const y = source.items.size * cellSize;
         hostElement.style.setProperty("--internal-expander-translate-x", `${x}px`, "important");
         hostElement.style.setProperty("--internal-expander-translate-y", `${y}px`, "important");
-    }
-
-    #calculateRenderRange(meta: RenderMeta) {
-        const { columns, source, cellSize } = this.#grid;
-        const { scrollLeft, scrollTop, clientWidth, clientHeight } = meta;
-        const rowsCount = source.items.size;
-
-        const firstColumn = columns.items.find(
-            ({ visible, fromLeft, width }) => visible && fromLeft + width >= scrollLeft,
-        );
-
-        const lastColumn = columns.items
-            .reverse()
-            .find(({ visible, fromLeft }) => visible && fromLeft <= scrollLeft + clientWidth);
-
-        let firstRow: number = -1;
-        let lastRow: number = -1;
-        if (rowsCount > 0) {
-            firstRow = Math.min(rowsCount - 1, Math.floor(scrollTop / cellSize));
-            lastRow = Math.min(rowsCount - 1, Math.floor((scrollTop + clientHeight) / cellSize));
-        }
-
-        return new Range(firstColumn?.index ?? -1, firstRow, lastColumn?.index ?? -1, lastRow);
     }
 }

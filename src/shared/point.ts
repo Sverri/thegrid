@@ -1,32 +1,18 @@
+export interface Point {
+    /**
+     * X coordinate in 2D space
+     */
+    readonly x: number;
+
+    /**
+     * Y coordinate in 2D space
+     */
+    readonly y: number;
+}
+
 /**
- * Point class represents a point in 2D space with x and y coordinates.
- *
- * @interface ColumnOptions
+ * Point represents a point in 2D space with x and y coordinates.
  */
-export class Point {
-    #x: number;
-    #y: number;
-
-    constructor(x: number, y: number) {
-        this.#x = x;
-        this.#y = y;
-    }
-
-    /**
-     * Gets the x-coordinate of the point.
-     *
-     * @returns The x-coordinate value
-     */
-    get x() {
-        return this.#x;
-    }
-
-    /**
-     * Gets the y-coordinate of the point.
-     *
-     * @returns The y-coordinate value
-     */
-    get y() {
-        return this.#y;
-    }
+export function createPoint(x: number, y: number): Point {
+    return Object.freeze({ x, y });
 }

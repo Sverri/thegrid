@@ -13,7 +13,7 @@ export type CellType = (typeof CellType)[keyof typeof CellType];
 /**
  * Column type
  */
-export const ColumnType = Object.freeze({
+export const DataType = Object.freeze({
     String: Symbol("string column type"),
     Text: Symbol("text column type"),
     Boolean: Symbol("boolean column type"),
@@ -23,6 +23,7 @@ export const ColumnType = Object.freeze({
     URL: Symbol("url column type"),
     Email: Symbol("email column type"),
     Currency: Symbol("currency column type"),
+    Custom: Symbol("custom column type"),
 } as const);
 
-export type ColumnType = (typeof ColumnType)[keyof typeof ColumnType];
+export type DataType = (typeof DataType)[keyof typeof DataType];

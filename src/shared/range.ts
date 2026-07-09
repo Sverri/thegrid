@@ -1,84 +1,62 @@
-import { Point } from "./point";
+export interface Range {
+    /**
+     * X1 coordinate
+     */
+    readonly x1: number;
 
-export class Range {
-    #point1: Point;
-    #point2: Point;
+    /**
+     * X2 coordinate
+     */
+    readonly x2: number;
 
-    constructor(x1: number, y1: number, x2 = x1, y2 = y1) {
-        this.#point1 = new Point(x1, y1);
-        this.#point2 = new Point(x2, y2);
-    }
+    /**
+     * Y1 coordinate
+     */
+    readonly y1: number;
 
-    get x1(): number {
-        return this.#point1.x;
-    }
+    /**
+     * Y2 coordinate
+     */
+    readonly y2: number;
 
-    get x2(): number {
-        return this.#point2.x;
-    }
+    /**
+     * Left edge of range
+     */
+    readonly left: number;
 
-    get y1(): number {
-        return this.#point1.y;
-    }
+    /**
+     * Right edge of range
+     */
+    readonly right: number;
 
-    get y2(): number {
-        return this.#point2.y;
-    }
+    /**
+     * Top edge of range
+     */
+    readonly top: number;
 
-    get left(): number {
-        return Math.min(this.#point1.x, this.#point2.x);
-    }
+    /**
+     * Bottom edge of range
+     */
+    readonly bottom: number;
+}
 
-    get right(): number {
-        return Math.max(this.#point1.x, this.#point2.x);
-    }
+/**
+ * Range representing a space with x1, x2, y1 and y2 coordinates.
+ */
+export function createRange(x1: number, y1: number, x2 = x1, y2 = y1): Range {
+    const left = Math.min(x1, x2);
+    const right = Math.max(x1, x2);
+    const top = Math.min(y1, y2);
+    const bottom = Math.max(y1, y2);
 
-    get top(): number {
-        return Math.min(this.#point1.y, this.#point2.y);
-    }
-
-    get bottom(): number {
-        return Math.max(this.#point1.y, this.#point2.y);
-    }
-
-    union(range: Range): Range {
-        return new Range(
-            Math.min(this.left, range.left),
-            Math.min(this.top, range.top),
-            Math.max(this.right, range.right),
-            Math.max(this.bottom, range.bottom),
-        );
-    }
-
-    intersect(range: Range): Range | undefined {
-        const x1 = Math.min(this.#point1.x, this.#point2.x);
-        const x2 = Math.max(this.#point1.x, this.#point2.x);
-        const y1 = Math.min(this.#point1.y, this.#point2.y);
-        const y2 = Math.max(this.#point1.y, this.#point2.y);
-
-        const otherX1 = Math.min(range.#point1.x, range.#point2.x);
-        const otherX2 = Math.max(range.#point1.x, range.#point2.x);
-        const otherY1 = Math.min(range.#point1.y, range.#point2.y);
-        const otherY2 = Math.max(range.#point1.y, range.#point2.y);
-
-        const left = Math.max(x1, otherX1);
-        const top = Math.max(y1, otherY1);
-        const right = Math.min(x2, otherX2);
-        const bottom = Math.min(y2, otherY2);
-
-        if (left > right || top >= bottom) {
-            return undefined;
-        }
-
-        return new Range(left, top, right, bottom);
-    }
-
-    containsPoint(point: Point): boolean {
-        return (
-            point.x >= this.left &&
-            point.x <= this.right &&
-            point.y >= this.top &&
-            point.y <= this.bottom
-        );
-    }
+    return Object.freeze({
+        x1,
+        x2,
+        y1,
+        y2,
+        left,
+        right,
+        top,
+        bottom,
+    });
 }

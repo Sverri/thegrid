@@ -19,11 +19,11 @@
 
     .thegrid-enable-zebra {
         --row-even-bg-color: light-dark(rgb(0 0 0 / 0%), rgb(255 255 255 / 0%));
-        --row-odd-bg-color: light-dark(rgb(0 0 0 / 3%), rgb(255 255 255 / 5%));
+        --row-odd-bg-color: light-dark(rgb(0 0 0 / 3%), rgb(255 255 255 / 6%));
     }
 
     /* Selection */
-    --selection-cell-bg-color: light-dark(#e1f7ff, #004b66);
+    --selection-cell-bg-color: light-dark(#cbe7f7, #004b66);
     --selection-cell-border-color: light-dark(#0085ad, #007a9f);
     --selection-header-bg-color: light-dark(#d7e6ef, #0b3852);
     --selection-header-border-color: var(--selection-cell-border-color);
@@ -44,17 +44,7 @@
         box-sizing: border-box;
     }
 
-    &.full-size {
-        width: 100%;
-        height: 100%;
-    }
-
-    &.no-size {
-        width: auto;
-        height: auto;
-    }
-
-    [data-area="top-left"] {
+    .thegrid-area-topleft {
         position: absolute;
         top: 0;
         left: 0;
@@ -66,7 +56,7 @@
         z-index: 1;
     }
 
-    [data-area="columns-headers"] {
+    .thegrid-area-columnheaders {
         position: absolute;
         top: 0;
         left: var(--cell-size);
@@ -75,7 +65,8 @@
         background: var(--cell-header-bg-color);
         border-bottom: 1px var(--grid-area-border-color) solid;
     }
-    [data-area="row-headers"] {
+
+    .thegrid-area-rowheaders {
         position: absolute;
         top: var(--cell-size);
         left: 0;
@@ -84,7 +75,8 @@
         background: var(--cell-header-bg-color);
         border-right: 1px var(--grid-area-border-color) solid;
     }
-    [data-area="cells"] {
+
+    .thegrid-area-cells {
         position: absolute;
         top: 0;
         left: 0;
@@ -116,7 +108,7 @@
         left: 0;
         border-right: 1px var(--cell-border-color) solid;
         border-bottom: 1px var(--cell-border-color) solid;
-        padding: 0 calc(var(--cell-size) / 4);
+        padding: 0 calc(var(--cell-size) / 3);
         line-height: var(--cell-size);
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -140,7 +132,7 @@
             border-right: none;
         }
 
-        &.thegrid-cell-topleft {
+        &.thegrid-cell-top-left {
             border: none;
         }
 
@@ -168,7 +160,6 @@
                     var(--row-odd-bg-color)
                 );
             }
-            /* background-color: var(--selection-cell-bg-color); */
         }
         &.selection-left-border {
             border-left: 1px var(--selection-cell-border-color) solid;

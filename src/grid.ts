@@ -1,26 +1,25 @@
-import type { ColumnOptions } from "@/column/column";
-import { Range } from "@/shared/range";
-import { debounce } from "throttle-debounce";
-import { ColumnManager } from "@/column/columnmanager";
-import { gridReferences } from "@/shared/meta";
+import { createColumns, type ColumnOptions, type Columns } from "@/columns";
+import { createSource, type Source } from "@/source";
+import { createRange, type Range } from "@/shared/range";
 import { extractPropertiesFromObjects } from "@/helpers/extractpropertiesfromobjects";
-import { Source } from "@/data/source";
-import { Renderer } from "@/rendering/renderer";
+import { Renderer } from "@/renderer";
+import { debounce } from "throttle-debounce";
+import { List } from "immutable";
 
-type GridSizes = "full" | "none" | { width: number | string; height: number | string };
+type GridSizes = "full" | { width: number | string; height: number | string };
 
 interface Options<T extends Record<string, any>> {
     data?: ArrayLike<T>;
-    columns?: ArrayLike<ColumnOptions>;
+    columns?: ArrayLike<ColumnOptions<T>>;
     size?: GridSizes;
     zebra?: boolean;
 }
 
 const HTML = `
-    <div data-area="cells"></div>
-    <div data-area="top-left"></div>
-    <div data-area="columns-headers"></div>
-    <div data-area="row-headers"></div>
+    <div class="thegrid-area-cells"></div>
+    <div class="thegrid-area-topleft"></div>
+    <div class="thegrid-area-columnheaders"></div>
+    <div class="thegrid-area-rowheaders"></div>
 `;
 
 export class TheGrid<T extends Record<string, any>> {
@@ -30,7 +29,7 @@ export class TheGrid<T extends Record<string, any>> {
     #columnHeadersElement: HTMLElement;
     #rowHeadersElement: HTMLElement;
 
-    #columnManager: ColumnManager;
+    #columnManager: Columns<T>;
     #source: Source<T>;
     #selection: Range | undefined;
 
@@ -39,8 +38,6 @@ export class TheGrid<T extends Record<string, any>> {
     #cellSize: number;
 
     constructor(hostElement: HTMLElement, options: Options<T> = { data: [], columns: undefined }) {
-        gridReferences.add(new WeakRef(this));
-
         // Host element
         this.#hostElement = hostElement;
         this.#hostElement.innerHTML = HTML;
@@ -55,18 +52,20 @@ export class TheGrid<T extends Record<string, any>> {
         );
 
         // Elements
-        this.#cellsElement = host.querySelector("[data-area='cells']")!;
-        this.#columnHeadersElement = host.querySelector("[data-area='columns-headers']")!;
-        this.#rowHeadersElement = host.querySelector("[data-area='row-headers']")!;
+        this.#cellsElement = host.querySelector(".thegrid-area-cells")!;
+        this.#columnHeadersElement = host.querySelector(".thegrid-area-columnheaders")!;
+        this.#rowHeadersElement = host.querySelector(".thegrid-area-rowheaders")!;
 
         // Source
-        this.#source = new Source(options.data ?? []);
+        this.#source = createSource<T>();
+        this.#source.update(() => List(options.data ?? []));
         this.#source.onChange.subscribe(() => {
             this.invalidate();
         });
 
         // Columns
-        this.#columnManager = new ColumnManager(this, this.#getColumns(options.columns));
+        this.#columnManager = createColumns(this);
+        this.#columnManager.update(() => List(this.#getColumns(options.columns)));
         this.#columnManager.onChange.subscribe(() => {
             this.invalidate();
         });
@@ -95,7 +94,7 @@ export class TheGrid<T extends Record<string, any>> {
             mouseDownElement = event.target;
             const downRowIndex = Number.parseInt(mouseDownElement!.dataset.row!, 10);
             const downColumnIndex = Number.parseInt(mouseDownElement!.dataset.column!, 10);
-            this.selection = new Range(downColumnIndex, downRowIndex);
+            this.selection = createRange(downColumnIndex, downRowIndex);
         });
 
         this.#cellsElement.addEventListener("mousemove", event => {
@@ -116,7 +115,7 @@ export class TheGrid<T extends Record<string, any>> {
             ) {
                 return;
             }
-            this.selection = new Range(downColumnIndex, downRowIndex, upColumnIndex, upRowIndex);
+            this.selection = createRange(downColumnIndex, downRowIndex, upColumnIndex, upRowIndex);
         });
 
         this.#cellsElement.addEventListener("mouseup", event => {
@@ -132,7 +131,7 @@ export class TheGrid<T extends Record<string, any>> {
                 if (Number.isNaN(rowIndex) || Number.isNaN(columnIndex)) {
                     return;
                 }
-                this.selection = new Range(columnIndex, rowIndex);
+                this.selection = createRange(columnIndex, rowIndex);
             } else if (mouseDownElement) {
                 const downRowIndex = Number.parseInt(mouseDownElement!.dataset.row!, 10);
                 const downColumnIndex = Number.parseInt(mouseDownElement!.dataset.column!, 10);
@@ -146,7 +145,7 @@ export class TheGrid<T extends Record<string, any>> {
                 ) {
                     return;
                 }
-                this.selection = new Range(
+                this.selection = createRange(
                     downColumnIndex,
                     downRowIndex,
                     upColumnIndex,
@@ -178,11 +177,11 @@ export class TheGrid<T extends Record<string, any>> {
         return this.#rowHeadersElement;
     }
 
-    get source(): Source<T> {
+    get source() {
         return this.#source;
     }
 
-    get columns(): ColumnManager {
+    get columns(): Columns<T> {
         return this.#columnManager;
     }
 
@@ -190,11 +189,7 @@ export class TheGrid<T extends Record<string, any>> {
         return this.#cellSize;
     }
 
-    get size(): GridSizes {
-        return this.#size;
-    }
-
-    get selection(): Range | undefined {
+    get selection() {
         return this.#selection;
     }
 
@@ -203,18 +198,16 @@ export class TheGrid<T extends Record<string, any>> {
         this.#renderer.render();
     }
 
+    get size(): GridSizes {
+        return this.#size;
+    }
+
     set size(size: GridSizes) {
         this.#size = size;
-        this.#hostElement.classList.remove("full-size", "no-size");
-        this.#hostElement.style.removeProperty("width");
-        this.#hostElement.style.removeProperty("height");
         switch (this.#size) {
             case "full": {
-                this.#hostElement.classList.add("full-size");
-                break;
-            }
-            case "none": {
-                this.#hostElement.classList.add("no-size");
+                this.#hostElement.style.setProperty("width", "100%");
+                this.#hostElement.style.setProperty("height", "100%");
                 break;
             }
             default: {
@@ -226,7 +219,7 @@ export class TheGrid<T extends Record<string, any>> {
         }
     }
 
-    #getColumns(columns: ArrayLike<ColumnOptions> | undefined): ColumnOptions[] {
+    #getColumns(columns: ArrayLike<ColumnOptions<T>> | undefined): ColumnOptions<T>[] {
         const columnOptions = !columns
             ? extractPropertiesFromObjects(this.#source.items).map(binding => ({ binding }))
             : Array.from(columns);
