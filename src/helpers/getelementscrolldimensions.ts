@@ -5,9 +5,16 @@ export interface ElementScrollDimensions {
     scrollBottom: number;
 }
 
-export function getElementScrollDimensions(element: HTMLElement): ElementScrollDimensions {
+export interface ElementScrollLike {
+    scrollLeft: number;
+    scrollTop: number;
+    clientWidth: number;
+    clientHeight: number;
+}
+
+export function getElementScrollDimensions(element: ElementScrollLike): ElementScrollDimensions {
     const { scrollLeft, scrollTop, clientWidth, clientHeight } = element;
-    console.log("->", scrollLeft, scrollTop, clientWidth, clientHeight);
+
     return Object.freeze({
         scrollLeft,
         scrollRight: scrollLeft + clientWidth,
