@@ -23,10 +23,24 @@
     }
 
     /* Selection */
-    --selection-cell-bg-color: light-dark(#cbe7f7, #004b66);
-    --selection-cell-border-color: light-dark(#0085ad, #007a9f);
-    --selection-header-bg-color: light-dark(#d7e6ef, #0b3852);
-    --selection-header-border-color: var(--selection-cell-border-color);
+    --selection-color: #00b4ff;
+    --selection-cell-bg-color: light-dark(
+        color-mix(in srgb, hsl(from var(--selection-color) h 50% l), white 75%),
+        color-mix(in srgb, var(--selection-color), black 74%)
+    );
+    --selection-cell-current-bg-color: light-dark(
+        color-mix(in srgb, hsl(from var(--selection-color) h 65% l), white 53%),
+        color-mix(in srgb, var(--selection-color), black 50%)
+    );
+    --selection-cell-border-color: light-dark(
+        color-mix(in srgb, hsl(from var(--selection-color) h 30% l), black 10%),
+        color-mix(in srgb, var(--selection-color), black 50%)
+    );
+    --selection-header-bg-color: var(--selection-cell-bg-color);
+    --selection-header-border-color: light-dark(
+        color-mix(in srgb, hsl(from var(--selection-color) h 50% l), black 25%),
+        color-mix(in srgb, var(--selection-color), black 50%)
+    );
 
     /* Expander */
     --internal-expander-translate-x: 0;
@@ -95,10 +109,7 @@
             height: 1px;
             top: 0;
             bottom: 0;
-            transform: translate(
-                var(--internal-expander-translate-x),
-                var(--internal-expander-translate-y)
-            ) !important;
+            transform: translate(var(--internal-expander-translate-x), var(--internal-expander-translate-y)) !important;
         }
     }
 
@@ -147,18 +158,13 @@
 
         &.selection {
             &.row-even {
-                background-color: color-mix(
-                    in srgb,
-                    var(--selection-cell-bg-color),
-                    var(--row-even-bg-color)
-                );
+                background-color: color-mix(in srgb, var(--selection-cell-bg-color), var(--row-even-bg-color));
             }
             &.row-odd {
-                background-color: color-mix(
-                    in srgb,
-                    var(--selection-cell-bg-color),
-                    var(--row-odd-bg-color)
-                );
+                background-color: color-mix(in srgb, var(--selection-cell-bg-color), var(--row-odd-bg-color));
+            }
+            &.selection-current {
+                background-color: var(--selection-cell-current-bg-color);
             }
         }
         &.selection-left-border {

@@ -121,8 +121,8 @@ export function createRange(x1: number, y1: number, x2 = x1, y2 = y1): Range {
         },
 
         *iterator() {
-            for (let columnIndex = left; columnIndex <= right; columnIndex++) {
-                for (let rowIndex = top; rowIndex <= bottom; rowIndex++) {
+            for (let rowIndex = top; rowIndex <= bottom; rowIndex++) {
+                for (let columnIndex = left; columnIndex <= right; columnIndex++) {
                     yield createPoint(columnIndex, rowIndex);
                 }
             }

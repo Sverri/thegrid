@@ -1,7 +1,7 @@
 import { createRange, type Range } from "@/shared/range";
 
 export function renderSelection(cell: HTMLElement, selection: Range, columnIndex: number, rowIndex: number) {
-    const { left, right, top, bottom } = selection!;
+    const { left, right, top, bottom, x2, y2 } = selection!;
 
     if (selection.contains(createRange(columnIndex, rowIndex))) {
         cell.classList.add("selection");
@@ -27,5 +27,9 @@ export function renderSelection(cell: HTMLElement, selection: Range, columnIndex
         if (rowIndex === bottom) {
             cell.classList.add("selection-bottom-border");
         }
+    }
+
+    if (columnIndex === x2 && rowIndex === y2) {
+        cell.classList.add("selection-current");
     }
 }

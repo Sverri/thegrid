@@ -74,7 +74,6 @@ export class Renderer {
             cell.style.transform = `translate(${fromLeft}px, ${y * cellSize}px)`;
             cell.style.width = `${width}px`;
             cell.style.height = `${cellSize}px`;
-            cell.tabIndex = 0;
 
             if (selection) {
                 renderSelection(cell, selection, x, y);

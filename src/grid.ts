@@ -144,6 +144,10 @@ export class TheGrid<T extends Record<string, any>> {
             this.selection = createRange(downColumnIndex, downRowIndex, upColumnIndex, upRowIndex);
             startCoords = undefined;
         });
+
+        this.#cellsElement.addEventListener("keydown", event => {
+            console.log(event);
+        });
     }
 
     invalidate = debounce(100, () => {
@@ -182,8 +186,8 @@ export class TheGrid<T extends Record<string, any>> {
         return this.#selection;
     }
 
-    set selection(point: Range) {
-        this.#selection = point;
+    set selection(range: Range) {
+        this.#selection = range;
         this.#renderer.render();
     }
 
