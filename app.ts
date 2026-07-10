@@ -67,7 +67,7 @@ const grid = new TheGrid<User>(hostElement!, {
     ],
 });
 
-grid.selection = createRange(2, 2, 5, 5);
+grid.selection = createRange(0, 0);
 
 // setTimeout(() => {
 //     grid.columns.update(columns => {

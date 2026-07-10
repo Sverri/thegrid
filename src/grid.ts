@@ -16,7 +16,7 @@ interface Options<T extends Record<string, any>> {
 }
 
 const HTML = `
-    <div class="thegrid-area-cells"></div>
+    <div class="thegrid-area-cells" tabindex="0"></div>
     <div class="thegrid-area-topleft"></div>
     <div class="thegrid-area-columnheaders"></div>
     <div class="thegrid-area-rowheaders"></div>
@@ -80,6 +80,8 @@ export class TheGrid<T extends Record<string, any>> {
 
         this.#registerResizeObserver();
         this.invalidate();
+
+        // TODO Move event handlers into dedicated function/method/something
 
         let startCoords: { row: number; column: number } | undefined;
 
@@ -146,6 +148,76 @@ export class TheGrid<T extends Record<string, any>> {
         });
 
         this.#cellsElement.addEventListener("keydown", event => {
+            switch (event.key) {
+                case "a": {
+                    if (event.shiftKey || event.altKey || event.metaKey) {
+                        break;
+                    }
+                    if (event.ctrlKey) {
+                        const columnCount = this.#columnManager.items.size - 1;
+                        const rowCount = this.#source.items.size - 1;
+                        this.selection = createRange(0, 0, columnCount, rowCount);
+                        event.preventDefault();
+                    }
+                    break;
+                }
+                case "ArrowLeft": {
+                    if (event.ctrlKey || event.altKey || event.metaKey) {
+                        break;
+                    }
+                    const { x2, y2 } = this.#selection;
+                    const min = 0;
+                    if (event.shiftKey) {
+                        this.selection = this.#selection.adjustLeft(1, min);
+                    } else {
+                        this.selection = createRange(Math.max(min, x2 - 1), y2);
+                    }
+                    event.preventDefault();
+                    break;
+                }
+                case "ArrowRight": {
+                    if (event.ctrlKey || event.altKey || event.metaKey) {
+                        break;
+                    }
+                    const { x2, y2 } = this.#selection;
+                    const max = this.#columnManager.visibleColumns - 1;
+                    if (event.shiftKey) {
+                        this.selection = this.#selection.adjustRight(1, max);
+                    } else {
+                        this.selection = createRange(Math.min(max, x2 + 1), y2);
+                    }
+                    event.preventDefault();
+                    break;
+                }
+                case "ArrowUp": {
+                    if (event.ctrlKey || event.altKey || event.metaKey) {
+                        break;
+                    }
+                    const { x2, y2 } = this.#selection;
+                    const min = 0;
+                    if (event.shiftKey) {
+                        this.selection = this.#selection.adjustUp(1, min);
+                    } else {
+                        this.selection = createRange(x2, Math.max(min, y2 - 1));
+                    }
+                    event.preventDefault();
+                    break;
+                }
+                case "ArrowDown": {
+                    if (event.ctrlKey || event.altKey || event.metaKey) {
+                        break;
+                    }
+                    const { x2, y2 } = this.#selection;
+                    const max = this.#source.items.size - 1;
+                    if (event.shiftKey) {
+                        this.selection = this.#selection.adjustDown(1, max);
+                    } else {
+                        this.selection = createRange(x2, Math.min(max, y2 + 1));
+                    }
+                    event.preventDefault();
+                    break;
+                }
+            }
             console.log(event);
         });
     }
@@ -189,7 +261,22 @@ export class TheGrid<T extends Record<string, any>> {
     set selection(range: Range) {
         this.#selection = range;
         this.#renderer.render();
+        const { x2, y2 } = range;
+        const current = this.#cellsElement.querySelector<HTMLDivElement>(`[data-column="${x2}"][data-row="${y2}"]`);
+        if (current) {
+            this.#scrollIntoView(current);
+        } else {
+            // TODO When arrow key is held down it looks like it gets a bit wonky
+        }
     }
+
+    #scrollIntoView = debounce(64, (element: HTMLDivElement) => {
+        element.scrollIntoView({
+            block: "nearest",
+            inline: "nearest",
+            behavior: "auto",
+        });
+    });
 
     get size(): GridSizes {
         return this.#size;

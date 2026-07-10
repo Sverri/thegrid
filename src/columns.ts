@@ -89,6 +89,8 @@ export interface Columns<T extends Record<string, any>> {
      */
     readonly onChange: UnraiseableEvent<() => void>;
 
+    get visibleColumns(): number;
+
     /**
      * Update multiple columns
      *
@@ -154,6 +156,9 @@ export function createColumns<T extends Record<string, any>>(grid: TheGrid<T>): 
         },
         get onChange() {
             return unraisable;
+        },
+        get visibleColumns() {
+            return items.count(column => column.visible);
         },
         update(callback: (columns: List<ColumnOptions<T>>) => List<ColumnOptions<T>>) {
             const options = transformColumnsToOptions(items);
