@@ -2,7 +2,6 @@ import type { TheGrid } from "@/grid";
 import { CellType } from "@/shared/enums";
 import { type Range } from "@/shared/range";
 import { getElementScrollDimensions, type ElementScrollDimensions } from "./helpers/getelementscrolldimensions";
-import { createCell } from "@/helpers/createcell";
 import { calculateRenderArea } from "@/render/calculaterenderarea";
 import { createExpander, type Expander } from "@/render/createexpander";
 import { setCellContents } from "@/render/setcellcontents";
@@ -58,7 +57,10 @@ export class Renderer {
 
     #renderCells(range: Range): void {
         const { cellsElement, selection, columns, cellSize } = this.#grid;
+
         const cells = Array.from(cellsElement.children) as HTMLDivElement[];
+        cells.forEach(this.#cellManager.turnIn);
+
         const fragment = new DocumentFragment();
 
         for (const { x, y } of range.iterator()) {
@@ -83,21 +85,14 @@ export class Renderer {
         }
 
         cellsElement.append(fragment);
-
-        if (cells.length > 0) {
-            for (const element of cells) {
-                this.#cellManager.turnIn(element);
-            }
-        }
     }
 
     #renderColumnHeaders({ left, right }: Range, { scrollLeft }: ElementScrollDimensions): void {
         const { columnHeadersElement, columns, cellSize, selection } = this.#grid;
+
         const cells = Array.from(columnHeadersElement.children) as HTMLDivElement[];
-        for (const cellElement of cells) {
-            // cellElement.remove();
-            this.#cellManager.turnIn(cellElement);
-        }
+        cells.forEach(this.#cellManager.turnIn);
+
         if (left === -1 || right === -1) {
             return;
         }
@@ -128,12 +123,9 @@ export class Renderer {
 
     #renderRowHeaders({ top, bottom }: Range, { scrollTop }: ElementScrollDimensions): void {
         const { rowHeadersElement, cellSize, selection } = this.#grid;
-        const cells = Array.from(rowHeadersElement.children) as HTMLDivElement[];
 
-        for (const cellElement of cells) {
-            // cellElement.remove();
-            this.#cellManager.turnIn(cellElement);
-        }
+        const cells = Array.from(rowHeadersElement.children) as HTMLDivElement[];
+        cells.forEach(this.#cellManager.turnIn);
 
         if (top === -1 || bottom === -1) {
             return;

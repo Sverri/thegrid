@@ -9,7 +9,10 @@ export function createCellManager(): CellManager {
     const cells: HTMLDivElement[] = [];
     return Object.freeze({
         retrieve(columnIndex: number, rowIndex: number, type: CellType) {
-            let cell = cells.pop() ?? document.createElement("div");
+            let cell = cells.pop();
+            if (!cell) {
+                cell = document.createElement("div");
+            }
             cell.className = "";
             cell.classList.add("thegrid-cell");
             cell.dataset.column = String(columnIndex);
@@ -22,7 +25,7 @@ export function createCellManager(): CellManager {
         },
         turnIn(cell: HTMLDivElement) {
             cell.remove();
-            cells.unshift(cell);
+            cells.push(cell);
         },
     });
 }

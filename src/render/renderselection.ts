@@ -1,13 +1,13 @@
-import { type Range } from "@/shared/range";
+import { createRange, type Range } from "@/shared/range";
 
 export function renderSelection(cell: HTMLElement, selection: Range, columnIndex: number, rowIndex: number) {
     const { left, right, top, bottom } = selection!;
 
-    if (columnIndex >= left && columnIndex <= right && rowIndex >= top && rowIndex <= bottom) {
+    if (selection.contains(createRange(columnIndex, rowIndex))) {
         cell.classList.add("selection");
     }
 
-    if (rowIndex >= top && rowIndex <= bottom) {
+    if (selection.intersectsRow(rowIndex)) {
         if (columnIndex === 0 && columnIndex === left) {
             cell.classList.add("selection-left-border");
         } else if (columnIndex === left - 1) {
@@ -18,7 +18,7 @@ export function renderSelection(cell: HTMLElement, selection: Range, columnIndex
         }
     }
 
-    if (columnIndex >= left && columnIndex <= right) {
+    if (selection.intersectsColumn(columnIndex)) {
         if (rowIndex === 0 && rowIndex === top) {
             cell.classList.add("selection-top-border");
         } else if (rowIndex === top - 1) {

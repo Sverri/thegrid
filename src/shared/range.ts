@@ -42,6 +42,36 @@ export interface Range {
     readonly bottom: number;
 
     /**
+     * Whether the supplied range is fully contained by this range
+     */
+    contains(range: Range): boolean;
+
+    /**
+     * Whether the supplied column index is within this range's columns
+     */
+    containsColumn(columnIndex: number): boolean;
+
+    /**
+     * Whether the supplied row index is within this range's rows
+     */
+    containsRow(rowIndex: number): boolean;
+
+    /**
+     * Whether this range intersects the supplied range
+     */
+    intersects(range: Range): boolean;
+
+    /**
+     * Whether the supplied column index intersects this range's columns
+     */
+    intersectsColumn(columnIndex: number): boolean;
+
+    /**
+     * Whether the supplied row index intersects this range's rows
+     */
+    intersectsRow(rowIndex: number): boolean;
+
+    /**
      * Iterate over all the points in the range
      */
     iterator(): Generator<Point, void, unknown>;
@@ -65,6 +95,30 @@ export function createRange(x1: number, y1: number, x2 = x1, y2 = y1): Range {
         right,
         top,
         bottom,
+
+        contains(range: Range) {
+            return range.left >= left && range.right <= right && range.top >= top && range.bottom <= bottom;
+        },
+
+        containsColumn(columnIndex: number) {
+            return columnIndex >= left && columnIndex <= right;
+        },
+
+        containsRow(rowIndex: number) {
+            return rowIndex >= top && rowIndex <= bottom;
+        },
+
+        intersects(range: Range) {
+            return range.left <= right && range.right >= left && range.top <= bottom && range.bottom >= top;
+        },
+
+        intersectsColumn(columnIndex: number) {
+            return columnIndex >= left && columnIndex <= right;
+        },
+
+        intersectsRow(rowIndex: number) {
+            return rowIndex >= top && rowIndex <= bottom;
+        },
 
         *iterator() {
             for (let columnIndex = left; columnIndex <= right; columnIndex++) {
