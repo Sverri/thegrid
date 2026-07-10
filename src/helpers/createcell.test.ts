@@ -5,7 +5,7 @@ import { CellType } from "../shared/enums";
 
 describe("createCell", () => {
     it("creates a basic cell with correct dataset and class", () => {
-        const el = createCell(CellType.Cell, 2, 3);
+        const el = createCell(CellType.Cell, 3, 2);
         expect(el.tagName.toLowerCase()).toBe("div");
         expect(el.classList.contains("thegrid-cell")).toBe(true);
         expect(el.dataset.row).toBe("2");

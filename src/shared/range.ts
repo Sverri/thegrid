@@ -1,3 +1,5 @@
+import { createPoint, type Point } from "./point";
+
 export interface Range {
     /**
      * X1 coordinate
@@ -38,6 +40,11 @@ export interface Range {
      * Bottom edge of range
      */
     readonly bottom: number;
+
+    /**
+     * Iterate over all the points in the range
+     */
+    iterator(): Generator<Point, void, unknown>;
 }
 
 /**
@@ -58,5 +65,13 @@ export function createRange(x1: number, y1: number, x2 = x1, y2 = y1): Range {
         right,
         top,
         bottom,
+
+        *iterator() {
+            for (let columnIndex = left; columnIndex <= right; columnIndex++) {
+                for (let rowIndex = top; rowIndex <= bottom; rowIndex++) {
+                    yield createPoint(columnIndex, rowIndex);
+                }
+            }
+        },
     });
 }

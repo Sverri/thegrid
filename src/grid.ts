@@ -31,7 +31,7 @@ export class TheGrid<T extends Record<string, any>> {
 
     #columnManager: Columns<T>;
     #source: Source<T>;
-    #selection: Range | undefined;
+    #selection: Range = createRange(-1, -1);
 
     #renderer: Renderer;
     #size: GridSizes = "full";
@@ -81,7 +81,7 @@ export class TheGrid<T extends Record<string, any>> {
         this.#registerResizeObserver();
         this.invalidate();
 
-        let mouseDownElement: HTMLElement | undefined;
+        let startCoords: { row: number; column: number } | undefined;
 
         this.#cellsElement.addEventListener("mousedown", event => {
             if (
@@ -91,22 +91,21 @@ export class TheGrid<T extends Record<string, any>> {
             ) {
                 return;
             }
-            mouseDownElement = event.target;
-            const downRowIndex = Number.parseInt(mouseDownElement!.dataset.row!, 10);
-            const downColumnIndex = Number.parseInt(mouseDownElement!.dataset.column!, 10);
-            this.selection = createRange(downColumnIndex, downRowIndex);
+            startCoords = {
+                row: Number.parseInt(event.target!.dataset.row!, 10),
+                column: Number.parseInt(event.target!.dataset.column!, 10),
+            };
+            this.selection = createRange(startCoords.column, startCoords.row);
         });
 
         this.#cellsElement.addEventListener("mousemove", event => {
-            if (event.button !== 0 || !(event.target instanceof HTMLElement) || !mouseDownElement) {
+            if (event.button !== 0 || !(event.target instanceof HTMLElement) || !startCoords) {
                 return;
             }
-            const mouseMoveElement = event.target;
-
-            const downRowIndex = Number.parseInt(mouseDownElement!.dataset.row!, 10);
-            const downColumnIndex = Number.parseInt(mouseDownElement!.dataset.column!, 10);
-            const upRowIndex = Number.parseInt(mouseMoveElement.dataset.row!, 10);
-            const upColumnIndex = Number.parseInt(mouseMoveElement.dataset.column!, 10);
+            const downRowIndex = startCoords.row;
+            const downColumnIndex = startCoords.column;
+            const upRowIndex = Number.parseInt(event.target.dataset.row!, 10);
+            const upColumnIndex = Number.parseInt(event.target.dataset.column!, 10);
             if (
                 Number.isNaN(downRowIndex) ||
                 Number.isNaN(downColumnIndex) ||
@@ -118,42 +117,32 @@ export class TheGrid<T extends Record<string, any>> {
             this.selection = createRange(downColumnIndex, downRowIndex, upColumnIndex, upRowIndex);
         });
 
+        this.#cellsElement.addEventListener("mouseenter", () => {
+            startCoords = undefined;
+        });
+
+        this.#cellsElement.addEventListener("mouseleave", () => {
+            startCoords = undefined;
+        });
+
         this.#cellsElement.addEventListener("mouseup", event => {
             if (event.button !== 0 || !(event.target instanceof HTMLElement)) {
                 return;
             }
-            const mouseUpElement = event.target;
-
-            if (mouseDownElement === mouseUpElement) {
-                const target = event.target;
-                const rowIndex = Number.parseInt(target.dataset.row!, 10);
-                const columnIndex = Number.parseInt(target.dataset.column!, 10);
-                if (Number.isNaN(rowIndex) || Number.isNaN(columnIndex)) {
-                    return;
-                }
-                this.selection = createRange(columnIndex, rowIndex);
-            } else if (mouseDownElement) {
-                const downRowIndex = Number.parseInt(mouseDownElement!.dataset.row!, 10);
-                const downColumnIndex = Number.parseInt(mouseDownElement!.dataset.column!, 10);
-                const upRowIndex = Number.parseInt(mouseUpElement.dataset.row!, 10);
-                const upColumnIndex = Number.parseInt(mouseUpElement.dataset.column!, 10);
-                if (
-                    Number.isNaN(downRowIndex) ||
-                    Number.isNaN(downColumnIndex) ||
-                    Number.isNaN(upRowIndex) ||
-                    Number.isNaN(upColumnIndex)
-                ) {
-                    return;
-                }
-                this.selection = createRange(
-                    downColumnIndex,
-                    downRowIndex,
-                    upColumnIndex,
-                    upRowIndex,
-                );
+            const upColumnIndex = Number.parseInt(event.target.dataset.column!, 10);
+            const upRowIndex = Number.parseInt(event.target.dataset.row!, 10);
+            const downColumnIndex = startCoords?.column ?? upColumnIndex;
+            const downRowIndex = startCoords?.row ?? upRowIndex;
+            if (
+                Number.isNaN(downRowIndex) ||
+                Number.isNaN(downColumnIndex) ||
+                Number.isNaN(upRowIndex) ||
+                Number.isNaN(upColumnIndex)
+            ) {
+                return;
             }
-
-            mouseDownElement = undefined;
+            this.selection = createRange(downColumnIndex, downRowIndex, upColumnIndex, upRowIndex);
+            startCoords = undefined;
         });
     }
 
@@ -193,7 +182,7 @@ export class TheGrid<T extends Record<string, any>> {
         return this.#selection;
     }
 
-    set selection(point: Range | undefined) {
+    set selection(point: Range) {
         this.#selection = point;
         this.#renderer.render();
     }
@@ -236,7 +225,7 @@ export class TheGrid<T extends Record<string, any>> {
         resizeObserver.observe(this.#hostElement);
     }
 
-    getCellData(rowIndex: number, columnIndex: number): unknown {
+    getCellData(columnIndex: number, rowIndex: number): unknown {
         const row = this.source.items.get(rowIndex);
         if (!row) {
             return undefined;
