@@ -1,6 +1,13 @@
+import type { Column } from "@/columns";
 import { createRange, type Range } from "@/shared/range";
 
-export function renderSelection(cell: HTMLElement, selection: Range, columnIndex: number, rowIndex: number) {
+export function renderSelection(
+    cell: HTMLElement,
+    selection: Range,
+    columns: Immutable.List<Column<object>>,
+    columnIndex: number,
+    rowIndex: number,
+) {
     const { left, right, top, bottom, x2, y2 } = selection!;
 
     if (selection.contains(createRange(columnIndex, rowIndex))) {
@@ -10,7 +17,7 @@ export function renderSelection(cell: HTMLElement, selection: Range, columnIndex
     if (selection.intersectsRow(rowIndex)) {
         if (columnIndex === 0 && columnIndex === left) {
             cell.classList.add("selection-left-border");
-        } else if (columnIndex === left - 1) {
+        } else if (columnIndex === columns.get(left)?.previousVisibleColumn?.index) {
             cell.classList.add("selection-right-border");
         }
         if (columnIndex === right) {

@@ -73,6 +73,11 @@ export interface Column<T extends Record<string, any>> extends Required<ColumnOp
      * Where column is positioned from the left (px)
      */
     fromLeft: number;
+
+    nextColumn: Column<T> | undefined;
+    nextVisibleColumn: Column<T> | undefined;
+    previousColumn: Column<T> | undefined;
+    previousVisibleColumn: Column<T> | undefined;
 }
 
 export interface Columns<T extends Record<string, any>> {
@@ -80,6 +85,15 @@ export interface Columns<T extends Record<string, any>> {
      * Gets the list of columns in the collection.
      */
     readonly items: List<Column<T>>;
+    readonly firstIndex: number;
+    readonly lastIndex: number;
+
+    /**
+     * Gets the list of visible columns in the collection.
+     */
+    readonly visibleItems: List<Column<T>>;
+    readonly firstVisibleIndex: number;
+    readonly lastVisibleIndex: number;
 
     /**
      * Gets the change event for this column collection.
@@ -88,8 +102,6 @@ export interface Columns<T extends Record<string, any>> {
      * collection changes.
      */
     readonly onChange: UnraiseableEvent<() => void>;
-
-    get visibleColumns(): number;
 
     /**
      * Update multiple columns
@@ -134,6 +146,28 @@ function transformOptionsToColumns<T extends Record<string, any>>(
             index: index,
             visibleIndex: visibleIndex,
             fromLeft: fromLeft,
+            get nextColumn() {
+                return grid.columns.items.get(index - 1);
+            },
+            get nextVisibleColumn() {
+                for (let i = index + 1; i < grid.columns.items.size; i++) {
+                    const next = grid.columns.items.get(i);
+                    if (next && next.visible) {
+                        return next;
+                    }
+                }
+            },
+            get previousColumn() {
+                return grid.columns.items.get(index + 1);
+            },
+            get previousVisibleColumn() {
+                for (let i = index - 1; i >= 0; i--) {
+                    const previous = grid.columns.items.get(i);
+                    if (previous && previous.visible) {
+                        return previous;
+                    }
+                }
+            },
         };
         if (visible) {
             visibleIndex++;
@@ -154,11 +188,23 @@ export function createColumns<T extends Record<string, any>>(grid: TheGrid<T>): 
         get items() {
             return items;
         },
+        get firstIndex() {
+            return items.size === 0 ? -1 : 0;
+        },
+        get lastIndex() {
+            return items.size - 1;
+        },
+        get visibleItems() {
+            return items.filter(column => column.visible);
+        },
+        get firstVisibleIndex() {
+            return items.findIndex(column => column.visible);
+        },
+        get lastVisibleIndex() {
+            return items.findLastIndex(column => column.visible);
+        },
         get onChange() {
             return unraisable;
-        },
-        get visibleColumns() {
-            return items.count(column => column.visible);
         },
         update(callback: (columns: List<ColumnOptions<T>>) => List<ColumnOptions<T>>) {
             const options = transformColumnsToOptions(items);

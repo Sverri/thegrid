@@ -52,10 +52,10 @@ const grid = new TheGrid<User>(hostElement!, {
         { binding: "id", header: "Id", width: 100, dataType: DataType.Text },
         { binding: "name", header: "Name", width: 200, dataType: DataType.String },
         { binding: "age", header: "Age", width: 100, dataType: DataType.Integer },
-        { binding: "dob", header: "Date of birth", width: 400, dataType: DataType.Date },
+        { binding: "dob", header: "Date of birth", width: 400, dataType: DataType.Date, visible: false },
         { binding: "salary", header: "Salary", width: 150, dataType: DataType.Decimal },
         { binding: "email", header: "Email address", width: 300, dataType: DataType.Email },
-        { binding: "website", header: "Website", width: 300, dataType: DataType.URL },
+        { binding: "website", header: "Website", width: 300, dataType: DataType.URL, visible: false },
         { binding: "postcode", header: "Post code", width: 150, dataType: DataType.String },
         { binding: "country", header: "Country", width: 250 },
         { binding: "telephone", header: "Telephone", width: 175, dataType: DataType.String },
@@ -63,11 +63,11 @@ const grid = new TheGrid<User>(hostElement!, {
         { binding: "subscribed", header: "Subscribed", width: 100, dataType: DataType.Boolean },
         { binding: "summary", header: "Summary", width: 400, dataType: DataType.Text },
         { binding: "note", header: "Note", width: 300, dataType: DataType.Text },
-        { binding: "children", header: "Children", width: 100, dataType: DataType.Integer },
+        { binding: "children", header: "Children", width: 100, dataType: DataType.Integer, visible: false },
     ],
 });
 
-grid.selection = createRange(0, 0);
+grid.selection.update(0, 0);
 
 // setTimeout(() => {
 //     grid.columns.update(columns => {

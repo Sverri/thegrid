@@ -71,15 +71,13 @@ export interface Range {
      */
     intersectsRow(rowIndex: number): boolean;
 
-    adjustLeft(count?: number, min?: number): Range;
-    adjustRight(count?: number, max?: number): Range;
-    adjustUp(count?: number, max?: number): Range;
-    adjustDown(count?: number, max?: number): Range;
-
     /**
      * Iterate over all the points in the range
      */
     iterator(): Generator<Point, void, unknown>;
+
+    sameAs(range: Range): boolean;
+    identicalTo(range: Range): boolean;
 }
 
 /**
@@ -125,20 +123,12 @@ export function createRange(x1: number, y1: number, x2 = x1, y2 = y1): Range {
             return rowIndex >= top && rowIndex <= bottom;
         },
 
-        adjustLeft(count = 1, min = 0): Range {
-            return createRange(x1, y1, Math.max(min, x2 - count), y2);
+        sameAs(range: Range): boolean {
+            return left === range.left && top === range.top && right === range.right && bottom === range.bottom;
         },
 
-        adjustRight(count = 1, max = 99999): Range {
-            return createRange(x1, y1, Math.min(max, x2 + count), y2);
-        },
-
-        adjustUp(count = 1, min = 0): Range {
-            return createRange(x1, y1, x2, Math.max(min, y2 - count));
-        },
-
-        adjustDown(count = 1, max = 99999): Range {
-            return createRange(x1, y1, x2, Math.min(max, y2 + count));
+        identicalTo(range: Range): boolean {
+            return x1 === range.x1 && y1 === range.y1 && x2 === range.x2 && y2 === range.y2;
         },
 
         *iterator() {

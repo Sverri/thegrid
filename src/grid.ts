@@ -1,11 +1,11 @@
 import { createColumns, type ColumnOptions, type Columns } from "@/columns";
 import { createSource, type Source } from "@/source";
-import { createRange, type Range } from "@/shared/range";
 import { extractPropertiesFromObjects } from "@/helpers/extractpropertiesfromobjects";
 import { Renderer } from "@/renderer";
 import { debounce } from "throttle-debounce";
 import { List } from "immutable";
-import { getElementScrollDimensions } from "./helpers/getelementscrolldimensions";
+import { getElementScrollDimensions } from "@/helpers/getelementscrolldimensions";
+import { createSelection, type Selection } from "@/selection/createselection";
 
 type GridSizes = "full" | { width: number | string; height: number | string };
 
@@ -24,16 +24,13 @@ const HTML = `
 `;
 
 export class TheGrid<T extends Record<string, any>> {
-    // Elements
     #hostElement: HTMLElement;
     #cellsElement: HTMLElement;
     #columnHeadersElement: HTMLElement;
     #rowHeadersElement: HTMLElement;
-
     #columnManager: Columns<T>;
     #source: Source<T>;
-    #selection: Range = createRange(-1, -1);
-
+    #selection: Selection;
     #renderer: Renderer;
     #size: GridSizes = "full";
     #cellSize: number;
@@ -79,6 +76,8 @@ export class TheGrid<T extends Record<string, any>> {
         // Set size
         this.size = options.size ?? "full";
 
+        this.#selection = createSelection(this);
+
         this.#registerResizeObserver();
         this.invalidate();
 
@@ -98,7 +97,7 @@ export class TheGrid<T extends Record<string, any>> {
                 row: Number.parseInt(event.target!.dataset.row!, 10),
                 column: Number.parseInt(event.target!.dataset.column!, 10),
             };
-            this.selection = createRange(startCoords.column, startCoords.row);
+            this.selection.update(startCoords.column, startCoords.row);
         });
 
         this.#cellsElement.addEventListener("mousemove", event => {
@@ -117,7 +116,7 @@ export class TheGrid<T extends Record<string, any>> {
             ) {
                 return;
             }
-            this.selection = createRange(downColumnIndex, downRowIndex, upColumnIndex, upRowIndex);
+            this.selection.update(downColumnIndex, downRowIndex, upColumnIndex, upRowIndex);
         });
 
         this.#cellsElement.addEventListener("mouseenter", () => {
@@ -144,7 +143,7 @@ export class TheGrid<T extends Record<string, any>> {
             ) {
                 return;
             }
-            this.selection = createRange(downColumnIndex, downRowIndex, upColumnIndex, upRowIndex);
+            this.selection.update(downColumnIndex, downRowIndex, upColumnIndex, upRowIndex);
             startCoords = undefined;
         });
 
@@ -156,95 +155,118 @@ export class TheGrid<T extends Record<string, any>> {
                     }
                     if (event.ctrlKey) {
                         event.preventDefault();
-                        const columnCount = this.#columnManager.items.size - 1;
                         const rowCount = this.#source.items.size - 1;
-                        this.selection = createRange(0, 0, columnCount, rowCount);
-                        this.#scrollIntoView(this.selection.x2, this.selection.y2);
+                        const { lastVisibleIndex } = this.#columnManager;
+                        this.selection.update(0, 0, lastVisibleIndex, rowCount);
+                        this.#scrollIntoView(this.selection.range.x2, this.selection.range.y2);
                     }
                     break;
                 }
+
                 case "ArrowLeft": {
                     if (event.ctrlKey || event.altKey || event.metaKey) {
                         break;
                     }
                     event.preventDefault();
-                    const { x2, y2 } = this.#selection;
-                    const min = 0;
                     if (event.shiftKey) {
-                        this.selection = this.#selection.adjustLeft(1, min);
+                        this.selection.expandLeft();
                     } else {
-                        this.selection = createRange(Math.max(min, x2 - 1), y2);
+                        this.selection.moveLeft();
                     }
-                    this.#scrollIntoView(this.selection.x2, this.selection.y2);
+                    this.#scrollIntoView(this.selection.range.x2, this.selection.range.y2);
                     break;
                 }
+
                 case "ArrowRight": {
                     if (event.ctrlKey || event.altKey || event.metaKey) {
                         break;
                     }
                     event.preventDefault();
-                    const { x2, y2 } = this.#selection;
-                    const max = this.#columnManager.visibleColumns - 1;
                     if (event.shiftKey) {
-                        this.selection = this.#selection.adjustRight(1, max);
+                        this.selection.expandRight();
                     } else {
-                        this.selection = createRange(Math.min(max, x2 + 1), y2);
+                        this.selection.moveRight();
                     }
-                    this.#scrollIntoView(this.selection.x2, this.selection.y2);
+                    this.#scrollIntoView(this.selection.range.x2, this.selection.range.y2);
                     break;
                 }
+
                 case "ArrowUp": {
                     if (event.ctrlKey || event.altKey || event.metaKey) {
                         break;
                     }
                     event.preventDefault();
-                    const { x2, y2 } = this.#selection;
-                    const min = 0;
                     if (event.shiftKey) {
-                        this.selection = this.#selection.adjustUp(1, min);
+                        this.selection.expandUp();
                     } else {
-                        this.selection = createRange(x2, Math.max(min, y2 - 1));
+                        this.selection.moveUp();
                     }
-                    this.#scrollIntoView(this.selection.x2, this.selection.y2);
+                    this.#scrollIntoView(this.selection.range.x2, this.selection.range.y2);
                     break;
                 }
+
                 case "ArrowDown": {
                     if (event.ctrlKey || event.altKey || event.metaKey) {
                         break;
                     }
                     event.preventDefault();
-                    const { x2, y2 } = this.#selection;
-                    const max = this.#source.items.size - 1;
                     if (event.shiftKey) {
-                        this.selection = this.#selection.adjustDown(1, max);
+                        this.selection.expandDown();
                     } else {
-                        this.selection = createRange(x2, Math.min(max, y2 + 1));
+                        this.selection.moveDown();
                     }
-                    this.#scrollIntoView(this.selection.x2, this.selection.y2);
+                    this.#scrollIntoView(this.selection.range.x2, this.selection.range.y2);
                     break;
                 }
+
                 case "Home": {
                     event.preventDefault();
-                    console.log(event);
-                    const { y1 } = this.selection;
-                    this.selection = createRange(0, y1, 0, y1);
-                    this.#scrollIntoView(this.selection.x2, this.selection.y2);
+                    if (event.ctrlKey) {
+                        const { x1, y1, x2 } = this.selection.range;
+                        const firstRowIndex = 0;
+                        const newY1 = event.shiftKey ? y1 : firstRowIndex;
+                        this.selection.update(x1, newY1, x2, firstRowIndex);
+                        this.#scrollIntoView(x2, firstRowIndex);
+                    } else {
+                        const { x1, y1, y2 } = this.selection.range;
+                        const firstColumnIndex = this.columns.firstVisibleIndex;
+                        const newX1 = event.shiftKey ? x1 : firstColumnIndex;
+                        this.selection.update(newX1, y1, firstColumnIndex, y2);
+                        this.#scrollIntoView(firstColumnIndex, y2);
+                    }
                     break;
                 }
+
                 case "End": {
                     event.preventDefault();
-                    console.log(event);
-                    const { y2 } = this.selection;
-                    const lastColumn = this.#columnManager.items.size - 1;
-                    this.selection = createRange(lastColumn, y2, lastColumn, y2);
-                    this.#scrollIntoView(this.selection.x2, this.selection.y2);
+                    if (event.ctrlKey) {
+                        const { x1, y1, x2 } = this.selection.range;
+                        const lastRowIndex = this.#source.items.size - 1;
+                        const newY1 = event.shiftKey ? y1 : lastRowIndex;
+                        this.selection.update(x1, newY1, x2, lastRowIndex);
+                        this.#scrollIntoView(x2, lastRowIndex);
+                    } else {
+                        const { x1, y1, y2 } = this.selection.range;
+                        const lastColumnIndex = this.columns.lastVisibleIndex;
+                        const newX1 = event.shiftKey ? x1 : lastColumnIndex;
+                        this.selection.update(newX1, y1, lastColumnIndex, y2);
+                        this.#scrollIntoView(lastColumnIndex, y2);
+                    }
                     break;
                 }
             }
         });
     }
 
-    invalidate = debounce(100, () => {
+    invalidate(immediately = false) {
+        if (immediately) {
+            this.#renderer.render();
+        } else {
+            this.#debouncedInvalidate();
+        }
+    }
+
+    #debouncedInvalidate = debounce(100, () => {
         this.#renderer.render();
     });
 
@@ -278,11 +300,6 @@ export class TheGrid<T extends Record<string, any>> {
 
     get selection() {
         return this.#selection;
-    }
-
-    set selection(range: Range) {
-        this.#selection = range;
-        this.#renderer.render();
     }
 
     #scrollIntoView = debounce(64, (columnIndex: number, rowIndex: number) => {

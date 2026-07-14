@@ -75,9 +75,8 @@ export class Renderer {
             cell.style.width = `${width}px`;
             cell.style.height = `${cellSize}px`;
 
-            if (selection) {
-                renderSelection(cell, selection, x, y);
-            }
+            renderSelection(cell, selection.range, columns.items, x, y);
+
             setCellContents(cell, dataType, this.#grid.getCellData(x, y));
             cell.classList.add(y % 2 === 0 ? "row-even" : "row-odd");
             fragment.append(cell);
@@ -107,12 +106,9 @@ export class Renderer {
             cell.style.width = `${width}px`;
             cell.style.height = `${cellSize}px`;
 
-            if (selection) {
-                if (index >= selection.left && index <= selection.right) {
-                    cell.classList.add("column-selected");
-                }
+            if (selection && index >= selection.range.left && index <= selection.range.right) {
+                cell.classList.add("column-selected");
             }
-
             cell.textContent = header;
             fragment.append(cell);
         }
@@ -138,12 +134,9 @@ export class Renderer {
             cell.style.width = `${cellSize}px`;
             cell.style.height = `${cellSize}px`;
 
-            if (selection) {
-                if (rowIndex >= selection.top && rowIndex <= selection.bottom) {
-                    cell.classList.add("row-selected");
-                }
+            if (selection && rowIndex >= selection.range.top && rowIndex <= selection.range.bottom) {
+                cell.classList.add("row-selected");
             }
-
             fragment.append(cell);
         }
 
