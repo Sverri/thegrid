@@ -172,10 +172,10 @@ function transformOptionsToColumns<T extends Record<string, any>>(
     let visibleIndex = 0;
     let fromLeft = 0;
 
-    return newColumns.map<Column<T>>((column, index) => {
+    const incompleteColumns = newColumns.map<Column<T>>((column, index) => {
         const visible = column.visible ?? true;
         const width = column.width ?? 100;
-        const data = {
+        const data: Column<T> = {
             binding: column.binding,
             header: column.header ?? String(column.binding),
             dataType: column.dataType ?? DataType.String,
@@ -187,28 +187,10 @@ function transformOptionsToColumns<T extends Record<string, any>>(
             index: index,
             visibleIndex: visibleIndex,
             fromLeft: fromLeft,
-            get nextColumn() {
-                return grid.columns.items.get(index - 1);
-            },
-            get nextVisibleColumn() {
-                for (let i = index + 1; i < grid.columns.items.size; i++) {
-                    const next = grid.columns.items.get(i);
-                    if (next && next.visible) {
-                        return next;
-                    }
-                }
-            },
-            get previousColumn() {
-                return grid.columns.items.get(index + 1);
-            },
-            get previousVisibleColumn() {
-                for (let i = index - 1; i >= 0; i--) {
-                    const previous = grid.columns.items.get(i);
-                    if (previous && previous.visible) {
-                        return previous;
-                    }
-                }
-            },
+            nextColumn: undefined,
+            nextVisibleColumn: undefined,
+            previousColumn: undefined,
+            previousVisibleColumn: undefined,
         };
         if (visible) {
             visibleIndex++;
@@ -216,6 +198,39 @@ function transformOptionsToColumns<T extends Record<string, any>>(
         }
         return data;
     });
+    const columns = incompleteColumns.map((column, index) => {
+        const nextColumn = incompleteColumns.get(index - 1);
+        const previousColumn = incompleteColumns.get(index + 1);
+
+        let nextVisibleColumn: Column<T> | undefined;
+        for (let i = index + 1; i < incompleteColumns.size; i++) {
+            const next = incompleteColumns.get(i);
+            if (next && next.visible) {
+                nextVisibleColumn = next;
+                break;
+            }
+        }
+
+        let previousVisibleColumn: Column<T> | undefined;
+        for (let i = index - 1; i >= 0; i--) {
+            const previous = incompleteColumns.get(i);
+            if (previous && previous.visible) {
+                previousVisibleColumn = previous;
+                break;
+            }
+        }
+
+        Object.assign(column, {
+            nextColumn,
+            nextVisibleColumn,
+            previousColumn,
+            previousVisibleColumn,
+        });
+
+        return Object.freeze(column);
+    });
+
+    return columns;
 }
 
 /**

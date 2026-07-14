@@ -1,5 +1,12 @@
 import { DataType } from "@/shared/enums";
 
+/**
+ * Populates a cell element with formatted content based on the column data type.
+ *
+ * @param cell The DOM element representing the grid cell.
+ * @param columnType The data type that determines how the value should be displayed.
+ * @param cellData The raw value to render inside the cell.
+ */
 export function setCellContents(cell: HTMLElement, columnType: DataType, cellData: unknown): void {
     if (cellData == undefined) {
         cell.textContent = "";

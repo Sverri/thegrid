@@ -1,7 +1,20 @@
 import type { Column } from "@/columns";
 import { createRange, type Range } from "@/shared/range";
 
-export function renderSelection(
+/**
+ * Applies the current selection styling to a single cell element.
+ *
+ * The renderer inspects the selection range and adds CSS classes that reflect
+ * whether the cell is selected, lies on a selection border, or is the active
+ * current cell.
+ *
+ * @param cell The DOM cell element to style.
+ * @param selection The current selection range.
+ * @param columns The ordered column definitions used to resolve visible borders.
+ * @param columnIndex The column index of the cell being rendered.
+ * @param rowIndex The row index of the cell being rendered.
+ */
+export function renderCellSelection(
     cell: HTMLElement,
     selection: Range,
     columns: Immutable.List<Column<object>>,

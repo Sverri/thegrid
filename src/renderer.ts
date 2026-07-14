@@ -1,12 +1,12 @@
 import type { TheGrid } from "@/grid";
-import { CellType } from "@/shared/enums";
 import { type Range } from "@/shared/range";
+import { CellType } from "@/shared/enums";
 import { getElementScrollDimensions, type ElementScrollDimensions } from "./helpers/getelementscrolldimensions";
-import { calculateRenderArea } from "@/render/calculaterenderarea";
-import { createExpander, type Expander } from "@/render/createexpander";
+import { calculateRenderArea } from "@/render/renderarea";
+import { createExpander, type Expander } from "@/render/expander";
 import { setCellContents } from "@/render/setcellcontents";
-import { renderSelection } from "@/render/renderselection";
-import { createCellManager, type CellManager } from "./helpers/createcellmanager";
+import { renderCellSelection } from "@/render/renderselection";
+import { createCellElementManager, type CellElementManager } from "@/render/cellelementmanager";
 
 interface Options {
     grid: TheGrid<any>;
@@ -17,7 +17,7 @@ export class Renderer {
     #grid: TheGrid<object>;
     #zebra: boolean;
     #expander: Expander;
-    #cellManager: CellManager;
+    #cellManager: CellElementManager;
 
     /**
      * Render ahead (outside viewport) to make sure cells are visible when user
@@ -33,7 +33,7 @@ export class Renderer {
         this.#grid = grid;
         this.#zebra = zebra;
         this.#expander = createExpander(grid);
-        this.#cellManager = createCellManager();
+        this.#cellManager = createCellElementManager();
         this.#grid.cellsElement.classList.toggle("thegrid-enable-zebra", this.#zebra);
         this.#grid.cellsElement.addEventListener("scroll", () => {
             this.render();
@@ -75,7 +75,7 @@ export class Renderer {
             cell.style.width = `${width}px`;
             cell.style.height = `${cellSize}px`;
 
-            renderSelection(cell, selection.range, columns.items, x, y);
+            renderCellSelection(cell, selection.range, columns.items, x, y);
             setCellContents(cell, dataType, this.#grid.getCellData(x, y));
 
             cell.classList.add(y % 2 === 0 ? "row-even" : "row-odd");
