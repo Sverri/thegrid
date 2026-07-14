@@ -55,7 +55,7 @@ const grid = new TheGrid<User>(hostElement!, {
         { binding: "dob", header: "Date of birth", width: 400, dataType: DataType.Date, visible: false },
         { binding: "salary", header: "Salary", width: 150, dataType: DataType.Decimal },
         { binding: "email", header: "Email address", width: 300, dataType: DataType.Email },
-        { binding: "website", header: "Website", width: 300, dataType: DataType.URL, visible: false },
+        { binding: "website", header: "Website", width: 300, dataType: DataType.URL },
         { binding: "postcode", header: "Post code", width: 150, dataType: DataType.String },
         { binding: "country", header: "Country", width: 250 },
         { binding: "telephone", header: "Telephone", width: 175, dataType: DataType.String },
@@ -63,7 +63,7 @@ const grid = new TheGrid<User>(hostElement!, {
         { binding: "subscribed", header: "Subscribed", width: 100, dataType: DataType.Boolean },
         { binding: "summary", header: "Summary", width: 400, dataType: DataType.Text },
         { binding: "note", header: "Note", width: 300, dataType: DataType.Text },
-        { binding: "children", header: "Children", width: 100, dataType: DataType.Integer, visible: false },
+        { binding: "children", header: "Children", width: 100, dataType: DataType.Integer },
     ],
 });
 

@@ -76,6 +76,16 @@ export interface Range {
      */
     iterator(): Generator<Point, void, unknown>;
 
+    /**
+     * Iterate over all the horizontal points in the range
+     */
+    horizontalIterator(): Generator<Pick<Point, "x">, void, unknown>;
+
+    /**
+     * Iterate over all the horizontal points in the range
+     */
+    verticalIterator(): Generator<Pick<Point, "y">, void, unknown>;
+
     sameAs(range: Range): boolean;
     identicalTo(range: Range): boolean;
 }
@@ -136,6 +146,18 @@ export function createRange(x1: number, y1: number, x2 = x1, y2 = y1): Range {
                 for (let columnIndex = left; columnIndex <= right; columnIndex++) {
                     yield createPoint(columnIndex, rowIndex);
                 }
+            }
+        },
+
+        *horizontalIterator() {
+            for (let columnIndex = left; columnIndex <= right; columnIndex++) {
+                yield createPoint(columnIndex, -1);
+            }
+        },
+
+        *verticalIterator() {
+            for (let rowIndex = top; rowIndex <= bottom; rowIndex++) {
+                yield createPoint(-1, rowIndex);
             }
         },
     });

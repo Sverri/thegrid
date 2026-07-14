@@ -57,8 +57,8 @@ export class Renderer {
 
     #renderCells(range: Range): void {
         const { cellsElement, selection, columns, cellSize } = this.#grid;
-
         const cells = Array.from(cellsElement.children) as HTMLDivElement[];
+
         cells.forEach(this.#cellManager.turnIn);
 
         const fragment = new DocumentFragment();
@@ -69,15 +69,15 @@ export class Renderer {
                 continue;
             }
             const { fromLeft, width } = columns.items.get(x)!;
-
             const cell = this.#cellManager.retrieve(x, y, CellType.Cell);
+
             cell.style.transform = `translate(${fromLeft}px, ${y * cellSize}px)`;
             cell.style.width = `${width}px`;
             cell.style.height = `${cellSize}px`;
 
             renderSelection(cell, selection.range, columns.items, x, y);
-
             setCellContents(cell, dataType, this.#grid.getCellData(x, y));
+
             cell.classList.add(y % 2 === 0 ? "row-even" : "row-odd");
             fragment.append(cell);
         }
@@ -85,27 +85,23 @@ export class Renderer {
         cellsElement.append(fragment);
     }
 
-    #renderColumnHeaders({ left, right }: Range, { scrollLeft }: ElementScrollDimensions): void {
+    #renderColumnHeaders(range: Range, { scrollLeft }: ElementScrollDimensions): void {
         const { columnHeadersElement, columns, cellSize, selection } = this.#grid;
-
         const cells = Array.from(columnHeadersElement.children) as HTMLDivElement[];
+
         cells.forEach(this.#cellManager.turnIn);
 
-        if (left === -1 || right === -1) {
-            return;
-        }
         const fragment = new DocumentFragment();
 
-        for (let columnIndex = left; columnIndex <= right; columnIndex++) {
-            const { header, visible, fromLeft, width, index } = columns.items.get(columnIndex)!;
+        for (const { x } of range.horizontalIterator()) {
+            const { header, visible, fromLeft, width, index } = columns.items.get(x)!;
             if (!visible) {
                 continue;
             }
-            const cell = this.#cellManager.retrieve(columnIndex, 0, CellType.ColumnHeader);
+            const cell = this.#cellManager.retrieve(x, 0, CellType.ColumnHeader);
             cell.style.transform = `translateX(${fromLeft - scrollLeft}px)`;
             cell.style.width = `${width}px`;
             cell.style.height = `${cellSize}px`;
-
             if (selection && index >= selection.range.left && index <= selection.range.right) {
                 cell.classList.add("column-selected");
             }
@@ -116,25 +112,20 @@ export class Renderer {
         columnHeadersElement.append(fragment);
     }
 
-    #renderRowHeaders({ top, bottom }: Range, { scrollTop }: ElementScrollDimensions): void {
+    #renderRowHeaders(range: Range, { scrollTop }: ElementScrollDimensions): void {
         const { rowHeadersElement, cellSize, selection } = this.#grid;
-
         const cells = Array.from(rowHeadersElement.children) as HTMLDivElement[];
-        cells.forEach(this.#cellManager.turnIn);
 
-        if (top === -1 || bottom === -1) {
-            return;
-        }
+        cells.forEach(this.#cellManager.turnIn);
 
         const fragment = new DocumentFragment();
 
-        for (let rowIndex = top; rowIndex <= bottom; rowIndex++) {
-            const cell = this.#cellManager.retrieve(0, rowIndex, CellType.RowHeader);
-            cell.style.transform = `translateY(${rowIndex * cellSize - scrollTop}px)`;
+        for (const { y } of range.verticalIterator()) {
+            const cell = this.#cellManager.retrieve(0, y, CellType.RowHeader);
+            cell.style.transform = `translateY(${y * cellSize - scrollTop}px)`;
             cell.style.width = `${cellSize}px`;
             cell.style.height = `${cellSize}px`;
-
-            if (selection && rowIndex >= selection.range.top && rowIndex <= selection.range.bottom) {
+            if (selection && y >= selection.range.top && y <= selection.range.bottom) {
                 cell.classList.add("row-selected");
             }
             fragment.append(cell);

@@ -4,7 +4,9 @@ import { List } from "immutable";
 import { createEvent, type UnraiseableEvent } from "@/shared/event";
 
 /**
- * Configuration options for creating a Column instance.
+ * Configuration options for creating a column definition.
+ *
+ * These options describe how a grid column is bound to data, rendered, and sized.
  */
 export interface ColumnOptions<T extends Record<string, any>> {
     /**
@@ -51,7 +53,10 @@ export interface ColumnOptions<T extends Record<string, any>> {
 }
 
 /**
- * Column
+ * Represents a concrete column instance in the grid.
+ *
+ * A column instance stores its runtime state, including position, visibility,
+ * and links to neighboring columns for navigation and layout purposes.
  */
 export interface Column<T extends Record<string, any>> extends Required<ColumnOptions<T>> {
     /**
@@ -74,40 +79,76 @@ export interface Column<T extends Record<string, any>> extends Required<ColumnOp
      */
     fromLeft: number;
 
+    /**
+     * The next column in the overall column order, if one exists.
+     */
     nextColumn: Column<T> | undefined;
+
+    /**
+     * The next visible column in the overall column order, if one exists.
+     */
     nextVisibleColumn: Column<T> | undefined;
+
+    /**
+     * The previous column in the overall column order, if one exists.
+     */
     previousColumn: Column<T> | undefined;
+
+    /**
+     * The previous visible column in the overall column order, if one exists.
+     */
     previousVisibleColumn: Column<T> | undefined;
 }
 
+/**
+ * Represents the collection of columns managed by the grid.
+ *
+ * The collection exposes the current columns, visible-column metadata, and methods
+ * for updating the column definitions immutably.
+ */
 export interface Columns<T extends Record<string, any>> {
     /**
-     * Gets the list of columns in the collection.
+     * Gets the immutable list of all columns in the collection.
      */
     readonly items: List<Column<T>>;
+
+    /**
+     * Gets the first valid index in the column collection.
+     */
     readonly firstIndex: number;
+
+    /**
+     * Gets the last valid index in the column collection.
+     */
     readonly lastIndex: number;
 
     /**
-     * Gets the list of visible columns in the collection.
+     * Gets the immutable list of visible columns in the collection.
      */
     readonly visibleItems: List<Column<T>>;
+
+    /**
+     * Gets the first visible column index.
+     */
     readonly firstVisibleIndex: number;
+
+    /**
+     * Gets the last visible column index.
+     */
     readonly lastVisibleIndex: number;
 
     /**
-     * Gets the change event for this column collection.
-     *
-     * Subscribe to this event to be notified when the collection changes or when any column in the
-     * collection changes.
+     * Gets the event emitted whenever the column collection changes.
      */
     readonly onChange: UnraiseableEvent<() => void>;
 
     /**
-     * Update multiple columns
+     * Updates the column collection by applying a callback to the current column options.
      *
-     * The callback is given an immutable list containing all the columns in the grid and must
-     * returns a new immutable list.
+     * The callback receives the current immutable list of column options and must return
+     * a new immutable list of updated options.
+     *
+     * @param callback A function that receives the current column options and returns updated options.
      */
     update(callback: (columns: List<ColumnOptions<T>>) => List<ColumnOptions<T>>): void;
 }
@@ -178,7 +219,14 @@ function transformOptionsToColumns<T extends Record<string, any>>(
 }
 
 /**
- * Create columns for grid
+ * Creates a column collection for the grid.
+ *
+ * The returned object manages the grid's columns, tracks visibility and layout state,
+ * and emits change notifications whenever the column definitions are updated.
+ *
+ * @template T The record type represented by the grid data.
+ * @param grid The grid instance that owns the columns.
+ * @returns A frozen column collection implementation.
  */
 export function createColumns<T extends Record<string, any>>(grid: TheGrid<T>): Columns<T> {
     const { raise, unraisable } = createEvent<() => void>();
