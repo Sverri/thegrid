@@ -16,14 +16,14 @@ export interface CellElementManager {
      * @param type The cell type that determines which CSS classes should be applied.
      * @returns A prepared cell element ready to be rendered.
      */
-    retrieve(columnIndex: number, rowIndex: number, type: CellType): HTMLDivElement;
+    retrieveCell(columnIndex: number, rowIndex: number, type: CellType): HTMLDivElement;
 
     /**
      * Returns a previously used cell element to the pool for reuse.
      *
      * @param cell The cell element to recycle.
      */
-    turnIn(cell: HTMLDivElement): void;
+    turnInCells(...cell: HTMLDivElement[]): void;
 }
 
 /**
@@ -38,7 +38,7 @@ export interface CellElementManager {
 export function createCellElementManager(): CellElementManager {
     const cells: HTMLDivElement[] = [];
     return Object.freeze({
-        retrieve(columnIndex: number, rowIndex: number, type: CellType) {
+        retrieveCell(columnIndex: number, rowIndex: number, type: CellType) {
             let cell = cells.pop();
             if (!cell) {
                 cell = document.createElement("div");
@@ -52,9 +52,11 @@ export function createCellElementManager(): CellElementManager {
             cell.textContent = "";
             return cell;
         },
-        turnIn(cell: HTMLDivElement) {
-            cell.remove();
-            cells.push(cell);
+        turnInCells(...elements: HTMLDivElement[]) {
+            for (const element of elements) {
+                element.remove();
+            }
+            cells.push(...elements);
         },
     });
 }

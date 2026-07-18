@@ -129,6 +129,20 @@ describe("createSelection", () => {
 
         selection.expandRight(10);
         expect(selection.range.x2).toBe(3);
+
+        selection.update(2, 2, 2, 2);
+        selection.expandLeft(1);
+        expect(selection.range.x1).toBe(2);
+        expect(selection.range.y1).toBe(2);
+        expect(selection.range.x2).toBe(0);
+        expect(selection.range.y2).toBe(2);
+
+        selection.update(0, 0, 0, 0);
+        selection.expandRight(1);
+        expect(selection.range.x1).toBe(0);
+        expect(selection.range.y1).toBe(0);
+        expect(selection.range.x2).toBe(2);
+        expect(selection.range.y2).toBe(0);
     });
 
     it("expands up and down while preserving the anchor and clamping at the bounds", () => {

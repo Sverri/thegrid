@@ -43,24 +43,21 @@ interface Options {
  */
 export function calculateRenderArea({ columns, source, cellSize, dimensions, renderAhead }: Options) {
     const { scrollLeft, scrollRight, scrollTop, scrollBottom } = dimensions;
-    const rowsCount = source.size;
 
     // Columns
     const firstColumn = columns.find(({ visible, fromLeft, width }) => visible && fromLeft + width >= scrollLeft);
     const lastColumn = columns.reverse().find(({ visible, fromLeft }) => visible && fromLeft <= scrollRight);
+    const firstColumnIndex = Math.max(0, (firstColumn?.index ?? 0) - renderAhead.columns);
+    const lastColumnIndex = Math.min(columns.size - 1, (lastColumn?.index ?? 0) + renderAhead.columns);
 
     // Rows
-    let firstRow: number = -1;
-    let lastRow: number = -1;
+    let firstRowIndex: number = -1;
+    let lastRowIndex: number = -1;
+    const rowsCount = source.size;
     if (rowsCount > 0) {
-        firstRow = Math.max(0, Math.floor(scrollTop / cellSize) - renderAhead.rows);
-        lastRow = Math.min(rowsCount - 1, Math.floor(scrollBottom / cellSize) + renderAhead.rows);
+        firstRowIndex = Math.max(0, Math.floor(scrollTop / cellSize) - renderAhead.rows);
+        lastRowIndex = Math.min(rowsCount - 1, Math.floor(scrollBottom / cellSize) + renderAhead.rows);
     }
 
-    return createRange(
-        Math.max(0, (firstColumn?.index ?? 0) - renderAhead.columns),
-        firstRow,
-        Math.min(columns.size - 1, (lastColumn?.index ?? 0) + renderAhead.columns),
-        lastRow,
-    );
+    return createRange(firstColumnIndex, firstRowIndex, lastColumnIndex, lastRowIndex);
 }

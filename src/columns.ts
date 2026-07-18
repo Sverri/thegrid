@@ -138,6 +138,11 @@ export interface Columns<T extends Record<string, any>> {
     readonly lastVisibleIndex: number;
 
     /**
+     * Total width of all visible columns
+     */
+    readonly totalWidth: number;
+
+    /**
      * Gets the event emitted whenever the column collection changes.
      */
     readonly onChange: UnraiseableEvent<() => void>;
@@ -265,6 +270,13 @@ export function createColumns<T extends Record<string, any>>(grid: TheGrid<T>): 
         },
         get lastVisibleIndex() {
             return items.findLastIndex(column => column.visible);
+        },
+        get totalWidth() {
+            let total = 0;
+            for (const { width } of items.filter(item => item.visible)) {
+                total += width;
+            }
+            return total;
         },
         get onChange() {
             return unraisable;

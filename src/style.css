@@ -43,8 +43,8 @@
     );
 
     /* Expander */
-    --internal-expander-translate-x: 0;
-    --internal-expander-translate-y: 0;
+    --internal-expander-x: 0;
+    --internal-expander-y: 0;
 
     position: relative;
     display: block;
@@ -102,7 +102,7 @@
         overflow: auto;
         scrollbar-width: thin;
 
-        &:before {
+        &:after {
             position: relative;
             display: block;
             content: "";
@@ -110,7 +110,8 @@
             height: 1px;
             top: 0;
             bottom: 0;
-            transform: translate(var(--internal-expander-translate-x), var(--internal-expander-translate-y)) !important;
+            transform: translate(var(--internal-expander-x), var(--internal-expander-y)) !important;
+            visibility: hidden;
         }
     }
 
