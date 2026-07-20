@@ -1,5 +1,6 @@
 import type { TheGrid } from "@/grid";
 import type { DataType } from "@/shared/enums";
+import type { List } from "immutable";
 
 /**
  * Configuration options for creating a column definition.
@@ -96,4 +97,47 @@ export interface Column<T extends Record<string, any>> extends Required<ColumnOp
      * The previous visible column in the overall column order, if one exists.
      */
     previousVisibleColumn: Column<T> | undefined;
+}
+
+/**
+ * Represents the collection of columns managed by the grid.
+ *
+ * The collection exposes the current columns, visible-column metadata, and methods
+ * for updating the column definitions immutably.
+ */
+export interface ColumnCollection<T extends Record<string, any>> {
+    /**
+     * Gets the immutable list of all columns in the collection.
+     */
+    readonly items: List<Column<T>>;
+
+    /**
+     * Gets the first valid index in the column collection.
+     */
+    readonly firstIndex: number;
+
+    /**
+     * Gets the last valid index in the column collection.
+     */
+    readonly lastIndex: number;
+
+    /**
+     * Gets the immutable list of visible columns in the collection.
+     */
+    readonly visibleItems: List<Column<T>>;
+
+    /**
+     * Gets the first visible column index.
+     */
+    readonly firstVisibleIndex: number;
+
+    /**
+     * Gets the last visible column index.
+     */
+    readonly lastVisibleIndex: number;
+
+    /**
+     * Total width of all visible columns
+     */
+    readonly totalWidth: number;
 }

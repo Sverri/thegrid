@@ -1,5 +1,5 @@
-import type { Column } from "@/columns";
-import { createRange, type Range } from "@/shared/range";
+import type { Column } from "@/parts/column";
+import { createRange, rangeContains, rangeIntersectsColumn, rangeIntersectsRow, type Range } from "@/parts/range";
 
 /**
  * Applies the current selection styling to a single cell element.
@@ -23,11 +23,11 @@ export function renderCellSelection(
 ) {
     const { left, right, top, bottom, x2, y2 } = selection!;
 
-    if (selection.contains(createRange(columnIndex, rowIndex))) {
+    if (rangeContains(selection, createRange(columnIndex, rowIndex))) {
         cell.classList.add("selection");
     }
 
-    if (selection.intersectsRow(rowIndex)) {
+    if (rangeIntersectsRow(selection, rowIndex)) {
         if (columnIndex === 0 && columnIndex === left) {
             cell.classList.add("selection-left-border");
         } else if (columnIndex === columns.get(left)?.previousVisibleColumn?.index) {
@@ -38,7 +38,7 @@ export function renderCellSelection(
         }
     }
 
-    if (selection.intersectsColumn(columnIndex)) {
+    if (rangeIntersectsColumn(selection, columnIndex)) {
         if (rowIndex === 0 && rowIndex === top) {
             cell.classList.add("selection-top-border");
         } else if (rowIndex === top - 1) {

@@ -1,7 +1,8 @@
 import type { TheGrid } from "@/grid";
 
-export function keyboardExtension({ cellsElement, source, selection, columns, scrollIntoView }: TheGrid) {
-    cellsElement.addEventListener("keydown", event => {
+export function keyboardExtension(grid: TheGrid) {
+    grid.cellsElement.addEventListener("keydown", event => {
+        const { source, selection, columns, scrollIntoView } = grid;
         switch (event.key) {
             case "a": {
                 if (event.shiftKey || event.altKey || event.metaKey) {

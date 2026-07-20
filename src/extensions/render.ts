@@ -1,5 +1,5 @@
 import type { TheGrid } from "@/grid";
-import { type Range } from "@/shared/range";
+import { rangeHorizontalIterator, rangeIterator, rangeVerticalIterator, type Range } from "@/parts/range";
 import { getElementScrollDimensions, type ElementScrollDimensions } from "@/helpers/getelementscrolldimensions";
 import { createCellElementManager } from "@/render/cellelementmanager";
 import { calculateRenderArea } from "@/render/renderarea";
@@ -24,7 +24,7 @@ export function renderExtension(grid: TheGrid) {
 
         const fragment = new DocumentFragment();
 
-        for (const { x, y } of range.iterator()) {
+        for (const { x, y } of rangeIterator(range)) {
             const { dataType, visible } = columns.items.get(x)!;
             if (!visible) {
                 continue;
@@ -54,7 +54,7 @@ export function renderExtension(grid: TheGrid) {
 
         const fragment = new DocumentFragment();
 
-        for (const { x } of range.horizontalIterator()) {
+        for (const { x } of rangeHorizontalIterator(range)) {
             const { header, visible, fromLeft, width, index } = columns.items.get(x)!;
             if (!visible) {
                 continue;
@@ -81,7 +81,7 @@ export function renderExtension(grid: TheGrid) {
 
         const fragment = new DocumentFragment();
 
-        for (const { y } of range.verticalIterator()) {
+        for (const { y } of rangeVerticalIterator(range)) {
             const cell = retrieveCell(0, y, CellType.RowHeader);
             cell.style.transform = `translateY(${y * cellSize - scrollTop}px)`;
             cell.style.width = `${cellSize}px`;

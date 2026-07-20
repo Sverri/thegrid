@@ -10,8 +10,9 @@ import type { TheGrid } from "@/grid";
  *
  * @param grid
  */
-export function expanderExtension({ columns, source, cellSize, hostElement, onInvalidate }: TheGrid) {
-    onInvalidate.subscribe(() => {
+export function expanderExtension(grid: TheGrid) {
+    grid.onInvalidate.subscribe(() => {
+        const { columns, source, cellSize, hostElement } = grid;
         const columnsWidth = `${columns.totalWidth}px`;
         const rowsHeight = `${source.items.size * cellSize}px`;
         hostElement.style.setProperty("--internal-expander-x", columnsWidth, "important");

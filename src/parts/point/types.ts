@@ -15,14 +15,3 @@ export interface Point {
      */
     readonly y: number;
 }
-
-/**
- * Creates an immutable point from x and y coordinates.
- *
- * @param x The horizontal coordinate.
- * @param y The vertical coordinate.
- * @returns A frozen point instance.
- */
-export function createPoint(x: number, y: number): Point {
-    return Object.freeze({ x, y });
-}

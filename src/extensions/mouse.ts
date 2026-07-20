@@ -1,9 +1,9 @@
 import type { TheGrid } from "@/grid";
 
-export function mouseExtension({ cellsElement, selection }: TheGrid) {
+export function mouseExtension(grid: TheGrid) {
     let startCoords: { row: number; column: number } | undefined;
 
-    cellsElement.addEventListener("mousedown", event => {
+    grid.cellsElement.addEventListener("mousedown", event => {
         if (
             event.button !== 0 ||
             !(event.target instanceof HTMLElement) ||
@@ -15,10 +15,10 @@ export function mouseExtension({ cellsElement, selection }: TheGrid) {
             row: Number.parseInt(event.target!.dataset.row!, 10),
             column: Number.parseInt(event.target!.dataset.column!, 10),
         };
-        selection.update(startCoords.column, startCoords.row);
+        grid.selection.update(startCoords.column, startCoords.row);
     });
 
-    cellsElement.addEventListener("mousemove", event => {
+    grid.cellsElement.addEventListener("mousemove", event => {
         if (event.button !== 0 || !(event.target instanceof HTMLElement) || !startCoords) {
             return;
         }
@@ -34,18 +34,18 @@ export function mouseExtension({ cellsElement, selection }: TheGrid) {
         ) {
             return;
         }
-        selection.update(downColumnIndex, downRowIndex, upColumnIndex, upRowIndex);
+        grid.selection.update(downColumnIndex, downRowIndex, upColumnIndex, upRowIndex);
     });
 
-    cellsElement.addEventListener("mouseenter", () => {
+    grid.cellsElement.addEventListener("mouseenter", () => {
         startCoords = undefined;
     });
 
-    cellsElement.addEventListener("mouseleave", () => {
+    grid.cellsElement.addEventListener("mouseleave", () => {
         startCoords = undefined;
     });
 
-    cellsElement.addEventListener("mouseup", event => {
+    grid.cellsElement.addEventListener("mouseup", event => {
         if (event.button !== 0 || !(event.target instanceof HTMLElement)) {
             return;
         }
@@ -61,7 +61,7 @@ export function mouseExtension({ cellsElement, selection }: TheGrid) {
         ) {
             return;
         }
-        selection.update(downColumnIndex, downRowIndex, upColumnIndex, upRowIndex);
+        grid.selection.update(downColumnIndex, downRowIndex, upColumnIndex, upRowIndex);
         startCoords = undefined;
     });
 }

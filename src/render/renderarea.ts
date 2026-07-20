@@ -1,6 +1,6 @@
-import type { Column } from "@/columns";
+import type { Column } from "@/parts/column";
 import type { ElementScrollDimensions } from "@/helpers/getelementscrolldimensions";
-import { createRange } from "@/shared/range";
+import { createRange } from "@/parts/range";
 
 /**
  * Input options for computing the visible render area.

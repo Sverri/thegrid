@@ -1,5 +1,5 @@
 import type { TheGrid } from "@/grid";
-import { createRange, type Range } from "@/shared/range";
+import { createRange, rangeIdenticalTo, type Range } from "@/parts/range";
 
 export interface Selection {
     /**
@@ -109,8 +109,8 @@ export interface Selection {
 export function createSelection(grid: TheGrid): Selection {
     let range = createRange(-1, -1);
 
-    function setNewRange(newRange: Range) {
-        if (!range.identicalTo(newRange)) {
+    function setNewRange(newRange: Immutable.RecordOf<Range>) {
+        if (!rangeIdenticalTo(range, newRange)) {
             range = newRange;
             grid.invalidate(true);
         }

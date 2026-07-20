@@ -1,7 +1,6 @@
 import "normalize.css";
 import { TheGrid, DataType } from "./src/index";
 import { faker } from "@faker-js/faker";
-import { createRange } from "@/shared/range";
 
 const hostElement = document.querySelector<HTMLDivElement>(".grid");
 
@@ -69,13 +68,20 @@ const grid = new TheGrid<User>(hostElement!, {
 
 grid.selection.update(0, 0);
 
-// setTimeout(() => {
-//     grid.columns.update(columns => {
-//         return columns.map(column => {
-//             if (column.binding === "age") {
-//                 column.visible = false;
-//             }
-//             return column;
-//         });
-//     });
-// }, 1000);
+setTimeout(() => {
+    grid.updateColumns(columnCollection => {
+        return columnCollection.map(column => {
+            return column.withMutations(data => {
+                if (data.get("binding") === "age") {
+                    data.set("visible", false);
+                }
+            });
+        });
+    });
+}, 1000);
+
+setTimeout(() => {
+    grid.updateSource(source => {
+        return source.filter(item => item.id % 2 === 0);
+    });
+}, 2000);
