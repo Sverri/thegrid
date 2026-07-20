@@ -9,13 +9,14 @@ import { createSource, type Source } from "@/parts/source";
 import { debounce } from "throttle-debounce";
 import { List } from "immutable";
 import { getElementScrollDimensions } from "@/helpers/getelementscrolldimensions";
-import { createSelection, type Selection } from "@/selection/createselection";
 import { keyboardExtension } from "@/extensions/keyboard";
 import { mouseExtension } from "@/extensions/mouse";
 import { resizeObserverExtension } from "@/extensions/resizeobserver";
 import { renderExtension } from "@/extensions/render";
 import { expanderExtension } from "@/extensions/expander";
 import { createEvent } from "@/shared/event";
+import { createRange, type Range } from "./parts/range";
+import { createSelection, type Selection } from "./parts/selection";
 
 type GridSizes = "full" | { width: number | string; height: number | string };
 
@@ -40,7 +41,7 @@ export class TheGrid<T extends Record<string, any> = any> {
     #rowHeadersElement: HTMLElement;
     #columns: Immutable.RecordOf<ColumnCollection<T>>;
     #source: Source<T>;
-    #selection: Selection;
+    #selection: Immutable.RecordOf<Selection>;
     #size: GridSizes = "full";
     #cellSize: number;
     #onInvalidate = createEvent<() => void>();
@@ -63,7 +64,7 @@ export class TheGrid<T extends Record<string, any> = any> {
         this.#source = createSource<T>(List(options?.data ?? []), this);
 
         this.size = options?.size ?? "full";
-        this.#selection = createSelection(this);
+        this.#selection = createSelection(createRange(-1, -1), this);
 
         this.extend(expanderExtension);
         this.extend(renderExtension);
@@ -101,6 +102,20 @@ export class TheGrid<T extends Record<string, any> = any> {
         const newSource = callback(this.#source.items);
         this.#source = createSource(newSource, this);
         this.invalidate();
+    }
+
+    /**
+     * Update the source
+     *
+     * The callback receives the current immutable source and must return
+     * a new immutable source.
+     *
+     * @param callback A function that receives the current source and returns a new source.
+     */
+    updateSelection(callback: (source: Immutable.RecordOf<Selection>) => Immutable.RecordOf<Selection>) {
+        const newSelection = callback(this.#selection);
+        this.#selection = createSelection(newSelection.range, this);
+        this.invalidate(true);
     }
 
     extend(callback: (grid: TheGrid<T>) => void): void {
