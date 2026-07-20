@@ -10,7 +10,7 @@ import type { TheGrid } from "@/grid";
  *
  * @param grid
  */
-export function expanderExtension({ columns, source, cellSize, hostElement, onInvalidate }: TheGrid<any>) {
+export function expanderExtension({ columns, source, cellSize, hostElement, onInvalidate }: TheGrid) {
     onInvalidate.subscribe(() => {
         const columnsWidth = `${columns.totalWidth}px`;
         const rowsHeight = `${source.items.size * cellSize}px`;

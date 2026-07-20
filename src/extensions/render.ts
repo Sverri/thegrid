@@ -7,7 +7,7 @@ import { renderCellSelection } from "@/render/renderselection";
 import { setCellContents } from "@/render/setcellcontents";
 import { CellType } from "@/shared/enums";
 
-export function renderExtension(grid: TheGrid<any>) {
+export function renderExtension(grid: TheGrid) {
     const renderAhead = {
         columns: 1,
         rows: 3,

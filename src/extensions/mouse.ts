@@ -1,6 +1,6 @@
 import type { TheGrid } from "@/grid";
 
-export function mouseExtension({ cellsElement, selection }: TheGrid<any>) {
+export function mouseExtension({ cellsElement, selection }: TheGrid) {
     let startCoords: { row: number; column: number } | undefined;
 
     cellsElement.addEventListener("mousedown", event => {

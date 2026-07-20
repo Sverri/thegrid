@@ -2,103 +2,8 @@ import type { TheGrid } from "@/grid";
 import { DataType } from "@/shared/enums";
 import { List } from "immutable";
 import { createEvent, type UnraiseableEvent } from "@/shared/event";
-
-/**
- * Configuration options for creating a column definition.
- *
- * These options describe how a grid column is bound to data, rendered, and sized.
- */
-export interface ColumnOptions<T extends Record<string, any>> {
-    /**
-     * The property name or key to bind this column to in the data objects.
-     * This is required and determines which field from the data is displayed in this column.
-     */
-    binding: keyof T;
-
-    /**
-     * The display header text for this column.
-     * Defaults to the binding property name if not provided.
-     */
-    header?: string;
-
-    /**
-     * The data type of the column, used for sorting and rendering.
-     * Defaults to ColumnType.String if not provided.
-     */
-    dataType?: DataType;
-
-    /**
-     * The width of the column in pixels.
-     * Defaults to 100 pixels if not provided.
-     */
-    width?: number;
-
-    /**
-     * The minimum width of the column in pixels.
-     * Constrains the column from being resized smaller than this value.
-     */
-    minWidth?: number;
-
-    /**
-     * The maximum width of the column in pixels.
-     * Constrains the column from being resized larger than this value.
-     */
-    maxWidth?: number;
-
-    /**
-     * Whether the column is visible in the grid.
-     * Defaults to true if not provided.
-     */
-    visible?: boolean;
-}
-
-/**
- * Represents a concrete column instance in the grid.
- *
- * A column instance stores its runtime state, including position, visibility,
- * and links to neighboring columns for navigation and layout purposes.
- */
-export interface Column<T extends Record<string, any>> extends Required<ColumnOptions<T>> {
-    /**
-     * Grid the column belongs to
-     */
-    grid: TheGrid<T>;
-
-    /**
-     * The index of the column
-     */
-    index: number;
-
-    /**
-     * The visible index of the column
-     */
-    visibleIndex: number;
-
-    /**
-     * Where column is positioned from the left (px)
-     */
-    fromLeft: number;
-
-    /**
-     * The next column in the overall column order, if one exists.
-     */
-    nextColumn: Column<T> | undefined;
-
-    /**
-     * The next visible column in the overall column order, if one exists.
-     */
-    nextVisibleColumn: Column<T> | undefined;
-
-    /**
-     * The previous column in the overall column order, if one exists.
-     */
-    previousColumn: Column<T> | undefined;
-
-    /**
-     * The previous visible column in the overall column order, if one exists.
-     */
-    previousVisibleColumn: Column<T> | undefined;
-}
+import type { Column, ColumnOptions } from "./types/column";
+import { createColumnObject, columnOptionsFactory } from "./factory/column";
 
 /**
  * Represents the collection of columns managed by the grid.
@@ -159,21 +64,24 @@ export interface Columns<T extends Record<string, any>> {
 }
 
 function transformColumnsToOptions<T extends Record<string, any>>(columns: List<Column<T>>) {
-    return columns.map<ColumnOptions<T>>(column => ({
-        binding: column.binding,
-        header: column.header,
-        dataType: column.dataType,
-        width: column.width,
-        minWidth: column.minWidth,
-        maxWidth: column.maxWidth,
-        visible: column.visible,
-    }));
+    return columns.map(
+        column =>
+            columnOptionsFactory({
+                binding: String(column.binding),
+                header: column.header,
+                dataType: column.dataType,
+                width: column.width,
+                minWidth: column.minWidth,
+                maxWidth: column.maxWidth,
+                visible: column.visible,
+            }) as Immutable.RecordOf<ColumnOptions<T>>,
+    );
 }
 
 function transformOptionsToColumns<T extends Record<string, any>>(
-    newColumns: List<ColumnOptions<T>>,
+    newColumns: List<Immutable.RecordOf<ColumnOptions<T>>>,
     grid: TheGrid<T>,
-) {
+): List<Readonly<Column<T>>> {
     let visibleIndex = 0;
     let fromLeft = 0;
 
@@ -203,7 +111,7 @@ function transformOptionsToColumns<T extends Record<string, any>>(
         }
         return data;
     });
-    const columns = incompleteColumns.map((column, index) => {
+    const columnsWithMeta = incompleteColumns.map((column, index) => {
         const nextColumn = incompleteColumns.get(index - 1);
         const previousColumn = incompleteColumns.get(index + 1);
 
@@ -232,10 +140,10 @@ function transformOptionsToColumns<T extends Record<string, any>>(
             previousVisibleColumn,
         });
 
-        return Object.freeze(column);
+        return column;
     });
 
-    return columns;
+    return columnsWithMeta.map(col => createColumnObject(col));
 }
 
 /**
@@ -250,7 +158,7 @@ function transformOptionsToColumns<T extends Record<string, any>>(
  */
 export function createColumns<T extends Record<string, any>>(grid: TheGrid<T>): Columns<T> {
     const { raise, unraisable } = createEvent<() => void>();
-    let items = List<Column<T>>();
+    let items = List<Readonly<Column<T>>>();
 
     return Object.freeze({
         get items() {
@@ -281,7 +189,11 @@ export function createColumns<T extends Record<string, any>>(grid: TheGrid<T>): 
         get onChange() {
             return unraisable;
         },
-        update(callback: (columns: List<ColumnOptions<T>>) => List<ColumnOptions<T>>) {
+        update(
+            callback: (
+                columns: List<Immutable.RecordOf<ColumnOptions<T>>>,
+            ) => List<Immutable.RecordOf<ColumnOptions<T>>>,
+        ) {
             const options = transformColumnsToOptions(items);
             const newColumns = callback(options);
             items = transformOptionsToColumns(newColumns, grid);

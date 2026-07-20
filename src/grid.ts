@@ -1,5 +1,5 @@
 import type { CellType, DataType } from "@/shared/enums";
-import { createColumns, type ColumnOptions, type Columns } from "@/columns";
+import { createColumns, type Columns } from "@/columns";
 import { createSource, type Source } from "@/source";
 import { extractPropertiesFromObjects } from "@/helpers/extractpropertiesfromobjects";
 import { debounce } from "throttle-debounce";
@@ -12,6 +12,7 @@ import { resizeObserverExtension } from "@/extensions/resizeobserver";
 import { createEvent } from "@/shared/event";
 import { renderExtension } from "@/extensions/render";
 import { expanderExtension } from "@/extensions/expander";
+import type { ColumnOptions } from "./types/column";
 
 type GridSizes = "full" | { width: number | string; height: number | string };
 
@@ -29,12 +30,12 @@ const HTML = `
     <div class="thegrid-area-rowheaders"></div>
 `;
 
-export class TheGrid<T extends Record<string, any>> {
+export class TheGrid<T extends Record<string, any> = any> {
     #hostElement: HTMLElement;
     #cellsElement: HTMLElement;
     #columnHeadersElement: HTMLElement;
     #rowHeadersElement: HTMLElement;
-    #columnManager: Columns<T>;
+    #columns: Columns<T>;
     #source: Source<T>;
     #selection: Selection;
     #size: GridSizes = "full";
@@ -79,9 +80,9 @@ export class TheGrid<T extends Record<string, any>> {
         });
 
         // Columns
-        this.#columnManager = createColumns(this);
-        this.#columnManager.update(() => List(this.#getColumns(options.columns)));
-        this.#columnManager.onChange.subscribe(() => {
+        this.#columns = createColumns(this);
+        this.#columns.update(() => List(this.#getColumns(options.columns)));
+        this.#columns.onChange.subscribe(() => {
             this.invalidate();
         });
 
@@ -134,7 +135,7 @@ export class TheGrid<T extends Record<string, any>> {
     }
 
     get columns(): Columns<T> {
-        return this.#columnManager;
+        return this.#columns;
     }
 
     get cellSize(): number {
@@ -155,7 +156,7 @@ export class TheGrid<T extends Record<string, any>> {
 
     scrollIntoView = debounce(64, (columnIndex: number, rowIndex: number) => {
         const { scrollLeft, scrollRight, scrollTop, scrollBottom } = getElementScrollDimensions(this.#cellsElement);
-        const column = this.#columnManager.items.get(columnIndex)!;
+        const column = this.#columns.items.get(columnIndex)!;
 
         let left = scrollLeft;
         const columnStart = column.fromLeft;

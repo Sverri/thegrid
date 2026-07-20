@@ -106,7 +106,7 @@ export interface Selection {
  * @param grid The grid instance that owns the selection.
  * @returns A selection object with range accessors and navigation helpers.
  */
-export function createSelection(grid: TheGrid<any>): Selection {
+export function createSelection(grid: TheGrid): Selection {
     let range = createRange(-1, -1);
 
     function setNewRange(newRange: Range) {
