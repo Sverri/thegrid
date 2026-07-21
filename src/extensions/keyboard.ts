@@ -118,10 +118,11 @@ export function keyboardExtension(grid: TheGrid) {
                 if (event.ctrlKey) {
                     const { x1, y1, x2 } = grid.selection.range;
                     const firstRowIndex = 0;
+                    const newX1 = event.shiftKey ? x1 : x2;
                     const newY1 = event.shiftKey ? y1 : firstRowIndex;
                     grid.updateSelection(data => {
                         return data.withMutations(selection => {
-                            selection.set("range", createRange(x1, newY1, x2, firstRowIndex));
+                            selection.set("range", createRange(newX1, newY1, x2, firstRowIndex));
                         });
                     });
                     scrollIntoView(grid.selection.range.x2, firstRowIndex);
@@ -129,9 +130,10 @@ export function keyboardExtension(grid: TheGrid) {
                     const { x1, y1, y2 } = grid.selection.range;
                     const firstColumnIndex = columns.firstVisibleIndex;
                     const newX1 = event.shiftKey ? x1 : firstColumnIndex;
+                    const newY1 = event.shiftKey ? y1 : y2;
                     grid.updateSelection(data => {
                         return data.withMutations(selection => {
-                            selection.set("range", createRange(newX1, y1, firstColumnIndex, y2));
+                            selection.set("range", createRange(newX1, newY1, firstColumnIndex, y2));
                         });
                     });
                     scrollIntoView(firstColumnIndex, grid.selection.range.y2);
@@ -144,10 +146,11 @@ export function keyboardExtension(grid: TheGrid) {
                 if (event.ctrlKey) {
                     const { x1, y1, x2 } = grid.selection.range;
                     const lastRowIndex = source.items.size - 1;
+                    const newX1 = event.shiftKey ? x1 : x2;
                     const newY1 = event.shiftKey ? y1 : lastRowIndex;
                     grid.updateSelection(data => {
                         return data.withMutations(selection => {
-                            selection.set("range", createRange(x1, newY1, x2, lastRowIndex));
+                            selection.set("range", createRange(newX1, newY1, x2, lastRowIndex));
                         });
                     });
                     scrollIntoView(x2, lastRowIndex);
@@ -155,9 +158,10 @@ export function keyboardExtension(grid: TheGrid) {
                     const { x1, y1, y2 } = grid.selection.range;
                     const lastColumnIndex = columns.lastVisibleIndex;
                     const newX1 = event.shiftKey ? x1 : lastColumnIndex;
+                    const newY1 = event.shiftKey ? y1 : y2;
                     grid.updateSelection(data => {
                         return data.withMutations(selection => {
-                            selection.set("range", createRange(newX1, y1, lastColumnIndex, y2));
+                            selection.set("range", createRange(newX1, newY1, lastColumnIndex, y2));
                         });
                     });
                     scrollIntoView(lastColumnIndex, y2);
