@@ -15,7 +15,7 @@ import { resizeObserverExtension } from "@/extensions/resizeobserver";
 import { renderExtension } from "@/extensions/render";
 import { expanderExtension } from "@/extensions/expander";
 import { createEvent } from "@/shared/event";
-import { createRange, type Range } from "./parts/range";
+import { createRange } from "@/parts/range";
 import { createSelection, type Selection } from "./parts/selection";
 
 type GridSizes = "full" | { width: number | string; height: number | string };
@@ -47,25 +47,26 @@ export class TheGrid<T extends Record<string, any> = any> {
     #onInvalidate = createEvent<() => void>();
 
     constructor(hostElement: HTMLElement, options?: Options<T>) {
+        // Host element
         this.#hostElement = hostElement;
         this.#hostElement.innerHTML = HTML;
         this.#hostElement.classList.add("thegrid");
 
+        // Grid elements
         this.#cellsElement = this.#hostElement.querySelector(".thegrid-area-cells")!;
         this.#columnHeadersElement = this.#hostElement.querySelector(".thegrid-area-columnheaders")!;
         this.#rowHeadersElement = this.#hostElement.querySelector(".thegrid-area-rowheaders")!;
 
-        this.#cellSize = Number.parseInt(
-            window.getComputedStyle(this.#hostElement).getPropertyValue("--cell-size"),
-            10,
-        );
+        // Miscellaneous
+        this.#cellSize = Number.parseInt(window.getComputedStyle(hostElement).getPropertyValue("--cell-size"), 10);
+        this.size = options?.size ?? "full";
 
+        // Parts
         this.#columns = createColumns(this.#getColumns(options?.columns), this);
         this.#source = createSource<T>(List(options?.data ?? []), this);
-
-        this.size = options?.size ?? "full";
         this.#selection = createSelection(createRange(-1, -1), this);
 
+        // Official extensions
         this.extend(expanderExtension);
         this.extend(renderExtension);
         this.extend(resizeObserverExtension);
@@ -105,12 +106,12 @@ export class TheGrid<T extends Record<string, any> = any> {
     }
 
     /**
-     * Update the source
+     * Update the selection
      *
-     * The callback receives the current immutable source and must return
-     * a new immutable source.
+     * The callback receives the current immutable selection and must return
+     * a new immutable selection.
      *
-     * @param callback A function that receives the current source and returns a new source.
+     * @param callback A function that receives the current selection and returns a new selection.
      */
     updateSelection(callback: (source: Immutable.RecordOf<Selection>) => Immutable.RecordOf<Selection>) {
         const newSelection = callback(this.#selection);
