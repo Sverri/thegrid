@@ -11,7 +11,7 @@ import {
     moveSelectionUp,
 } from "@/parts/selection";
 
-export function keyboardExtension(grid: TheGrid) {
+export function keyboardExtension(grid: TheGrid<any>) {
     grid.cellsElement.addEventListener("keydown", event => {
         const { source, columns, scrollIntoView } = grid;
         switch (event.key) {

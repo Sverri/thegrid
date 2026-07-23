@@ -1,7 +1,7 @@
 import type { TheGrid } from "@/grid";
 import { debounce } from "throttle-debounce";
 
-export function resizeObserverExtension(grid: TheGrid) {
+export function resizeObserverExtension(grid: TheGrid<any>) {
     const resizeObserver = new ResizeObserver(
         debounce(100, (): void => {
             grid.invalidate();

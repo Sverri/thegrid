@@ -1,4 +1,3 @@
-import type { TheGrid } from "@/grid";
 import type { List } from "immutable";
 import type { Column, ColumnCollection, ColumnOptions } from "./types";
 import { createColumn, createColumnOptions } from "./factories";
@@ -22,7 +21,6 @@ export function transformColumnsToOptions<T extends Record<string, any>>(
 
 export function transformOptionsToColumns<T extends Record<string, any>>(
     newColumns: List<Immutable.RecordOf<ColumnOptions<T>>>,
-    grid: TheGrid<T>,
 ): List<Immutable.RecordOf<Column<T>>> {
     let visibleIndex = 0;
     let fromLeft = 0;
@@ -38,7 +36,6 @@ export function transformOptionsToColumns<T extends Record<string, any>>(
             minWidth: column.minWidth ?? 1,
             maxWidth: column.maxWidth ?? 999999,
             visible: visible,
-            grid,
             index: index,
             visibleIndex: visibleIndex,
             fromLeft: fromLeft,

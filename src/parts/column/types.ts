@@ -1,4 +1,3 @@
-import type { TheGrid } from "@/grid";
 import type { DataType } from "@/shared/enums";
 import type { List } from "immutable";
 
@@ -58,11 +57,6 @@ export interface ColumnOptions<T extends Record<string, any>> {
  * and links to neighboring columns for navigation and layout purposes.
  */
 export interface Column<T extends Record<string, any>> extends Required<ColumnOptions<T>> {
-    /**
-     * Grid the column belongs to
-     */
-    grid: TheGrid<T>;
-
     /**
      * The index of the column
      */

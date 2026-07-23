@@ -7,7 +7,7 @@ import { renderCellSelection } from "@/render/renderselection";
 import { setCellContents } from "@/render/setcellcontents";
 import { CellType } from "@/shared/enums";
 
-export function renderExtension(grid: TheGrid) {
+export function renderExtension(grid: TheGrid<any>) {
     const renderAhead = {
         columns: 1,
         rows: 3,
@@ -17,7 +17,7 @@ export function renderExtension(grid: TheGrid) {
     grid.cellsElement.classList.add("thegrid-enable-zebra");
 
     const renderCells = (range: Range) => {
-        const { cellsElement, columns, cellSize } = grid;
+        const { cellsElement, columns, cellSize, selection } = grid;
         const cells = Array.from(cellsElement.children) as HTMLDivElement[];
 
         turnInCells(...cells);
@@ -36,7 +36,7 @@ export function renderExtension(grid: TheGrid) {
             cell.style.width = `${width}px`;
             cell.style.height = `${cellSize}px`;
 
-            renderCellSelection(cell, grid.selection.range, grid.columns.items, x, y);
+            renderCellSelection(cell, selection.range, columns.items, x, y);
             setCellContents(cell, dataType, grid.getCellData(x, y));
 
             cell.classList.add(y % 2 === 0 ? "row-even" : "row-odd");
@@ -108,8 +108,6 @@ export function renderExtension(grid: TheGrid) {
         renderColumnHeaders(renderArea, dimensions);
         renderRowHeaders(renderArea, dimensions);
     };
-
-    render();
 
     grid.cellsElement.addEventListener("scroll", render);
     grid.onInvalidate.subscribe(render);

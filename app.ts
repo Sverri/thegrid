@@ -1,7 +1,9 @@
 import "normalize.css";
-import { TheGrid, DataType } from "./src/index";
+import { DataType } from "./src/index";
 import { faker } from "@faker-js/faker";
 import { createRange } from "@/parts/range";
+import { createGrid } from "@/grid";
+import { createSelection } from "@/parts/selection";
 
 const hostElement = document.querySelector<HTMLDivElement>(".grid");
 
@@ -44,10 +46,8 @@ for (let i = 0; i < 1000; i++) {
     });
 }
 
-const grid = new TheGrid<User>(hostElement!, {
+const grid = createGrid<User>(hostElement!, {
     data: users,
-    size: "full",
-    zebra: true,
     columns: [
         { binding: "id", header: "Id", width: 100, dataType: DataType.Text },
         { binding: "name", header: "Name", width: 200, dataType: DataType.String },
@@ -67,8 +67,8 @@ const grid = new TheGrid<User>(hostElement!, {
     ],
 });
 
-grid.updateSelection(data => {
-    return data.set("range", createRange(0, 0));
+grid.updateSelection(selection => {
+    return selection.set("range", createRange(0, 0));
 });
 
 // setTimeout(() => {
@@ -84,6 +84,7 @@ grid.updateSelection(data => {
 // }, 1000);
 
 // setTimeout(() => {
+//     console.log("->", grid);
 //     grid.updateSource(source => {
 //         return source.filter(item => item.id % 2 === 0);
 //     });

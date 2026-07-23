@@ -1,4 +1,3 @@
-import type { TheGrid } from "@/grid";
 import type { Column, ColumnOptions, ColumnCollection } from "./types";
 import { transformOptionsToColumns } from "./helpers";
 import { Record as ImmutableRecord, List as ImmutableList, List } from "immutable";
@@ -14,11 +13,8 @@ const columnsRecord = ImmutableRecord<ColumnCollection<any>>({
     totalWidth: -1,
 });
 
-export function createColumns<T extends Record<string, any>>(
-    columnOptions: List<Immutable.RecordOf<ColumnOptions<T>>>,
-    grid: TheGrid<T>,
-) {
-    const items = transformOptionsToColumns(columnOptions, grid);
+export function createColumns<T extends Record<string, any>>(options: List<Immutable.RecordOf<ColumnOptions<T>>>) {
+    const items = transformOptionsToColumns(options);
     return columnsRecord({
         items,
         firstIndex: items.size === 0 ? -1 : 0,
@@ -55,7 +51,6 @@ const columnRecord = ImmutableRecord<Column<any>>({
     minWidth: 1,
     maxWidth: 999999,
     visible: true,
-    grid: undefined!,
     index: -1,
     visibleIndex: -1,
     fromLeft: -1,

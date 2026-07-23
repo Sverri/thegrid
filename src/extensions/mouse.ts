@@ -1,7 +1,7 @@
 import type { TheGrid } from "@/grid";
 import { createRange } from "@/parts/range";
 
-export function mouseExtension(grid: TheGrid) {
+export function mouseExtension(grid: TheGrid<any>) {
     let startCoords: { row: number; column: number } | undefined;
 
     grid.cellsElement.addEventListener("mousedown", event => {

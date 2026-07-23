@@ -1,13 +1,8 @@
-import {
-    transformColumnsToOptions,
-    createColumns,
-    createColumnOptions,
-    type ColumnCollection,
-    type ColumnOptions,
-} from "@/parts/column";
-import { createSource, type Source } from "@/parts/source";
+import { createGridInstance, getColumns, GRID_HTML, type TheGrid, type TheGridOptions } from "@/parts/grid";
+import { transformColumnsToOptions, createColumns, type ColumnOptions } from "@/parts/column";
+import { createSource } from "@/parts/source";
 import { debounce } from "throttle-debounce";
-import { List } from "immutable";
+import { List as ImmutableList } from "immutable";
 import { getElementScrollDimensions } from "@/helpers/getelementscrolldimensions";
 import { keyboardExtension } from "@/extensions/keyboard";
 import { mouseExtension } from "@/extensions/mouse";
@@ -16,63 +11,47 @@ import { renderExtension } from "@/extensions/render";
 import { expanderExtension } from "@/extensions/expander";
 import { createEvent } from "@/shared/event";
 import { createRange } from "@/parts/range";
-import { createSelection, type Selection } from "./parts/selection";
+import { createSelection, type Selection } from "@/parts/selection";
 
-type GridSizes = "full" | { width: number | string; height: number | string };
+export function createGrid<T extends Record<string, any>>(
+    hostElement: HTMLElement,
+    options?: TheGridOptions<T>,
+): Immutable.RecordOf<TheGrid<T>> {
+    hostElement.innerHTML = GRID_HTML;
+    hostElement.classList.add("thegrid");
+    hostElement.style.setProperty("width", "100%");
+    hostElement.style.setProperty("height", "100%");
 
-interface Options<T extends Record<string, any>> {
-    data?: ArrayLike<T>;
-    columns?: ArrayLike<ColumnOptions<T>>;
-    size?: GridSizes;
-    zebra?: boolean;
-}
-
-const HTML = `
-    <div class="thegrid-area-cells" tabindex="0"></div>
-    <div class="thegrid-area-topleft"></div>
-    <div class="thegrid-area-columnheaders"></div>
-    <div class="thegrid-area-rowheaders"></div>
-`;
-
-export class TheGrid<T extends Record<string, any> = any> {
-    #hostElement: HTMLElement;
-    #cellsElement: HTMLElement;
-    #columnHeadersElement: HTMLElement;
-    #rowHeadersElement: HTMLElement;
-    #columns: Immutable.RecordOf<ColumnCollection<T>>;
-    #source: Source<T>;
-    #selection: Immutable.RecordOf<Selection>;
-    #size: GridSizes = "full";
-    #cellSize: number;
-    #onInvalidate = createEvent<() => void>();
-
-    constructor(hostElement: HTMLElement, options?: Options<T>) {
-        // Host element
-        this.#hostElement = hostElement;
-        this.#hostElement.innerHTML = HTML;
-        this.#hostElement.classList.add("thegrid");
-
-        // Grid elements
-        this.#cellsElement = this.#hostElement.querySelector(".thegrid-area-cells")!;
-        this.#columnHeadersElement = this.#hostElement.querySelector(".thegrid-area-columnheaders")!;
-        this.#rowHeadersElement = this.#hostElement.querySelector(".thegrid-area-rowheaders")!;
-
-        // Miscellaneous
-        this.#cellSize = Number.parseInt(window.getComputedStyle(hostElement).getPropertyValue("--cell-size"), 10);
-        this.size = options?.size ?? "full";
-
-        // Parts
-        this.#columns = createColumns(this.#getColumns(options?.columns), this);
-        this.#source = createSource<T>(List(options?.data ?? []), this);
-        this.#selection = createSelection(createRange(-1, -1), this);
-
-        // Official extensions
-        this.extend(expanderExtension);
-        this.extend(renderExtension);
-        this.extend(resizeObserverExtension);
-        this.extend(mouseExtension);
-        this.extend(keyboardExtension);
+    const instance = {} as TheGrid<T>;
+    const cellsElement = hostElement.querySelector<HTMLDivElement>(".thegrid-area-cells");
+    if (!cellsElement) {
+        throw new Error("Could not find cells element");
     }
+    const columnHeadersElement = hostElement.querySelector<HTMLDivElement>(".thegrid-area-columnheaders");
+    if (!columnHeadersElement) {
+        throw new Error("Could not find column headers element");
+    }
+    const rowHeadersElement = hostElement.querySelector<HTMLDivElement>(".thegrid-area-rowheaders");
+    if (!rowHeadersElement) {
+        throw new Error("Could not find row headers element");
+    }
+    let columns = createColumns(getColumns(options?.columns));
+    let source = createSource<T>(ImmutableList(options?.data ?? []), columns.items);
+    let selection = createSelection(createRange(-1, -1), instance);
+    const cellSize = Number.parseInt(window.getComputedStyle(hostElement).getPropertyValue("--cell-size"), 10);
+    const onInvalidate = createEvent<() => void>();
+
+    const debouncedInvalidate = debounce(100, () => {
+        onInvalidate.raise();
+    });
+
+    const invalidate = (immediately = false) => {
+        if (immediately) {
+            onInvalidate.raise();
+        } else {
+            debouncedInvalidate();
+        }
+    };
 
     /**
      * Update the columns
@@ -82,14 +61,17 @@ export class TheGrid<T extends Record<string, any> = any> {
      *
      * @param callback A function that receives the current columns and returns new columns.
      */
-    updateColumns(
-        callback: (columns: List<Immutable.RecordOf<ColumnOptions<T>>>) => List<Immutable.RecordOf<ColumnOptions<T>>>,
-    ) {
-        const options = transformColumnsToOptions(this.#columns);
+    const updateColumns = (
+        callback: (
+            columns: ImmutableList<Immutable.RecordOf<ColumnOptions<T>>>,
+        ) => ImmutableList<Immutable.RecordOf<ColumnOptions<T>>>,
+    ): void => {
+        const options = transformColumnsToOptions(columns);
         const newOptions = callback(options);
-        this.#columns = createColumns(newOptions, this);
-        this.invalidate();
-    }
+        columns = createColumns(newOptions);
+        Object.assign(instance, { columns });
+        invalidate();
+    };
 
     /**
      * Update the source
@@ -99,11 +81,14 @@ export class TheGrid<T extends Record<string, any> = any> {
      *
      * @param callback A function that receives the current source and returns a new source.
      */
-    updateSource(callback: (source: List<Immutable.RecordOf<T>>) => List<Immutable.RecordOf<T>>) {
-        const newSource = callback(this.#source.items);
-        this.#source = createSource(newSource, this);
-        this.invalidate();
-    }
+    const updateSource = (
+        callback: (source: ImmutableList<Immutable.RecordOf<T>>) => ImmutableList<Immutable.RecordOf<T>>,
+    ) => {
+        const newSource = callback(source.items);
+        source = createSource(newSource, columns.items);
+        Object.assign(instance, { source });
+        invalidate();
+    };
 
     /**
      * Update the selection
@@ -113,67 +98,16 @@ export class TheGrid<T extends Record<string, any> = any> {
      *
      * @param callback A function that receives the current selection and returns a new selection.
      */
-    updateSelection(callback: (source: Immutable.RecordOf<Selection>) => Immutable.RecordOf<Selection>) {
-        const newSelection = callback(this.#selection);
-        this.#selection = createSelection(newSelection.range, this);
-        this.invalidate(true);
-    }
+    const updateSelection = (callback: (source: Immutable.RecordOf<Selection>) => Immutable.RecordOf<Selection>) => {
+        const newSelection = callback(selection);
+        selection = createSelection(newSelection.range, instance);
+        Object.assign(instance, { selection });
+        invalidate(true);
+    };
 
-    extend(callback: (grid: TheGrid<T>) => void): void {
-        callback(this);
-    }
-
-    invalidate(immediately = false) {
-        if (immediately) {
-            this.#onInvalidate.raise();
-        } else {
-            this.#debouncedInvalidate();
-        }
-    }
-
-    #debouncedInvalidate = debounce(100, () => {
-        this.#onInvalidate.raise();
-    });
-
-    get hostElement(): HTMLElement {
-        return this.#hostElement;
-    }
-
-    get cellsElement(): HTMLElement {
-        return this.#cellsElement;
-    }
-
-    get columnHeadersElement(): HTMLElement {
-        return this.#columnHeadersElement;
-    }
-
-    get rowHeadersElement(): HTMLElement {
-        return this.#rowHeadersElement;
-    }
-
-    get source() {
-        return this.#source;
-    }
-
-    get columns(): ColumnCollection<T> {
-        return this.#columns;
-    }
-
-    get cellSize(): number {
-        return this.#cellSize;
-    }
-
-    get selection() {
-        return this.#selection;
-    }
-
-    get onInvalidate() {
-        return this.#onInvalidate;
-    }
-
-    scrollIntoView = debounce(64, (columnIndex: number, rowIndex: number) => {
-        const { scrollLeft, scrollRight, scrollTop, scrollBottom } = getElementScrollDimensions(this.#cellsElement);
-        const column = this.#columns.items.get(columnIndex)!;
+    const scrollIntoView = debounce(64, (columnIndex: number, rowIndex: number) => {
+        const { scrollLeft, scrollRight, scrollTop, scrollBottom } = getElementScrollDimensions(cellsElement);
+        const column = columns.items.get(columnIndex)!;
 
         let left = scrollLeft;
         const columnStart = column.fromLeft;
@@ -185,63 +119,61 @@ export class TheGrid<T extends Record<string, any> = any> {
         }
 
         let top = scrollTop;
-        const rowStart = rowIndex * this.#cellSize;
-        const rowEnd = rowStart + this.#cellSize;
+        const rowStart = rowIndex * cellSize;
+        const rowEnd = rowStart + cellSize;
         if (rowStart < scrollTop) {
             top = rowStart;
         } else if (rowEnd > scrollBottom) {
             top = scrollTop + (rowEnd - scrollBottom);
         }
 
-        this.#cellsElement.scrollTo({ left, top, behavior: "instant" });
+        cellsElement.scrollTo({ left, top, behavior: "instant" });
     });
 
-    get size(): GridSizes {
-        return this.#size;
-    }
-
-    set size(size: GridSizes) {
-        this.#size = size;
-        switch (this.#size) {
-            case "full": {
-                this.#hostElement.style.setProperty("width", "100%");
-                this.#hostElement.style.setProperty("height", "100%");
-                break;
-            }
-            default: {
-                const { width, height } = this.#size!;
-                this.#hostElement.style.setProperty("width", `${width}px`);
-                this.#hostElement.style.setProperty("height", `${height}px`);
-                break;
-            }
-        }
-    }
-
-    #getColumns(columns: ArrayLike<ColumnOptions<T>> | undefined): List<Immutable.RecordOf<ColumnOptions<T>>> {
-        let options: ColumnOptions<T>[];
-        if (columns) {
-            options = Array.from(columns);
-        } else {
-            const bindings = new Set<string>();
-            for (const obj of this.#source.items) {
-                for (const key of Object.keys(obj)) {
-                    bindings.add(key);
-                }
-            }
-            options = [...bindings].map(binding => ({ binding }));
-        }
-        return List(options.map(option => createColumnOptions(option)));
-    }
-
-    getCellData(columnIndex: number, rowIndex: number): unknown {
-        const row = this.source.items.get(rowIndex);
+    const getCellData = <DT>(columnIndex: number, rowIndex: number): DT | undefined => {
+        const row = source.items.get(rowIndex);
         if (!row) {
             return undefined;
         }
-        const column = this.columns.items.get(columnIndex);
+        const column = columns.items.get(columnIndex);
         if (!column) {
             return undefined;
         }
         return row[column.binding];
-    }
+    };
+
+    const extend = (callback: (grid: TheGrid<T>) => void): void => {
+        callback(instance);
+    };
+
+    Object.assign(instance, {
+        hostElement,
+        cellsElement,
+        columnHeadersElement,
+        rowHeadersElement,
+        invalidate,
+        updateColumns,
+        updateSource,
+        updateSelection,
+        scrollIntoView,
+        getCellData,
+        extend,
+        columns,
+        source,
+        selection,
+        cellSize,
+        onInvalidate,
+    } satisfies TheGrid<T>);
+
+    // Official extensions
+    extend(expanderExtension);
+    extend(renderExtension);
+    extend(mouseExtension);
+    extend(keyboardExtension);
+    extend(resizeObserverExtension);
+
+    // Kick off rendering
+    invalidate(true);
+
+    return createGridInstance(instance);
 }
