@@ -1,4 +1,4 @@
-import type { TheGrid } from "@/grid";
+import type { TheGrid } from "@/parts/grid";
 import type { Selection } from "./types";
 import type { Range } from "@/parts/range";
 import { Record as ImmutableRecord } from "immutable";

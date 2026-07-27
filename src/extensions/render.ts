@@ -1,4 +1,4 @@
-import type { TheGrid } from "@/grid";
+import type { TheGrid } from "@/parts/grid";
 import { rangeHorizontalIterator, rangeIterator, rangeVerticalIterator, type Range } from "@/parts/range";
 import { getElementScrollDimensions, type ElementScrollDimensions } from "@/helpers/getelementscrolldimensions";
 import { createCellElementManager } from "@/render/cellelementmanager";

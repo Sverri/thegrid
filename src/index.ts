@@ -1,3 +1,4 @@
 import "@/style.css";
+export type { TheGrid } from "@/parts/grid";
 export { DataType, CellType } from "@/shared/enums";
-export { createGrid, type TheGrid } from "@/grid";
+export { createGrid } from "@/grid";

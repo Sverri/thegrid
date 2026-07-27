@@ -1,4 +1,4 @@
-import type { TheGrid } from "@/grid";
+import type { TheGrid } from "@/parts/grid";
 import { createRange } from "@/parts/range";
 
 export function mouseExtension(grid: TheGrid<any>) {

@@ -1,4 +1,4 @@
-import type { TheGrid } from "@/grid";
+import type { TheGrid } from "@/parts/grid";
 import { createRange } from "@/parts/range";
 import {
     expandSelectionDown,

@@ -1,4 +1,4 @@
-import type { TheGrid } from "@/grid";
+import type { TheGrid } from "@/parts/grid";
 import { debounce } from "throttle-debounce";
 
 export function resizeObserverExtension(grid: TheGrid<any>) {

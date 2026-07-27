@@ -3,7 +3,6 @@ import { DataType } from "./src/index";
 import { faker } from "@faker-js/faker";
 import { createRange } from "@/parts/range";
 import { createGrid } from "@/grid";
-import { createSelection } from "@/parts/selection";
 
 const hostElement = document.querySelector<HTMLDivElement>(".grid");
 
@@ -46,7 +45,7 @@ for (let i = 0; i < 1000; i++) {
     });
 }
 
-const grid = createGrid<User>(hostElement!, {
+const grid = createGrid(hostElement!, {
     data: users,
     columns: [
         { binding: "id", header: "Id", width: 100, dataType: DataType.Text },
