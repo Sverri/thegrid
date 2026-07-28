@@ -1,5 +1,5 @@
-import type { Column } from "@/parts/column";
 import type { ElementScrollDimensions } from "@/helpers/getelementscrolldimensions";
+import type { TheGrid } from "@/parts/grid";
 import { createRange } from "@/parts/range";
 
 /**
@@ -7,19 +7,9 @@ import { createRange } from "@/parts/range";
  */
 interface Options {
     /**
-     * The ordered list of columns available to the grid.
+     * The grid
      */
-    columns: Immutable.List<Column<any>>;
-
-    /**
-     * The data source rows that may be rendered.
-     */
-    source: Immutable.List<object>;
-
-    /**
-     * The size of a single cell in pixels.
-     */
-    cellSize: number;
+    grid: TheGrid<any>;
 
     /**
      * The current scroll dimensions of the viewport.
@@ -41,19 +31,20 @@ interface Options {
  * @param options The render-area calculation inputs.
  * @returns A range describing the visible and buffered render region.
  */
-export function calculateRenderArea({ columns, source, cellSize, dimensions, renderAhead }: Options) {
+export function calculateRenderArea({ grid, dimensions, renderAhead }: Options) {
+    const { columns, source, cellSize } = grid;
     const { scrollLeft, scrollRight, scrollTop, scrollBottom } = dimensions;
 
     // Columns
-    const firstColumn = columns.find(({ visible, fromLeft, width }) => visible && fromLeft + width >= scrollLeft);
-    const lastColumn = columns.reverse().find(({ visible, fromLeft }) => visible && fromLeft <= scrollRight);
+    const firstColumn = columns.items.find(({ visible, fromLeft, width }) => visible && fromLeft + width >= scrollLeft);
+    const lastColumn = columns.items.reverse().find(({ visible, fromLeft }) => visible && fromLeft <= scrollRight);
     const firstColumnIndex = Math.max(0, (firstColumn?.index ?? 0) - renderAhead.columns);
-    const lastColumnIndex = Math.min(columns.size - 1, (lastColumn?.index ?? 0) + renderAhead.columns);
+    const lastColumnIndex = Math.min(columns.items.size - 1, (lastColumn?.index ?? 0) + renderAhead.columns);
 
     // Rows
     let firstRowIndex: number = -1;
     let lastRowIndex: number = -1;
-    const rowsCount = source.size;
+    const rowsCount = source.items.size;
     if (rowsCount > 0) {
         firstRowIndex = Math.max(0, Math.floor(scrollTop / cellSize) - renderAhead.rows);
         lastRowIndex = Math.min(rowsCount - 1, Math.floor(scrollBottom / cellSize) + renderAhead.rows);

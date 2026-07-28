@@ -97,13 +97,7 @@ export function renderExtension(grid: TheGrid<any>) {
 
     const render = () => {
         const dimensions = getElementScrollDimensions(grid.cellsElement);
-        const renderArea = calculateRenderArea({
-            columns: grid.columns.items,
-            source: grid.source.items,
-            cellSize: grid.cellSize,
-            renderAhead,
-            dimensions,
-        });
+        const renderArea = calculateRenderArea({ grid, renderAhead, dimensions });
         renderCells(renderArea);
         renderColumnHeaders(renderArea, dimensions);
         renderRowHeaders(renderArea, dimensions);
