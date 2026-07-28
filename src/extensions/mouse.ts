@@ -12,15 +12,24 @@ export function mouseExtension(grid: TheGrid<any>) {
         ) {
             return;
         }
-        startCoords = {
-            row: Number.parseInt(event.target!.dataset.row!, 10),
-            column: Number.parseInt(event.target!.dataset.column!, 10),
-        };
-        grid.updateSelection(data => {
-            return data.withMutations(selection => {
-                selection.set("range", createRange(startCoords?.column ?? -1, startCoords?.row ?? -1));
+
+        if (event.shiftKey) {
+            const { x1, y1 } = grid.selection.range;
+            startCoords = {
+                row: y1,
+                column: x1,
+            };
+        } else {
+            startCoords = {
+                row: Number.parseInt(event.target!.dataset.row!, 10),
+                column: Number.parseInt(event.target!.dataset.column!, 10),
+            };
+            grid.updateSelection(data => {
+                return data.withMutations(selection => {
+                    selection.set("range", createRange(startCoords?.column ?? -1, startCoords?.row ?? -1));
+                });
             });
-        });
+        }
     });
 
     grid.cellsElement.addEventListener("mousemove", event => {
@@ -62,6 +71,7 @@ export function mouseExtension(grid: TheGrid<any>) {
         const upRowIndex = Number.parseInt(event.target.dataset.row!, 10);
         const downColumnIndex = startCoords?.column ?? upColumnIndex;
         const downRowIndex = startCoords?.row ?? upRowIndex;
+
         if (
             Number.isNaN(downRowIndex) ||
             Number.isNaN(downColumnIndex) ||
@@ -70,6 +80,7 @@ export function mouseExtension(grid: TheGrid<any>) {
         ) {
             return;
         }
+
         grid.updateSelection(data => {
             return data.withMutations(selection => {
                 selection.set("range", createRange(downColumnIndex, downRowIndex, upColumnIndex, upRowIndex));

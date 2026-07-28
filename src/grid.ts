@@ -10,7 +10,7 @@ import { resizeObserverExtension } from "@/extensions/resizeobserver";
 import { renderExtension } from "@/extensions/render";
 import { expanderExtension } from "@/extensions/expander";
 import { createEvent } from "@/shared/event";
-import { createRange } from "@/parts/range";
+import { createRange, rangeIdenticalTo } from "@/parts/range";
 import { createSelection, type Selection } from "@/parts/selection";
 
 export function createGrid<T extends Record<string, any>>(
@@ -100,6 +100,12 @@ export function createGrid<T extends Record<string, any>>(
      */
     const updateSelection = (callback: (source: Immutable.RecordOf<Selection>) => Immutable.RecordOf<Selection>) => {
         const newSelection = callback(selection);
+        if (rangeIdenticalTo(newSelection.range, selection.range)) {
+            // Range is identical, no need to update selection. This can happen
+            // when the user is extending the selection by dragging the mouse,
+            // as well as other reasons.
+            return;
+        }
         selection = createSelection(newSelection.range, instance);
         Object.assign(instance, { selection });
         invalidate(true);
