@@ -18,6 +18,7 @@ const gridRecord = ImmutableRecord<TheGrid<any>>({
     selection: undefined!,
     cellSize: undefined!,
     onInvalidate: undefined!,
+    showHeaderSelection: undefined!,
 });
 
 export function createGridInstance<T extends Record<string, any>>(grid: TheGrid<T>): Immutable.RecordOf<TheGrid<T>> {

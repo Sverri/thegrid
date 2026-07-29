@@ -12,6 +12,7 @@ import { expanderExtension } from "@/extensions/expander";
 import { createEvent } from "@/shared/event";
 import { createRange, rangeIdenticalTo } from "@/parts/range";
 import { createSelection, type Selection } from "@/parts/selection";
+import { HeaderSelection } from "./shared/enums";
 
 export function createGrid<T extends Record<string, any>>(
     hostElement: HTMLElement,
@@ -36,10 +37,11 @@ export function createGrid<T extends Record<string, any>>(
         throw new Error("Could not find row headers element");
     }
     let columns = createColumns(getColumns(options?.columns));
-    let source = createSource<T>(ImmutableList(options?.data ?? []), columns.items);
+    let source = createSource<T>(ImmutableList(options?.source ?? []), columns.items);
     let selection = createSelection(createRange(-1, -1), instance);
     const cellSize = Number.parseInt(window.getComputedStyle(hostElement).getPropertyValue("--cell-size"), 10);
     const onInvalidate = createEvent<() => void>();
+    const showHeaderSelection = options?.showHeaderSelection ?? HeaderSelection.Both;
 
     const debouncedInvalidate = debounce(100, () => {
         onInvalidate.raise();
@@ -99,14 +101,14 @@ export function createGrid<T extends Record<string, any>>(
      * @param callback A function that receives the current selection and returns a new selection.
      */
     const updateSelection = (callback: (source: Immutable.RecordOf<Selection>) => Immutable.RecordOf<Selection>) => {
-        const newSelection = callback(selection);
-        if (rangeIdenticalTo(newSelection.range, selection.range)) {
+        const { range } = callback(selection);
+        if (rangeIdenticalTo(range, selection.range)) {
             // Range is identical, no need to update selection. This can happen
             // when the user is extending the selection by dragging the mouse,
             // as well as other reasons.
             return;
         }
-        selection = createSelection(newSelection.range, instance);
+        selection = createSelection(range, instance);
         Object.assign(instance, { selection });
         invalidate(true);
     };
@@ -169,6 +171,7 @@ export function createGrid<T extends Record<string, any>>(
         selection,
         cellSize,
         onInvalidate,
+        showHeaderSelection,
     } satisfies TheGrid<T>);
 
     // Official extensions

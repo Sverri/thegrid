@@ -5,7 +5,7 @@ export function getColumns<T extends Record<string, any>>(
     columns: ArrayLike<ColumnOptions<T>> | undefined,
 ): List<Immutable.RecordOf<ColumnOptions<T>>> {
     if (!Array.isArray(columns)) {
-        throw new Error("No columns provided");
+        return List();
     }
     const options = Array.from(columns);
     return List(options.map(option => createColumnOptions(option)));

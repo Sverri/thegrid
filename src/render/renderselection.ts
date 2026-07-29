@@ -28,9 +28,7 @@ export function renderCellSelection(
     }
 
     if (rangeIntersectsRow(selection, rowIndex)) {
-        if (columnIndex === 0 && columnIndex === left) {
-            cell.classList.add("selection-left-border");
-        } else if (columnIndex === columns.get(left)?.previousVisibleColumn?.index) {
+        if (columnIndex === columns.get(left)?.previousVisibleColumn?.index) {
             cell.classList.add("selection-right-border");
         }
         if (columnIndex === right) {
@@ -39,9 +37,7 @@ export function renderCellSelection(
     }
 
     if (rangeIntersectsColumn(selection, columnIndex)) {
-        if (rowIndex === 0 && rowIndex === top) {
-            cell.classList.add("selection-top-border");
-        } else if (rowIndex === top - 1) {
+        if (rowIndex === top - 1) {
             cell.classList.add("selection-bottom-border");
         }
         if (rowIndex === bottom) {

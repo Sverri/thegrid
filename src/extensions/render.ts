@@ -5,7 +5,7 @@ import { createCellElementManager } from "@/render/cellelementmanager";
 import { calculateRenderArea } from "@/render/renderarea";
 import { renderCellSelection } from "@/render/renderselection";
 import { setCellContents } from "@/render/setcellcontents";
-import { CellType } from "@/shared/enums";
+import { CellType, HeaderSelection } from "@/shared/enums";
 
 export function renderExtension(grid: TheGrid<any>) {
     const renderAhead = {
@@ -47,7 +47,7 @@ export function renderExtension(grid: TheGrid<any>) {
     };
 
     const renderColumnHeaders = (range: Range, { scrollLeft }: ElementScrollDimensions) => {
-        const { columnHeadersElement, columns, cellSize, selection } = grid;
+        const { columnHeadersElement, columns, cellSize, selection, showHeaderSelection } = grid;
         const cells = Array.from(columnHeadersElement.children) as HTMLDivElement[];
 
         turnInCells(...cells);
@@ -63,7 +63,11 @@ export function renderExtension(grid: TheGrid<any>) {
             cell.style.transform = `translateX(${fromLeft - scrollLeft}px)`;
             cell.style.width = `${width}px`;
             cell.style.height = `${cellSize}px`;
-            if (selection && index >= selection.range.left && index <= selection.range.right) {
+
+            const showColumnSelected =
+                showHeaderSelection === HeaderSelection.Columns || showHeaderSelection === HeaderSelection.Both;
+
+            if (showColumnSelected && selection && index >= selection.range.left && index <= selection.range.right) {
                 cell.classList.add("column-selected");
             }
             cell.textContent = header;
@@ -74,7 +78,7 @@ export function renderExtension(grid: TheGrid<any>) {
     };
 
     const renderRowHeaders = (range: Range, { scrollTop }: ElementScrollDimensions) => {
-        const { rowHeadersElement, cellSize, selection } = grid;
+        const { rowHeadersElement, cellSize, selection, showHeaderSelection } = grid;
         const cells = Array.from(rowHeadersElement.children) as HTMLDivElement[];
 
         turnInCells(...cells);
@@ -86,7 +90,11 @@ export function renderExtension(grid: TheGrid<any>) {
             cell.style.transform = `translateY(${y * cellSize - scrollTop}px)`;
             cell.style.width = `${cellSize}px`;
             cell.style.height = `${cellSize}px`;
-            if (selection && y >= selection.range.top && y <= selection.range.bottom) {
+
+            const showColumnSelected =
+                showHeaderSelection === HeaderSelection.Rows || showHeaderSelection === HeaderSelection.Both;
+
+            if (showColumnSelected && selection && y >= selection.range.top && y <= selection.range.bottom) {
                 cell.classList.add("row-selected");
             }
             fragment.append(cell);

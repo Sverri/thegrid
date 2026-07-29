@@ -5,22 +5,22 @@ export const CellType = Object.freeze({
     /**
      * A regular data cell.
      */
-    Cell: "cell",
+    Cell: Symbol("CellType.Cell"),
 
     /**
      * The top-left corner cell that acts as the grid origin.
      */
-    TopLeft: "topleft",
+    TopLeft: Symbol("CellType.TopLeft"),
 
     /**
      * A header cell for a column.
      */
-    ColumnHeader: "columnheader",
+    ColumnHeader: Symbol("CellType.ColumnHeader"),
 
     /**
      * A header cell for a row.
      */
-    RowHeader: "rowheader",
+    RowHeader: Symbol("CellType.RowHeader"),
 } as const);
 
 export type CellType = (typeof CellType)[keyof typeof CellType];
@@ -32,52 +32,79 @@ export const DataType = Object.freeze({
     /**
      * Plain text values.
      */
-    String: Symbol("string column type"),
+    String: Symbol("DataType.String"),
 
     /**
      * Multi-line text values.
      */
-    Text: Symbol("text column type"),
+    Text: Symbol("DataType.Text"),
 
     /**
      * Boolean values.
      */
-    Boolean: Symbol("boolean column type"),
+    Boolean: Symbol("DataType.Boolean"),
 
     /**
      * Numeric values rendered with decimal precision.
      */
-    Decimal: Symbol("decimal column type"),
+    Decimal: Symbol("DataType.Decimal"),
 
     /**
      * Date values.
      */
-    Date: Symbol("date column type"),
+    Date: Symbol("DataType.Date"),
 
     /**
      * Whole-number values.
      */
-    Integer: Symbol("integer column type"),
+    Integer: Symbol("DataType.Integer"),
 
     /**
      * URL values.
      */
-    URL: Symbol("url column type"),
+    URL: Symbol("DataType.URL"),
 
     /**
      * Email address values.
      */
-    Email: Symbol("email column type"),
+    Email: Symbol("DataType.Email"),
 
     /**
      * Currency values.
      */
-    Currency: Symbol("currency column type"),
+    Currency: Symbol("DataType.Currency"),
 
     /**
      * Custom or application-defined data types.
      */
-    Custom: Symbol("custom column type"),
+    Custom: Symbol("DataType.Custom"),
 } as const);
 
 export type DataType = (typeof DataType)[keyof typeof DataType];
+
+/**
+ * Identifies the different kinds of cells that can exist in the grid.
+ */
+export const HeaderSelection = Object.freeze({
+    /**
+     * A regular data cell.
+     */
+    None: Symbol("HeaderSelection.None"),
+
+    /**
+     * The top-left corner cell that acts as the grid origin.
+     */
+    Rows: Symbol("HeaderSelection.RowHeaders"),
+
+    /**
+     * A header cell for a column.
+     */
+    Columns: Symbol("HeaderSelection.ColumnHeaders"),
+
+    /**
+     * A header cell for a row.
+     */
+    Both: Symbol("HeaderSelection.Both"),
+} as const);
+
+export type HeaderSelection = (typeof HeaderSelection)[keyof typeof HeaderSelection];

@@ -1,6 +1,6 @@
 import { getElementScrollDimensions } from "@/helpers/getelementscrolldimensions";
 import type { TheGrid } from "@/parts/grid";
-import { createRange, type Range } from "@/parts/range";
+import { createRange } from "@/parts/range";
 import {
     createSelection,
     expandSelectionDown,

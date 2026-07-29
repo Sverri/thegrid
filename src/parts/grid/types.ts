@@ -3,6 +3,7 @@ import type { RaiseableEvent } from "@/shared/event";
 import type { ColumnCollection, ColumnOptions } from "@/parts/column";
 import type { Source } from "@/parts/source";
 import type { Selection } from "@/parts/selection";
+import type { HeaderSelection } from "@/shared/enums";
 
 export interface TheGrid<T extends Record<string, any>> {
     /**
@@ -53,6 +54,11 @@ export interface TheGrid<T extends Record<string, any>> {
     get onInvalidate(): RaiseableEvent<() => void>;
 
     /**
+     * How to show selection in column and row headers
+     */
+    get showHeaderSelection(): HeaderSelection;
+
+    /**
      * Update columns
      */
     updateColumns(
@@ -92,12 +98,23 @@ export interface TheGrid<T extends Record<string, any>> {
 
 export interface TheGridOptions<T extends Record<string, any>> {
     /**
-     * Data
+     * Source
+     *
+     * **Default:** `[]`
      */
-    data?: ArrayLike<T>;
+    source?: ArrayLike<T>;
 
     /**
      * Columns
+     *
+     * **Default:** `[]`
      */
     columns?: ArrayLike<ColumnOptions<T>>;
+
+    /**
+     * Header selection indicator
+     *
+     * **Default:** {@link HeaderSelection.Both}
+     */
+    showHeaderSelection?: HeaderSelection;
 }
