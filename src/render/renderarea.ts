@@ -1,6 +1,7 @@
 import type { ElementScrollDimensions } from "@/helpers/getelementscrolldimensions";
-import type { TheGrid } from "@/parts/grid";
-import { createRange } from "@/parts/range";
+import type { TheGrid } from "@/objects/grid";
+import type { Range } from "@/objects/range";
+import { createRange } from "@/objects/range";
 
 /**
  * Input options for computing the visible render area.
@@ -31,20 +32,20 @@ interface Options {
  * @param options The render-area calculation inputs.
  * @returns A range describing the visible and buffered render region.
  */
-export function calculateRenderArea({ grid, dimensions, renderAhead }: Options) {
+export function calculateRenderArea({ grid, dimensions, renderAhead }: Options): Immutable.RecordOf<Range> {
     const { columns, source, cellSize } = grid;
     const { scrollLeft, scrollRight, scrollTop, scrollBottom } = dimensions;
 
     // Columns
-    const firstColumn = columns.items.find(({ visible, fromLeft, width }) => visible && fromLeft + width >= scrollLeft);
-    const lastColumn = columns.items.reverse().find(({ visible, fromLeft }) => visible && fromLeft <= scrollRight);
+    const firstColumn = columns.find(({ visible, fromLeft, width }) => visible && fromLeft + width >= scrollLeft);
+    const lastColumn = columns.reverse().find(({ visible, fromLeft }) => visible && fromLeft <= scrollRight);
     const firstColumnIndex = Math.max(0, (firstColumn?.index ?? 0) - renderAhead.columns);
-    const lastColumnIndex = Math.min(columns.items.size - 1, (lastColumn?.index ?? 0) + renderAhead.columns);
+    const lastColumnIndex = Math.min(columns.size - 1, (lastColumn?.index ?? 0) + renderAhead.columns);
 
     // Rows
     let firstRowIndex: number = -1;
     let lastRowIndex: number = -1;
-    const rowsCount = source.items.size;
+    const rowsCount = source.size;
     if (rowsCount > 0) {
         firstRowIndex = Math.max(0, Math.floor(scrollTop / cellSize) - renderAhead.rows);
         lastRowIndex = Math.min(rowsCount - 1, Math.floor(scrollBottom / cellSize) + renderAhead.rows);

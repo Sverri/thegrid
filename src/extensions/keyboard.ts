@@ -1,6 +1,7 @@
+import type { TheGrid } from "@/objects/grid";
 import { getElementScrollDimensions } from "@/helpers/getelementscrolldimensions";
-import type { TheGrid } from "@/parts/grid";
-import { createRange } from "@/parts/range";
+import { createRange } from "@/objects/range";
+import { calculateRenderArea } from "@/render/renderarea";
 import {
     createSelection,
     expandSelectionDown,
@@ -11,12 +12,11 @@ import {
     moveSelectionLeft,
     moveSelectionRight,
     moveSelectionUp,
-} from "@/parts/selection";
-import { calculateRenderArea } from "@/render/renderarea";
+} from "@/objects/selection";
 
-function moveToFirstColumn(grid: TheGrid<any>, shiftHeld: boolean) {
+function moveToFirstColumn(grid: TheGrid<any>, shiftHeld: boolean): void {
     const { x1, y1, y2 } = grid.selection.range;
-    const firstColumnIndex = grid.columns.firstVisibleIndex;
+    const firstColumnIndex = grid.columns.findIndex(column => column.visible);
     const newX1 = shiftHeld ? x1 : firstColumnIndex;
     const newY1 = shiftHeld ? y1 : y2;
     grid.updateSelection(data => {
@@ -27,7 +27,7 @@ function moveToFirstColumn(grid: TheGrid<any>, shiftHeld: boolean) {
     grid.scrollIntoView(firstColumnIndex, grid.selection.range.y2);
 }
 
-function moveToFirstRow(grid: TheGrid<any>, shiftHeld: boolean) {
+function moveToFirstRow(grid: TheGrid<any>, shiftHeld: boolean): void {
     const { x1, y1, x2 } = grid.selection.range;
     const firstRowIndex = 0;
     const newX1 = shiftHeld ? x1 : x2;
@@ -40,9 +40,9 @@ function moveToFirstRow(grid: TheGrid<any>, shiftHeld: boolean) {
     grid.scrollIntoView(grid.selection.range.x2, firstRowIndex);
 }
 
-function moveToLastColumn(grid: TheGrid<any>, shiftHeld: boolean) {
+function moveToLastColumn(grid: TheGrid<any>, shiftHeld: boolean): void {
     const { x1, y1, y2 } = grid.selection.range;
-    const lastColumnIndex = grid.columns.lastVisibleIndex;
+    const lastColumnIndex = grid.columns.findLastIndex(column => column.visible);
     const newX1 = shiftHeld ? x1 : lastColumnIndex;
     const newY1 = shiftHeld ? y1 : y2;
     grid.updateSelection(data => {
@@ -53,9 +53,9 @@ function moveToLastColumn(grid: TheGrid<any>, shiftHeld: boolean) {
     grid.scrollIntoView(lastColumnIndex, y2);
 }
 
-function moveToLastRow(grid: TheGrid<any>, shiftHeld: boolean) {
+function moveToLastRow(grid: TheGrid<any>, shiftHeld: boolean): void {
     const { x1, y1, x2 } = grid.selection.range;
-    const lastRowIndex = grid.source.items.size - 1;
+    const lastRowIndex = grid.source.size - 1;
     const newX1 = shiftHeld ? x1 : x2;
     const newY1 = shiftHeld ? y1 : lastRowIndex;
     grid.updateSelection(data => {
@@ -66,10 +66,10 @@ function moveToLastRow(grid: TheGrid<any>, shiftHeld: boolean) {
     grid.scrollIntoView(x2, lastRowIndex);
 }
 
-function selectAll(grid: TheGrid<any>) {
+function selectAll(grid: TheGrid<any>): void {
     const { source, columns, scrollIntoView } = grid;
-    const { lastVisibleIndex } = columns;
-    const rowCount = source.items.size - 1;
+    const lastVisibleIndex = columns.findLastIndex(column => column.visible);
+    const rowCount = source.size - 1;
     grid.updateSelection(data => {
         return data.withMutations(selection => {
             selection.set("range", createRange(0, 0, lastVisibleIndex, rowCount));
@@ -78,7 +78,7 @@ function selectAll(grid: TheGrid<any>) {
     scrollIntoView(grid.selection.range.x2, grid.selection.range.y2);
 }
 
-function moveLeft(grid: TheGrid<any>, shiftHeld: boolean, ctrlHeld: boolean) {
+function moveLeft(grid: TheGrid<any>, shiftHeld: boolean, ctrlHeld: boolean): void {
     if (ctrlHeld) {
         moveToFirstColumn(grid, shiftHeld);
         return;
@@ -86,10 +86,10 @@ function moveLeft(grid: TheGrid<any>, shiftHeld: boolean, ctrlHeld: boolean) {
     grid.updateSelection(data => {
         return data.withMutations(selection => {
             if (shiftHeld) {
-                const { range } = expandSelectionLeft(selection);
+                const { range } = expandSelectionLeft(grid, selection);
                 selection.set("range", range);
             } else {
-                const { range } = moveSelectionLeft(selection);
+                const { range } = moveSelectionLeft(grid, selection);
                 selection.set("range", range);
             }
         });
@@ -97,7 +97,7 @@ function moveLeft(grid: TheGrid<any>, shiftHeld: boolean, ctrlHeld: boolean) {
     grid.scrollIntoView(grid.selection.range.x2, grid.selection.range.y2);
 }
 
-function moveRight(grid: TheGrid<any>, shiftHeld: boolean, ctrlHeld: boolean) {
+function moveRight(grid: TheGrid<any>, shiftHeld: boolean, ctrlHeld: boolean): void {
     if (ctrlHeld) {
         moveToLastColumn(grid, shiftHeld);
         return;
@@ -105,10 +105,10 @@ function moveRight(grid: TheGrid<any>, shiftHeld: boolean, ctrlHeld: boolean) {
     grid.updateSelection(data => {
         return data.withMutations(selection => {
             if (shiftHeld) {
-                const { range } = expandSelectionRight(selection);
+                const { range } = expandSelectionRight(grid, selection);
                 selection.set("range", range);
             } else {
-                const { range } = moveSelectionRight(selection);
+                const { range } = moveSelectionRight(grid, selection);
                 selection.set("range", range);
             }
         });
@@ -116,7 +116,7 @@ function moveRight(grid: TheGrid<any>, shiftHeld: boolean, ctrlHeld: boolean) {
     grid.scrollIntoView(grid.selection.range.x2, grid.selection.range.y2);
 }
 
-function moveUp(grid: TheGrid<any>, shiftHeld: boolean, ctrlHeld: boolean) {
+function moveUp(grid: TheGrid<any>, shiftHeld: boolean, ctrlHeld: boolean): void {
     if (ctrlHeld) {
         moveToFirstRow(grid, shiftHeld);
         return;
@@ -124,10 +124,10 @@ function moveUp(grid: TheGrid<any>, shiftHeld: boolean, ctrlHeld: boolean) {
     grid.updateSelection(data => {
         return data.withMutations(selection => {
             if (shiftHeld) {
-                const { range } = expandSelectionUp(selection);
+                const { range } = expandSelectionUp(grid, selection);
                 selection.set("range", range);
             } else {
-                const { range } = moveSelectionUp(selection);
+                const { range } = moveSelectionUp(grid, selection);
                 selection.set("range", range);
             }
         });
@@ -135,7 +135,7 @@ function moveUp(grid: TheGrid<any>, shiftHeld: boolean, ctrlHeld: boolean) {
     grid.scrollIntoView(grid.selection.range.x2, grid.selection.range.y2);
 }
 
-function moveDown(grid: TheGrid<any>, shiftHeld: boolean, ctrlHeld: boolean) {
+function moveDown(grid: TheGrid<any>, shiftHeld: boolean, ctrlHeld: boolean): void {
     if (ctrlHeld) {
         moveToLastRow(grid, shiftHeld);
         return;
@@ -143,10 +143,10 @@ function moveDown(grid: TheGrid<any>, shiftHeld: boolean, ctrlHeld: boolean) {
     grid.updateSelection(data => {
         return data.withMutations(selection => {
             if (shiftHeld) {
-                const { range } = expandSelectionDown(selection);
+                const { range } = expandSelectionDown(grid, selection);
                 selection.set("range", range);
             } else {
-                const { range } = moveSelectionDown(selection);
+                const { range } = moveSelectionDown(grid, selection);
                 selection.set("range", range);
             }
         });
@@ -154,33 +154,33 @@ function moveDown(grid: TheGrid<any>, shiftHeld: boolean, ctrlHeld: boolean) {
     grid.scrollIntoView(grid.selection.range.x2, grid.selection.range.y2);
 }
 
-function pageDown(grid: TheGrid<any>, shiftHeld: boolean) {
+function pageDown(grid: TheGrid<any>, shiftHeld: boolean): void {
     const dimensions = getElementScrollDimensions(grid.cellsElement);
     const renderArea = calculateRenderArea({ grid, renderAhead: { columns: 0, rows: 0 }, dimensions });
     grid.updateSelection(() => {
         const rowsPerPage = renderArea.bottom - renderArea.top - 1;
         const newSelection = shiftHeld
-            ? expandSelectionDown(grid.selection, rowsPerPage)
-            : moveSelectionDown(grid.selection, rowsPerPage);
-        return createSelection(newSelection.range, newSelection.grid);
+            ? expandSelectionDown(grid, grid.selection, rowsPerPage)
+            : moveSelectionDown(grid, grid.selection, rowsPerPage);
+        return createSelection(newSelection.range);
     });
     grid.scrollIntoView(grid.selection.range.x2, grid.selection.range.y2);
 }
 
-function pageUp(grid: TheGrid<any>, shiftHeld: boolean) {
+function pageUp(grid: TheGrid<any>, shiftHeld: boolean): void {
     const dimensions = getElementScrollDimensions(grid.cellsElement);
     const renderArea = calculateRenderArea({ grid, renderAhead: { columns: 0, rows: 0 }, dimensions });
     grid.updateSelection(() => {
         const rowsPerPage = renderArea.bottom - renderArea.top - 1;
         const newSelection = shiftHeld
-            ? expandSelectionUp(grid.selection, rowsPerPage)
-            : moveSelectionUp(grid.selection, rowsPerPage);
-        return createSelection(newSelection.range, newSelection.grid);
+            ? expandSelectionUp(grid, grid.selection, rowsPerPage)
+            : moveSelectionUp(grid, grid.selection, rowsPerPage);
+        return createSelection(newSelection.range);
     });
     grid.scrollIntoView(grid.selection.range.x2, grid.selection.range.y2);
 }
 
-export function keyboardExtension(grid: TheGrid<any>) {
+export function keyboardExtension(grid: TheGrid<any>): void {
     grid.cellsElement.addEventListener("keydown", event => {
         switch (event.key) {
             case "a": {

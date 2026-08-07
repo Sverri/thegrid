@@ -1,8 +1,7 @@
-import { createGridInstance, getColumns, GRID_HTML, type TheGrid, type TheGridOptions } from "@/parts/grid";
-import { transformColumnsToOptions, createColumns, type ColumnOptions } from "@/parts/column";
-import { createSource } from "@/parts/source";
+import type { DataItem } from "@/types";
+import { createGridInstance, getColumns, GRID_HTML, type TheGrid, type TheGridOptions } from "@/objects/grid";
 import { debounce } from "throttle-debounce";
-import { List as ImmutableList } from "immutable";
+import { List } from "immutable";
 import { getElementScrollDimensions } from "@/helpers/getelementscrolldimensions";
 import { keyboardExtension } from "@/extensions/keyboard";
 import { mouseExtension } from "@/extensions/mouse";
@@ -10,20 +9,18 @@ import { resizeObserverExtension } from "@/extensions/resizeobserver";
 import { renderExtension } from "@/extensions/render";
 import { expanderExtension } from "@/extensions/expander";
 import { createEvent } from "@/shared/event";
-import { createRange, rangeIdenticalTo } from "@/parts/range";
-import { createSelection, type Selection } from "@/parts/selection";
-import { HeaderSelection } from "./shared/enums";
+import { createRange, rangeIdenticalTo } from "@/objects/range";
+import { createSelection, type Selection } from "@/objects/selection";
+import { HeaderSelection } from "@/shared/enums";
+import { createColumnCollection } from "@/objects/columncollection";
+import { createColumnOptions, type ImmutableColumnOptions } from "@/objects/columnoptions";
 
-export function createGrid<T extends Record<string, any>>(
-    hostElement: HTMLElement,
-    options?: TheGridOptions<T>,
-): Immutable.RecordOf<TheGrid<T>> {
+function setupDomElements(hostElement: HTMLElement) {
     hostElement.innerHTML = GRID_HTML;
     hostElement.classList.add("thegrid");
     hostElement.style.setProperty("width", "100%");
     hostElement.style.setProperty("height", "100%");
 
-    const instance = {} as TheGrid<T>;
     const cellsElement = hostElement.querySelector<HTMLDivElement>(".thegrid-area-cells");
     if (!cellsElement) {
         throw new Error("Could not find cells element");
@@ -36,9 +33,21 @@ export function createGrid<T extends Record<string, any>>(
     if (!rowHeadersElement) {
         throw new Error("Could not find row headers element");
     }
-    let columns = createColumns(getColumns(options?.columns));
-    let source = createSource<T>(ImmutableList(options?.source ?? []), columns.items);
-    let selection = createSelection(createRange(-1, -1), instance);
+
+    return { cellsElement, columnHeadersElement, rowHeadersElement };
+}
+
+export function createGrid<T extends DataItem>(
+    hostElement: HTMLElement,
+    options?: TheGridOptions<T>,
+): Immutable.RecordOf<TheGrid<T>> {
+    const instance = {} as TheGrid<T>;
+
+    const { cellsElement, columnHeadersElement, rowHeadersElement } = setupDomElements(hostElement);
+
+    let columns = createColumnCollection(getColumns(options?.columns));
+    let source = List<T>(options?.source ?? []);
+    let selection = createSelection(createRange(-1, -1));
     const cellSize = Number.parseInt(window.getComputedStyle(hostElement).getPropertyValue("--cell-size"), 10);
     const onInvalidate = createEvent<() => void>();
     const showHeaderSelection = options?.showHeaderSelection ?? HeaderSelection.Both;
@@ -63,14 +72,20 @@ export function createGrid<T extends Record<string, any>>(
      *
      * @param callback A function that receives the current columns and returns new columns.
      */
-    const updateColumns = (
-        callback: (
-            columns: ImmutableList<Immutable.RecordOf<ColumnOptions<T>>>,
-        ) => ImmutableList<Immutable.RecordOf<ColumnOptions<T>>>,
-    ): void => {
-        const options = transformColumnsToOptions(columns);
+    const updateColumns = (callback: (columns: List<ImmutableColumnOptions<T>>) => List<ImmutableColumnOptions<T>>) => {
+        const options = columns.map<ImmutableColumnOptions<T>>(column =>
+            createColumnOptions({
+                binding: String(column.binding),
+                header: column.header,
+                dataType: column.dataType,
+                width: column.width,
+                minWidth: column.minWidth,
+                maxWidth: column.maxWidth,
+                visible: column.visible,
+            }),
+        );
         const newOptions = callback(options);
-        columns = createColumns(newOptions);
+        columns = createColumnCollection(newOptions);
         Object.assign(instance, { columns });
         invalidate();
     };
@@ -83,11 +98,8 @@ export function createGrid<T extends Record<string, any>>(
      *
      * @param callback A function that receives the current source and returns a new source.
      */
-    const updateSource = (
-        callback: (source: ImmutableList<Immutable.RecordOf<T>>) => ImmutableList<Immutable.RecordOf<T>>,
-    ) => {
-        const newSource = callback(source.items);
-        source = createSource(newSource, columns.items);
+    const updateSource = (callback: (source: List<T>) => List<T>) => {
+        source = callback(source);
         Object.assign(instance, { source });
         invalidate();
     };
@@ -108,14 +120,14 @@ export function createGrid<T extends Record<string, any>>(
             // as well as other reasons.
             return;
         }
-        selection = createSelection(range, instance);
+        selection = createSelection(range);
         Object.assign(instance, { selection });
         invalidate(true);
     };
 
     const scrollIntoView = debounce(64, (columnIndex: number, rowIndex: number) => {
         const { scrollLeft, scrollRight, scrollTop, scrollBottom } = getElementScrollDimensions(cellsElement);
-        const column = columns.items.get(columnIndex)!;
+        const column = columns.get(columnIndex)!;
 
         let left = scrollLeft;
         const columnStart = column.fromLeft;
@@ -139,11 +151,11 @@ export function createGrid<T extends Record<string, any>>(
     });
 
     const getCellData = <DT>(columnIndex: number, rowIndex: number): DT | undefined => {
-        const row = source.items.get(rowIndex);
+        const row = source.get(rowIndex);
         if (!row) {
             return undefined;
         }
-        const column = columns.items.get(columnIndex);
+        const column = columns.get(columnIndex);
         if (!column) {
             return undefined;
         }

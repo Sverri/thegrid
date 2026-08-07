@@ -1,5 +1,6 @@
-import type { Column } from "@/parts/column";
-import { createRange, rangeContains, rangeIntersectsColumn, rangeIntersectsRow, type Range } from "@/parts/range";
+import type { ImmutableColumn } from "@/objects/column";
+import type { DataItem } from "@/types";
+import { createRange, rangeContains, rangeIntersectsColumn, rangeIntersectsRow, type Range } from "@/objects/range";
 
 /**
  * Applies the current selection styling to a single cell element.
@@ -14,13 +15,13 @@ import { createRange, rangeContains, rangeIntersectsColumn, rangeIntersectsRow, 
  * @param columnIndex The column index of the cell being rendered.
  * @param rowIndex The row index of the cell being rendered.
  */
-export function renderCellSelection(
+export function renderCellSelection<T extends DataItem>(
     cell: HTMLElement,
     selection: Range,
-    columns: Immutable.List<Column<object>>,
+    columns: Immutable.List<ImmutableColumn<T>>,
     columnIndex: number,
     rowIndex: number,
-) {
+): void {
     const { left, right, top, bottom, x2, y2 } = selection!;
 
     if (rangeContains(selection, createRange(columnIndex, rowIndex))) {
@@ -28,7 +29,8 @@ export function renderCellSelection(
     }
 
     if (rangeIntersectsRow(selection, rowIndex)) {
-        if (columnIndex === columns.get(left)?.previousVisibleColumn?.index) {
+        const previousVisibleColumn = columns.findLast(({ index, visible }) => index < left && visible);
+        if (columnIndex === previousVisibleColumn?.index) {
             cell.classList.add("selection-right-border");
         }
         if (columnIndex === right) {

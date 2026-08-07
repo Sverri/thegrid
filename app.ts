@@ -1,7 +1,7 @@
 import "normalize.css";
 import { DataType } from "./src/index";
 import { faker } from "@faker-js/faker";
-import { createRange } from "@/parts/range";
+import { createRange } from "@/objects/range";
 import { createGrid } from "@/grid";
 import { HeaderSelection } from "@/shared/enums";
 

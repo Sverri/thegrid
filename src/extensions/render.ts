@@ -1,5 +1,6 @@
-import type { TheGrid } from "@/parts/grid";
-import { rangeHorizontalIterator, rangeIterator, rangeVerticalIterator, type Range } from "@/parts/range";
+import type { DataItem } from "@/types";
+import type { TheGrid } from "@/objects/grid";
+import { rangeHorizontalIterator, rangeIterator, rangeVerticalIterator, type Range } from "@/objects/range";
 import { getElementScrollDimensions, type ElementScrollDimensions } from "@/helpers/getelementscrolldimensions";
 import { createCellElementManager } from "@/render/cellelementmanager";
 import { calculateRenderArea } from "@/render/renderarea";
@@ -7,7 +8,7 @@ import { renderCellSelection } from "@/render/renderselection";
 import { setCellContents } from "@/render/setcellcontents";
 import { CellType, HeaderSelection } from "@/shared/enums";
 
-export function renderExtension(grid: TheGrid<any>) {
+export function renderExtension<T extends DataItem>(grid: TheGrid<T>): void {
     const renderAhead = {
         columns: 1,
         rows: 3,
@@ -25,18 +26,18 @@ export function renderExtension(grid: TheGrid<any>) {
         const fragment = new DocumentFragment();
 
         for (const { x, y } of rangeIterator(range)) {
-            const { dataType, visible } = columns.items.get(x)!;
+            const { dataType, visible } = columns.get(x)!;
             if (!visible) {
                 continue;
             }
-            const { fromLeft, width } = columns.items.get(x)!;
+            const { fromLeft, width } = columns.get(x)!;
             const cell = retrieveCell(x, y, CellType.Cell);
 
             cell.style.transform = `translate(${fromLeft}px, ${y * cellSize}px)`;
             cell.style.width = `${width}px`;
             cell.style.height = `${cellSize}px`;
 
-            renderCellSelection(cell, selection.range, columns.items, x, y);
+            renderCellSelection(cell, selection.range, columns, x, y);
             setCellContents(cell, dataType, grid.getCellData(x, y));
 
             cell.classList.add(y % 2 === 0 ? "row-even" : "row-odd");
@@ -55,7 +56,7 @@ export function renderExtension(grid: TheGrid<any>) {
         const fragment = new DocumentFragment();
 
         for (const { x } of rangeHorizontalIterator(range)) {
-            const { header, visible, fromLeft, width, index } = columns.items.get(x)!;
+            const { header, visible, fromLeft, width, index } = columns.get(x)!;
             if (!visible) {
                 continue;
             }

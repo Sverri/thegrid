@@ -1,3 +1,5 @@
+import { Record } from "immutable";
+
 /**
  * Represents a two-dimensional coordinate.
  *
@@ -14,4 +16,13 @@ export interface Point {
      * The vertical coordinate.
      */
     readonly y: number;
+}
+
+const PointRecord = Record<Point>({
+    x: -1,
+    y: -1,
+});
+
+export function createPoint(x: number, y: number): Immutable.RecordOf<Point> {
+    return PointRecord({ x, y });
 }
