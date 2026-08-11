@@ -7,6 +7,7 @@ import { calculateRenderArea } from "@/render/renderarea";
 import { renderCellSelection } from "@/render/renderselection";
 import { setCellContents } from "@/render/setcellcontents";
 import { CellType, HeaderSelection } from "@/shared/enums";
+import { columnFromLeft } from "@/helpers/column/columnfromleft";
 
 export function renderExtension<T extends DataItem>(grid: TheGrid<T>): void {
     const renderAhead = {
@@ -30,14 +31,14 @@ export function renderExtension<T extends DataItem>(grid: TheGrid<T>): void {
             if (!visible) {
                 continue;
             }
-            const { fromLeft, width } = columns.get(x)!;
+            const column = columns.get(x)!;
             const cell = retrieveCell(x, y, CellType.Cell);
 
-            cell.style.transform = `translate(${fromLeft}px, ${y * cellSize}px)`;
-            cell.style.width = `${width}px`;
+            cell.style.transform = `translate(${columnFromLeft(columns, column)}px, ${y * cellSize}px)`;
+            cell.style.width = `${column.width}px`;
             cell.style.height = `${cellSize}px`;
 
-            renderCellSelection(cell, selection.range, columns, x, y);
+            renderCellSelection(cell, selection, columns, x, y);
             setCellContents(cell, dataType, grid.getCellData(x, y));
 
             cell.classList.add(y % 2 === 0 ? "row-even" : "row-odd");
@@ -56,22 +57,22 @@ export function renderExtension<T extends DataItem>(grid: TheGrid<T>): void {
         const fragment = new DocumentFragment();
 
         for (const { x } of rangeHorizontalIterator(range)) {
-            const { header, visible, fromLeft, width, index } = columns.get(x)!;
-            if (!visible) {
+            const column = columns.get(x)!;
+            if (!column.visible) {
                 continue;
             }
             const cell = retrieveCell(x, 0, CellType.ColumnHeader);
-            cell.style.transform = `translateX(${fromLeft - scrollLeft}px)`;
-            cell.style.width = `${width}px`;
+            cell.style.transform = `translateX(${columnFromLeft(columns, column) - scrollLeft}px)`;
+            cell.style.width = `${column.width}px`;
             cell.style.height = `${cellSize}px`;
 
             const showColumnSelected =
                 showHeaderSelection === HeaderSelection.Columns || showHeaderSelection === HeaderSelection.Both;
 
-            if (showColumnSelected && selection && index >= selection.range.left && index <= selection.range.right) {
+            if (showColumnSelected && selection && x >= selection.left && x <= selection.right) {
                 cell.classList.add("column-selected");
             }
-            cell.textContent = header;
+            cell.textContent = column.header;
             fragment.append(cell);
         }
 
@@ -95,7 +96,7 @@ export function renderExtension<T extends DataItem>(grid: TheGrid<T>): void {
             const showColumnSelected =
                 showHeaderSelection === HeaderSelection.Rows || showHeaderSelection === HeaderSelection.Both;
 
-            if (showColumnSelected && selection && y >= selection.range.top && y <= selection.range.bottom) {
+            if (showColumnSelected && selection && y >= selection.top && y <= selection.bottom) {
                 cell.classList.add("row-selected");
             }
             fragment.append(cell);

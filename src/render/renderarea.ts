@@ -1,3 +1,4 @@
+import { columnFromLeft } from "@/helpers/column/columnfromleft";
 import type { ElementScrollDimensions } from "@/helpers/getelementscrolldimensions";
 import type { TheGrid } from "@/objects/grid";
 import type { Range } from "@/objects/range";
@@ -37,10 +38,15 @@ export function calculateRenderArea({ grid, dimensions, renderAhead }: Options):
     const { scrollLeft, scrollRight, scrollTop, scrollBottom } = dimensions;
 
     // Columns
-    const firstColumn = columns.find(({ visible, fromLeft, width }) => visible && fromLeft + width >= scrollLeft);
-    const lastColumn = columns.reverse().find(({ visible, fromLeft }) => visible && fromLeft <= scrollRight);
-    const firstColumnIndex = Math.max(0, (firstColumn?.index ?? 0) - renderAhead.columns);
-    const lastColumnIndex = Math.min(columns.size - 1, (lastColumn?.index ?? 0) + renderAhead.columns);
+    const firstIndex =
+        columns.findIndex(column => column.visible && columnFromLeft(columns, column) + column.width >= scrollLeft) ??
+        0;
+    const lastIndex =
+        columns.reverse().findLastIndex(column => column.visible && columnFromLeft(columns, column) <= scrollRight) ??
+        0;
+
+    const firstColumnIndex = Math.max(0, firstIndex - renderAhead.columns);
+    const lastColumnIndex = Math.min(columns.size - 1, lastIndex + renderAhead.columns);
 
     // Rows
     let firstRowIndex: number = -1;

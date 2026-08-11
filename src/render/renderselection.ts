@@ -29,8 +29,10 @@ export function renderCellSelection<T extends DataItem>(
     }
 
     if (rangeIntersectsRow(selection, rowIndex)) {
-        const previousVisibleColumn = columns.findLast(({ index, visible }) => index < left && visible);
-        if (columnIndex === previousVisibleColumn?.index) {
+        const previousVisibleColumnIndex = columns.findLastIndex(
+            column => columns.indexOf(column) < left && column.visible,
+        );
+        if (columnIndex === previousVisibleColumnIndex) {
             cell.classList.add("selection-right-border");
         }
         if (columnIndex === right) {

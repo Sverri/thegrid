@@ -9,22 +9,7 @@ import { Record } from "immutable";
  * A column instance stores its runtime state, including position, visibility,
  * and links to neighboring columns for navigation and layout purposes.
  */
-export interface Column<T extends DataItem> extends Required<ColumnOptions<T>> {
-    /**
-     * The index of the column
-     */
-    index: number;
-
-    /**
-     * The visible index of the column
-     */
-    visibleIndex: number;
-
-    /**
-     * Where column is positioned from the left (px)
-     */
-    fromLeft: number;
-}
+export interface Column<T extends DataItem> extends Required<ColumnOptions<T>> {}
 
 export type ImmutableColumn<T extends DataItem> = Immutable.RecordOf<Column<T>>;
 
@@ -36,9 +21,6 @@ const columnFactory = Record<Column<any>>({
     minWidth: 1,
     maxWidth: Number.MAX_SAFE_INTEGER,
     visible: true,
-    index: -1,
-    visibleIndex: -1,
-    fromLeft: -1,
 });
 
 export function createColumn<T extends DataItem>(data: Readonly<Column<T>>): ImmutableColumn<T> {

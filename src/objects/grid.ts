@@ -1,10 +1,10 @@
 import type { DataItem } from "@/types";
 import type { RaiseableEvent } from "@/shared/event";
-import type { Selection } from "./selection";
 import type { HeaderSelection } from "@/shared/enums";
 import type { ImmutableColumn } from "./column";
 import { createColumnOptions, type ColumnOptions, type ImmutableColumnOptions } from "./columnoptions";
 import { List, Record } from "immutable";
+import type { Range } from "./range";
 
 export const GRID_HTML = `
     <div class="thegrid-area-cells" tabindex="0"></div>
@@ -54,7 +54,7 @@ export interface TheGrid<T extends DataItem> {
      *
      * Use `updateSelection()` to change the selection.
      */
-    get selection(): Selection;
+    get selection(): Range;
 
     /**
      * Event for when grid is invalidated (updated)
@@ -79,7 +79,7 @@ export interface TheGrid<T extends DataItem> {
     /**
      * Update current selection
      */
-    updateSelection(callback: (source: Immutable.RecordOf<Selection>) => Immutable.RecordOf<Selection>): void;
+    updateSelection(callback: (source: Immutable.RecordOf<Range>) => Immutable.RecordOf<Range>): void;
 
     /**
      * Extend the grid (gives you access to the internal mutable state of the grid)

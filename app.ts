@@ -68,8 +68,8 @@ const grid = createGrid(hostElement!, {
     ],
 });
 
-grid.updateSelection(selection => {
-    return selection.set("range", createRange(0, 0));
+grid.updateSelection(() => {
+    return createRange(0, 0);
 });
 
 // setTimeout(() => {

@@ -14,7 +14,7 @@ export function mouseExtension(grid: TheGrid<any>): void {
         }
 
         if (event.shiftKey) {
-            const { x1, y1 } = grid.selection.range;
+            const { x1, y1 } = grid.selection;
             startCoords = {
                 row: y1,
                 column: x1,
@@ -24,10 +24,8 @@ export function mouseExtension(grid: TheGrid<any>): void {
                 row: Number.parseInt(event.target!.dataset.row!, 10),
                 column: Number.parseInt(event.target!.dataset.column!, 10),
             };
-            grid.updateSelection(data => {
-                return data.withMutations(selection => {
-                    selection.set("range", createRange(startCoords?.column ?? -1, startCoords?.row ?? -1));
-                });
+            grid.updateSelection(() => {
+                return createRange(startCoords?.column ?? -1, startCoords?.row ?? -1);
             });
         }
     });
@@ -48,10 +46,8 @@ export function mouseExtension(grid: TheGrid<any>): void {
         ) {
             return;
         }
-        grid.updateSelection(data => {
-            return data.withMutations(selection => {
-                selection.set("range", createRange(downColumnIndex, downRowIndex, upColumnIndex, upRowIndex));
-            });
+        grid.updateSelection(() => {
+            return createRange(downColumnIndex, downRowIndex, upColumnIndex, upRowIndex);
         });
     });
 
@@ -81,10 +77,8 @@ export function mouseExtension(grid: TheGrid<any>): void {
             return;
         }
 
-        grid.updateSelection(data => {
-            return data.withMutations(selection => {
-                selection.set("range", createRange(downColumnIndex, downRowIndex, upColumnIndex, upRowIndex));
-            });
+        grid.updateSelection(() => {
+            return createRange(downColumnIndex, downRowIndex, upColumnIndex, upRowIndex);
         });
         startCoords = undefined;
     });
