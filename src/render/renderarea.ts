@@ -1,8 +1,7 @@
-import { columnFromLeft } from "@/helpers/column/columnfromleft";
 import type { ElementScrollDimensions } from "@/helpers/getelementscrolldimensions";
 import type { TheGrid } from "@/objects/grid";
-import type { Range } from "@/objects/range";
-import { createRange } from "@/objects/range";
+import { columnFromLeft } from "@/structures/column";
+import { createRange, type Range } from "@/structures/range";
 
 /**
  * Input options for computing the visible render area.

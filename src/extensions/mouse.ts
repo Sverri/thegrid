@@ -1,5 +1,5 @@
 import type { TheGrid } from "@/objects/grid";
-import { createRange } from "@/objects/range";
+import { createRange } from "@/structures/range";
 
 export function mouseExtension(grid: TheGrid<any>): void {
     let startCoords: { row: number; column: number } | undefined;

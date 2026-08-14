@@ -1,6 +1,6 @@
 import type { TheGrid } from "@/objects/grid";
 import { getElementScrollDimensions } from "@/helpers/getelementscrolldimensions";
-import { createRange } from "@/objects/range";
+import { createRange } from "@/structures/range";
 import { calculateRenderArea } from "@/render/renderarea";
 import {
     expandSelectionDown,
@@ -11,7 +11,7 @@ import {
     moveSelectionLeft,
     moveSelectionRight,
     moveSelectionUp,
-} from "@/objects/selection";
+} from "@/structures/selection";
 
 function moveToFirstColumn(grid: TheGrid<any>, shiftHeld: boolean): void {
     const { x1, y1, y2 } = grid.selection;

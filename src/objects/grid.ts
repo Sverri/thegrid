@@ -1,10 +1,10 @@
 import type { DataItem } from "@/types";
 import type { RaiseableEvent } from "@/shared/event";
 import type { HeaderSelection } from "@/shared/enums";
-import type { ImmutableColumn } from "./column";
-import { createColumnOptions, type ColumnOptions, type ImmutableColumnOptions } from "./columnoptions";
+import type { Range } from "@/structures/range";
+import type { ImmutableGrid } from "@/structures/grid";
+import { createColumn, type Column, type ImmutableColumn } from "@/structures/column";
 import { List, Record } from "immutable";
-import type { Range } from "./range";
 
 export const GRID_HTML = `
     <div class="thegrid-area-cells" tabindex="0"></div>
@@ -14,6 +14,8 @@ export const GRID_HTML = `
 `;
 
 export interface TheGrid<T extends DataItem> {
+    modify(callback: (grid: Immutable.RecordOf<ImmutableGrid<T>>) => Immutable.RecordOf<ImmutableGrid<T>>): void;
+
     /**
      * Grid host element
      */
@@ -69,7 +71,7 @@ export interface TheGrid<T extends DataItem> {
     /**
      * Update columns
      */
-    updateColumns(callback: (columns: List<ImmutableColumnOptions<T>>) => List<ImmutableColumnOptions<T>>): void;
+    updateColumns(callback: (columns: List<ImmutableColumn<T>>) => List<ImmutableColumn<T>>): void;
 
     /**
      * Update source
@@ -115,7 +117,7 @@ export interface TheGridOptions<T extends DataItem> {
      *
      * **Default:** `[]`
      */
-    columns?: ArrayLike<ColumnOptions<T>>;
+    columns?: ArrayLike<Column<T>>;
 
     /**
      * Header selection indicator
@@ -126,6 +128,7 @@ export interface TheGridOptions<T extends DataItem> {
 }
 
 const gridRecord = Record<TheGrid<any>>({
+    modify: undefined!,
     hostElement: undefined!,
     cellsElement: undefined!,
     columnHeadersElement: undefined!,
@@ -149,12 +152,9 @@ export function createGridInstance<T extends DataItem>(grid: TheGrid<T>): Immuta
     return gridRecord(grid as TheGrid<any>) as Immutable.RecordOf<TheGrid<T>>;
 }
 
-export function getColumns<T extends DataItem>(
-    columns: ArrayLike<ColumnOptions<T>> | undefined,
-): List<ImmutableColumnOptions<T>> {
+export function getColumns<T extends DataItem>(columns: ArrayLike<Column<T>> | undefined): List<ImmutableColumn<T>> {
     if (!Array.isArray(columns)) {
-        return List() as List<ImmutableColumnOptions<T>>;
+        return List<ImmutableColumn<T>>();
     }
-    const options = Array.from(columns);
-    return List(options.map(option => createColumnOptions(option))) as List<ImmutableColumnOptions<T>>;
+    return List<ImmutableColumn<T>>(columns.map(data => createColumn(data)));
 }

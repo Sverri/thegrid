@@ -1,6 +1,6 @@
-import type { ImmutableColumn } from "@/objects/column";
 import type { DataItem } from "@/types";
-import { createRange, rangeContains, rangeIntersectsColumn, rangeIntersectsRow, type Range } from "@/objects/range";
+import type { ImmutableColumn } from "@/structures/column";
+import { createRange, rangeContains, rangeIntersectsColumn, rangeIntersectsRow, type Range } from "@/structures/range";
 
 /**
  * Applies the current selection styling to a single cell element.

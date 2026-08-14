@@ -9,11 +9,10 @@ import { resizeObserverExtension } from "@/extensions/resizeobserver";
 import { renderExtension } from "@/extensions/render";
 import { expanderExtension } from "@/extensions/expander";
 import { createEvent } from "@/shared/event";
-import { createRange, rangeIdenticalTo, type Range } from "@/objects/range";
+import { createRange, rangeIdenticalTo, type Range } from "@/structures/range";
 import { HeaderSelection } from "@/shared/enums";
-import { createColumnCollection } from "@/objects/columncollection";
-import { createColumnOptions, type ImmutableColumnOptions } from "@/objects/columnoptions";
-import { columnFromLeft } from "./helpers/column/columnfromleft";
+import { createColumn, columnFromLeft, type ImmutableColumn } from "@/structures/column";
+import { createImmutableGrid, type ImmutableGrid } from "@/structures/grid";
 
 function setupDomElements(hostElement: HTMLElement) {
     hostElement.innerHTML = GRID_HTML;
@@ -43,12 +42,19 @@ export function createGrid<T extends DataItem>(
 ): Immutable.RecordOf<TheGrid<T>> {
     const instance = {} as TheGrid<T>;
 
+    let grid = createImmutableGrid<T>().withMutations(data => {
+        if (options?.columns) {
+            data.set(
+                "columns",
+                getColumns(options?.columns).map(column => createColumn(column)),
+            );
+        }
+        if (options?.source) {
+            data.set("source", List(options?.source));
+        }
+    });
+
     const { cellsElement, columnHeadersElement, rowHeadersElement } = setupDomElements(hostElement);
-
-    let columns = createColumnCollection(getColumns(options?.columns));
-    let source = List<T>(options?.source ?? []);
-    let selection = createRange(-1, -1);
-
     const cellSize = Number.parseInt(window.getComputedStyle(hostElement).getPropertyValue("--cell-size"), 10);
     const onInvalidate = createEvent<() => void>();
     const showHeaderSelection = options?.showHeaderSelection ?? HeaderSelection.Both;
@@ -57,14 +63,17 @@ export function createGrid<T extends DataItem>(
         onInvalidate.raise();
     });
 
-    // const update = (callback: (data: ImmutableGrid<T>) => ImmutableGrid<T>) => {};
-
     const invalidate = (immediately = false) => {
         if (immediately) {
             onInvalidate.raise();
         } else {
             debouncedInvalidate();
         }
+    };
+
+    const modify = (callback: (grid: Immutable.RecordOf<ImmutableGrid<T>>) => Immutable.RecordOf<ImmutableGrid<T>>) => {
+        grid = callback(grid);
+        invalidate(true);
     };
 
     /**
@@ -75,22 +84,16 @@ export function createGrid<T extends DataItem>(
      *
      * @param callback A function that receives the current columns and returns new columns.
      */
-    const updateColumns = (callback: (columns: List<ImmutableColumnOptions<T>>) => List<ImmutableColumnOptions<T>>) => {
-        const options = columns.map<ImmutableColumnOptions<T>>(column =>
-            createColumnOptions({
-                binding: String(column.binding),
-                header: column.header,
-                dataType: column.dataType,
-                width: column.width,
-                minWidth: column.minWidth,
-                maxWidth: column.maxWidth,
-                visible: column.visible,
-            }),
-        );
-        const newOptions = callback(options);
-        columns = createColumnCollection(newOptions);
+    const updateColumns = (callback: (columns: List<ImmutableColumn<T>>) => List<ImmutableColumn<T>>) => {
+        const newOptions = callback(grid.columns);
+        const columns = newOptions.map(data => createColumn(data));
         Object.assign(instance, { columns });
-        invalidate();
+
+        modify(data => {
+            return data.withMutations(x => {
+                x.set("columns", columns);
+            });
+        });
     };
 
     /**
@@ -102,9 +105,13 @@ export function createGrid<T extends DataItem>(
      * @param callback A function that receives the current source and returns a new source.
      */
     const updateSource = (callback: (source: List<T>) => List<T>) => {
-        source = callback(source);
+        const source = callback(grid.source);
         Object.assign(instance, { source });
-        invalidate();
+        modify(data => {
+            return data.withMutations(x => {
+                x.set("source", source);
+            });
+        });
     };
 
     /**
@@ -116,24 +123,28 @@ export function createGrid<T extends DataItem>(
      * @param callback A function that receives the current selection and returns a new selection.
      */
     const updateSelection = (callback: (source: Immutable.RecordOf<Range>) => Immutable.RecordOf<Range>) => {
-        const range = callback(selection);
-        if (rangeIdenticalTo(selection, range)) {
+        const range = callback(grid.selection);
+        if (rangeIdenticalTo(grid.selection, range)) {
             // Range is identical, no need to update selection. This can happen
             // when the user is extending the selection by dragging the mouse,
             // as well as other reasons.
             return;
         }
-        selection = createRange(range.x1, range.y1, range.x2, range.y2);
+        const selection = createRange(range.x1, range.y1, range.x2, range.y2);
         Object.assign(instance, { selection });
-        invalidate(true);
+        modify(data => {
+            return data.withMutations(x => {
+                x.set("selection", selection);
+            });
+        });
     };
 
     const scrollIntoView = debounce(64, (columnIndex: number, rowIndex: number) => {
         const { scrollLeft, scrollRight, scrollTop, scrollBottom } = getElementScrollDimensions(cellsElement);
-        const column = columns.get(columnIndex)!;
+        const column = grid.columns.get(columnIndex)!;
 
         let left = scrollLeft;
-        const columnStart = columnFromLeft(columns, column);
+        const columnStart = columnFromLeft(grid.columns, column);
         const columnEnd = columnStart + column.width;
         if (columnStart < scrollLeft) {
             left = columnStart;
@@ -154,11 +165,11 @@ export function createGrid<T extends DataItem>(
     });
 
     const getCellData = <DT>(columnIndex: number, rowIndex: number): DT | undefined => {
-        const row = source.get(rowIndex);
+        const row = grid.source.get(rowIndex);
         if (!row) {
             return undefined;
         }
-        const column = columns.get(columnIndex);
+        const column = grid.columns.get(columnIndex);
         if (!column) {
             return undefined;
         }
@@ -181,12 +192,13 @@ export function createGrid<T extends DataItem>(
         scrollIntoView,
         getCellData,
         extend,
-        columns,
-        source,
-        selection,
+        columns: grid.columns,
+        source: grid.source,
+        selection: grid.selection,
         cellSize,
         onInvalidate,
         showHeaderSelection,
+        modify,
     } satisfies TheGrid<T>);
 
     // Official extensions

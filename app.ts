@@ -1,7 +1,7 @@
 import "normalize.css";
 import { DataType } from "./src/index";
 import { faker } from "@faker-js/faker";
-import { createRange } from "@/objects/range";
+import { createRange } from "@/structures/range";
 import { createGrid } from "@/grid";
 import { HeaderSelection } from "@/shared/enums";
 
@@ -72,21 +72,8 @@ grid.updateSelection(() => {
     return createRange(0, 0);
 });
 
-// setTimeout(() => {
-//     grid.updateColumns(columnCollection => {
-//         return columnCollection.map(column => {
-//             return column.withMutations(data => {
-//                 if (data.get("binding") === "age") {
-//                     data.set("visible", false);
-//                 }
-//             });
-//         });
-//     });
-// }, 1000);
-
-// setTimeout(() => {
-//     console.log("->", grid);
-//     grid.updateSource(source => {
-//         return source.filter(item => item.id % 2 === 0);
-//     });
-// }, 2000);
+grid.modify(data => {
+    return data.withMutations(x => {
+        x.set("selection", createRange(3, 3));
+    });
+});

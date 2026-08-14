@@ -1,13 +1,13 @@
+import type { DataType } from "@/shared/enums";
 import type { DataItem } from "@/types";
-import { DataType } from "@/shared/enums";
-import { Record } from "immutable";
 
 /**
- * Configuration options for creating a column definition.
+ * Represents a concrete column instance in the grid.
  *
- * These options describe how a grid column is bound to data, rendered, and sized.
+ * A column instance stores its runtime state, including position, visibility,
+ * and links to neighboring columns for navigation and layout purposes.
  */
-export interface ColumnOptions<T extends DataItem> {
+export interface Column<T extends DataItem> {
     /**
      * The property name or key to bind this column to in the data objects.
      * This is required and determines which field from the data is displayed in this column.
@@ -51,18 +51,4 @@ export interface ColumnOptions<T extends DataItem> {
     visible?: boolean;
 }
 
-export type ImmutableColumnOptions<T extends DataItem> = Immutable.RecordOf<ColumnOptions<T>>;
-
-const columnOptionsFactory = Record<ColumnOptions<any>>({
-    binding: "",
-    header: "",
-    dataType: DataType.String,
-    width: 100,
-    minWidth: 1,
-    maxWidth: Number.MAX_SAFE_INTEGER,
-    visible: true,
-});
-
-export function createColumnOptions<T extends DataItem>(options: ColumnOptions<T>): ImmutableColumnOptions<T> {
-    return columnOptionsFactory(options) as ImmutableColumnOptions<T>;
-}
+export type ImmutableColumn<T extends DataItem> = Immutable.RecordOf<Required<Column<T>>>;

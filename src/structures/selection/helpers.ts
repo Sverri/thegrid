@@ -1,7 +1,6 @@
 import type { DataItem } from "@/types";
 import type { TheGrid } from "@/objects/grid";
-import type { Range } from "@/objects/range";
-import { createRange } from "@/objects/range";
+import { createRange, type Range } from "@/structures/range";
 
 export function moveSelectionLeft<T extends DataItem>(
     grid: TheGrid<T>,

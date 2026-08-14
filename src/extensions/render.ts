@@ -1,13 +1,13 @@
 import type { DataItem } from "@/types";
 import type { TheGrid } from "@/objects/grid";
-import { rangeHorizontalIterator, rangeIterator, rangeVerticalIterator, type Range } from "@/objects/range";
+import { rangeHorizontalIterator, rangeIterator, rangeVerticalIterator, type Range } from "@/structures/range";
 import { getElementScrollDimensions, type ElementScrollDimensions } from "@/helpers/getelementscrolldimensions";
 import { createCellElementManager } from "@/render/cellelementmanager";
 import { calculateRenderArea } from "@/render/renderarea";
 import { renderCellSelection } from "@/render/renderselection";
 import { setCellContents } from "@/render/setcellcontents";
 import { CellType, HeaderSelection } from "@/shared/enums";
-import { columnFromLeft } from "@/helpers/column/columnfromleft";
+import { columnFromLeft } from "@/structures/column";
 
 export function renderExtension<T extends DataItem>(grid: TheGrid<T>): void {
     const renderAhead = {

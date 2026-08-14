@@ -1,5 +1,5 @@
-import type { ImmutableColumn } from "@/objects/column";
 import type { DataItem } from "@/types";
+import type { ImmutableColumn } from "./types";
 import type { List } from "immutable";
 
 export function columnFromLeft<T extends DataItem>(
