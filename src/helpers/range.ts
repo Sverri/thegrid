@@ -1,5 +1,5 @@
 import { createPoint, type Point } from "@/structures/point";
-import type { Range } from "./types";
+import type { Range } from "@/structures/range";
 
 export function rangeContains(range: Range, containsRange: Range): boolean {
     return (
@@ -53,7 +53,7 @@ export function rangeIdenticalTo(range: Range, identicalToRange: Range): boolean
     );
 }
 
-export function* rangeIterator(range: Range): Generator<Immutable.RecordOf<Point>, void, unknown> {
+export function* rangeIterator(range: Range): Generator<Point, void, unknown> {
     for (let rowIndex = range.top; rowIndex <= range.bottom; rowIndex++) {
         for (let columnIndex = range.left; columnIndex <= range.right; columnIndex++) {
             yield createPoint(columnIndex, rowIndex);
@@ -61,13 +61,13 @@ export function* rangeIterator(range: Range): Generator<Immutable.RecordOf<Point
     }
 }
 
-export function* rangeHorizontalIterator(range: Range): Generator<Immutable.RecordOf<Point>, void, unknown> {
+export function* rangeHorizontalIterator(range: Range): Generator<Point, void, unknown> {
     for (let columnIndex = range.left; columnIndex <= range.right; columnIndex++) {
         yield createPoint(columnIndex, -1);
     }
 }
 
-export function* rangeVerticalIterator(range: Range): Generator<Immutable.RecordOf<Point>, void, unknown> {
+export function* rangeVerticalIterator(range: Range): Generator<Point, void, unknown> {
     for (let rowIndex = range.top; rowIndex <= range.bottom; rowIndex++) {
         yield createPoint(-1, rowIndex);
     }

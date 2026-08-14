@@ -1,12 +1,13 @@
 import type { DataItem } from "@/types";
-import type { ImmutableColumn } from "@/structures/column";
+import type { HeaderSelection } from "@/shared/enums";
 import type { Range } from "@/structures/range";
+import type { Column } from "@/structures/column";
 
-export interface ImmutableGrid<T extends DataItem> {
+export interface GridData<T extends DataItem> {
     /**
      * Columns
      */
-    readonly columns: Immutable.List<ImmutableColumn<T>>;
+    readonly columns: Immutable.List<Column<T>>;
 
     /**
      * Source (data used in grid)
@@ -15,8 +16,16 @@ export interface ImmutableGrid<T extends DataItem> {
 
     /**
      * Current selection
-     *
-     * Use `updateSelection()` to change the selection.
      */
-    readonly selection: Immutable.RecordOf<Range>;
+    readonly selection: Range;
+
+    /**
+     * Header selection
+     */
+    readonly showHeaderSelection: HeaderSelection;
+
+    /**
+     * Cell size
+     */
+    readonly cellSize: number;
 }

@@ -1,11 +1,8 @@
 import type { DataItem } from "@/types";
-import type { ImmutableColumn } from "./types";
+import type { Column } from "@/structures/column";
 import type { List } from "immutable";
 
-export function columnFromLeft<T extends DataItem>(
-    columnList: List<ImmutableColumn<T>>,
-    findColumn: ImmutableColumn<T>,
-): number {
+export function columnFromLeft<T extends DataItem>(columnList: List<Column<T>>, findColumn: Column<T>): number {
     let left = 0;
     for (const { binding, visible, width } of columnList) {
         if (binding === findColumn.binding) {

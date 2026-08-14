@@ -1,6 +1,6 @@
 import type { ElementScrollDimensions } from "@/helpers/getelementscrolldimensions";
-import type { TheGrid } from "@/objects/grid";
-import { columnFromLeft } from "@/structures/column";
+import type { GridData } from "@/structures/grid";
+import { columnFromLeft } from "@/helpers/column";
 import { createRange, type Range } from "@/structures/range";
 
 /**
@@ -10,7 +10,7 @@ interface Options {
     /**
      * The grid
      */
-    grid: TheGrid<any>;
+    grid: GridData<any>;
 
     /**
      * The current scroll dimensions of the viewport.
@@ -32,7 +32,7 @@ interface Options {
  * @param options The render-area calculation inputs.
  * @returns A range describing the visible and buffered render region.
  */
-export function calculateRenderArea({ grid, dimensions, renderAhead }: Options): Immutable.RecordOf<Range> {
+export function calculateRenderArea({ grid, dimensions, renderAhead }: Options): Range {
     const { columns, source, cellSize } = grid;
     const { scrollLeft, scrollRight, scrollTop, scrollBottom } = dimensions;
 

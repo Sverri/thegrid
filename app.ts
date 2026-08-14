@@ -68,12 +68,17 @@ const grid = createGrid(hostElement!, {
     ],
 });
 
-grid.updateSelection(() => {
-    return createRange(0, 0);
-});
-
 grid.modify(data => {
-    return data.withMutations(x => {
-        x.set("selection", createRange(3, 3));
+    return data.withMutations(grid => {
+        grid.set("selection", createRange(1, 1));
+        grid.set(
+            "columns",
+            grid.columns.map(c => {
+                if (c.binding === "dob") {
+                    c.visible = true;
+                }
+                return c;
+            }),
+        );
     });
 });

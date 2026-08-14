@@ -1,4 +1,4 @@
-import type { TheGrid } from "@/objects/grid";
+import type { ExtendObject } from "@/types";
 
 /**
  * Expander extension
@@ -10,12 +10,14 @@ import type { TheGrid } from "@/objects/grid";
  *
  * @param grid
  */
-export function expanderExtension(grid: TheGrid<any>): void {
-    grid.onInvalidate.subscribe(() => {
-        const { columns, source, cellSize, hostElement } = grid;
-        const totalWidth = columns.filter(column => column.visible).reduce((total, value) => total + value.width, 0);
+export function expanderExtension(meta: ExtendObject<any>): void {
+    meta.onInvalidate.subscribe(() => {
+        const { grid, hostElement } = meta;
+        const totalWidth = grid.columns
+            .filter(column => column.visible)
+            .reduce((total, value) => total + value.width, 0);
         const columnsWidth = `${totalWidth}px`;
-        const rowsHeight = `${source.size * cellSize}px`;
+        const rowsHeight = `${grid.source.size * grid.cellSize}px`;
         hostElement.style.setProperty("--internal-expander-x", columnsWidth, "important");
         hostElement.style.setProperty("--internal-expander-y", rowsHeight, "important");
     });

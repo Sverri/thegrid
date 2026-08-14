@@ -1,6 +1,7 @@
 import type { DataItem } from "@/types";
-import type { ImmutableColumn } from "@/structures/column";
-import { createRange, rangeContains, rangeIntersectsColumn, rangeIntersectsRow, type Range } from "@/structures/range";
+import type { Column } from "@/structures/column";
+import { createRange, type Range } from "@/structures/range";
+import { rangeContains, rangeIntersectsColumn, rangeIntersectsRow } from "@/helpers/range";
 
 /**
  * Applies the current selection styling to a single cell element.
@@ -18,7 +19,7 @@ import { createRange, rangeContains, rangeIntersectsColumn, rangeIntersectsRow, 
 export function renderCellSelection<T extends DataItem>(
     cell: HTMLElement,
     selection: Range,
-    columns: Immutable.List<ImmutableColumn<T>>,
+    columns: Immutable.List<Column<T>>,
     columnIndex: number,
     rowIndex: number,
 ): void {

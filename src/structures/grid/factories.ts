@@ -1,19 +1,24 @@
 import type { DataItem } from "@/types";
-import type { ImmutableGrid } from "./types";
-import type { ImmutableColumn } from "@/structures/column";
+import type { GridData } from "./types";
+import type { Column } from "@/structures/column";
 import { List, Record } from "immutable";
 import { createRange } from "@/structures/range";
+import { HeaderSelection } from "@/shared/enums";
 
-const factory = Record<ImmutableGrid<any>>({
+const factory = Record<GridData<any>>({
     columns: undefined!,
     source: undefined!,
     selection: undefined!,
+    showHeaderSelection: undefined!,
+    cellSize: undefined!,
 });
 
-export function createImmutableGrid<T extends DataItem>() {
+export function createGridData<T extends DataItem>() {
     return factory({
-        columns: List<ImmutableColumn<T>>() as List<ImmutableColumn<any>>,
+        columns: List<Column<T>>() as List<Column<any>>,
         source: List<T>(),
         selection: createRange(-1, -1),
-    }) as Immutable.RecordOf<ImmutableGrid<T>>;
+        showHeaderSelection: HeaderSelection.None,
+        cellSize: 30,
+    }) as Immutable.RecordOf<GridData<T>>;
 }
