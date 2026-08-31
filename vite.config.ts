@@ -17,11 +17,11 @@ export default defineConfig({
     },
     resolve: {
         alias: {
-            "@structure": path.resolve(__dirname, "./src/structures"),
-            "@helpers": path.resolve(__dirname, "./src/helpers"),
-            "@extension": path.resolve(__dirname, "./src/extensions"),
-            "@shared": path.resolve(__dirname, "./src/shared"),
-            "@shard": path.resolve(__dirname, "./src/shards"),
+            "@structure": path.resolve(import.meta.dirname, "./src/structures"),
+            "@helpers": path.resolve(import.meta.dirname, "./src/helpers"),
+            "@extension": path.resolve(import.meta.dirname, "./src/extensions"),
+            "@shared": path.resolve(import.meta.dirname, "./src/shared"),
+            "@shard": path.resolve(import.meta.dirname, "./src/shards"),
         },
     },
 });
