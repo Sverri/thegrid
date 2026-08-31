@@ -1,33 +1,32 @@
-import type { DataItem, ExtendObject } from "@/types";
-import { type Range } from "@/structures/range";
-import { getElementScrollDimensions, type ElementScrollDimensions } from "@/helpers/getelementscrolldimensions";
-import { createCell } from "@/extensions/shared/createcell";
-import { calculateRenderArea } from "@/extensions/shared/renderarea";
-import { renderCellSelection } from "@/extensions/shared/renderselection";
-import { setCellContents } from "@/extensions/shared/setcellcontents";
-import { CellType, HeaderSelection } from "@/shared/enums";
-import { columnFromLeft } from "@/helpers/column";
-import { rangeHorizontalIterator, rangeIterator, rangeVerticalIterator } from "@/helpers/range";
+import type { DataItem } from "@shared/types";
+import { type Range } from "@structure/range";
+import { getElementScrollDimensions, type ElementScrollDimensions } from "@helpers/getelementscrolldimensions";
+import { createCell } from "@extension/shared/createcell";
+import { calculateRenderArea } from "@extension/shared/renderarea";
+import { renderCellSelection } from "@extension/shared/renderselection";
+import { setCellContents } from "@extension/shared/setcellcontents";
+import { CellType, HeaderSelection } from "@shared/enums";
+import { columnFromLeft } from "@helpers/column";
+import type { Grid } from "../grid";
 
-export function renderExtension<T extends DataItem>(meta: ExtendObject<T>): void {
+export function renderExtension<T extends DataItem>(grid: Grid<T>): void {
     const renderAhead = {
         columns: 1,
         rows: 3,
     };
 
-    meta.cellsElement.classList.add("thegrid-enable-zebra");
+    grid.cellsElement.classList.add("thegrid-enable-zebra");
 
     const renderCells = (range: Range) => {
-        const { cellsElement, cellSize, grid } = meta;
-        const { columns, selection } = grid;
+        const { cellsElement, cellSize, columns, selection } = grid;
         cellsElement.textContent = "";
 
-        for (const { x, y } of rangeIterator(range)) {
-            const { dataType, visible } = columns.get(x)!;
+        for (const { x, y } of range.iterator()) {
+            const { dataType, visible } = columns.at(x)!;
             if (!visible) {
                 continue;
             }
-            const column = columns.get(x)!;
+            const column = columns.at(x)!;
 
             const cell = createCell({
                 type: CellType.Cell,
@@ -40,7 +39,7 @@ export function renderExtension<T extends DataItem>(meta: ExtendObject<T>): void
             });
 
             renderCellSelection(cell, selection, columns, x, y);
-            setCellContents(cell, dataType, meta.getCellData(x, y));
+            setCellContents(cell, dataType, grid.getCellData(x, y));
 
             cell.classList.add(y % 2 === 0 ? "row-even" : "row-odd");
             cellsElement.append(cell);
@@ -48,12 +47,12 @@ export function renderExtension<T extends DataItem>(meta: ExtendObject<T>): void
     };
 
     const renderColumnHeaders = (range: Range, { scrollLeft }: ElementScrollDimensions) => {
-        const { columnHeadersElement, cellSize, showHeaderSelection, grid } = meta;
-        const { columns, selection } = grid;
+        const { columnHeadersElement, cellSize, showHeaderSelection, columns, selection } = grid;
         columnHeadersElement.textContent = "";
 
-        for (const { x } of rangeHorizontalIterator(range)) {
-            const column = columns.get(x)!;
+        let s = "";
+        for (const { x } of range.horizontalIterator()) {
+            const column = columns.at(x)!;
             if (!column.visible) {
                 continue;
             }
@@ -75,16 +74,17 @@ export function renderExtension<T extends DataItem>(meta: ExtendObject<T>): void
                 cell.classList.add("column-selected");
             }
             cell.textContent = column.header;
+            s += `, ${x} ${column.header}`;
             columnHeadersElement.append(cell);
         }
+        console.log("---", s);
     };
 
     const renderRowHeaders = (range: Range, { scrollTop }: ElementScrollDimensions) => {
-        const { rowHeadersElement, cellSize, showHeaderSelection, grid } = meta;
-        const { selection } = grid;
+        const { rowHeadersElement, cellSize, showHeaderSelection, selection } = grid;
         rowHeadersElement.textContent = "";
 
-        for (const { y } of rangeVerticalIterator(range)) {
+        for (const { y } of range.verticalIterator()) {
             const cell = createCell({
                 type: CellType.RowHeader,
                 width: cellSize,
@@ -106,13 +106,13 @@ export function renderExtension<T extends DataItem>(meta: ExtendObject<T>): void
     };
 
     const render = () => {
-        const dimensions = getElementScrollDimensions(meta.cellsElement);
-        const renderArea = calculateRenderArea({ grid: meta.grid, renderAhead, dimensions });
+        const dimensions = getElementScrollDimensions(grid.cellsElement);
+        const renderArea = calculateRenderArea({ grid, renderAhead, dimensions });
         renderCells(renderArea);
         renderColumnHeaders(renderArea, dimensions);
         renderRowHeaders(renderArea, dimensions);
     };
 
-    meta.cellsElement.addEventListener("scroll", render, { passive: true });
-    meta.onInvalidate.subscribe(render);
+    grid.cellsElement.addEventListener("scroll", render, { passive: true });
+    grid.onInvalidate.subscribe(render);
 }

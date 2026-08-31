@@ -1,4 +1,4 @@
-import { CellType } from "@/shared/enums";
+import { CellType } from "@shared/enums";
 
 interface CellSpecs {
     type: CellType;

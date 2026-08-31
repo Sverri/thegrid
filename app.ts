@@ -1,9 +1,9 @@
 import "normalize.css";
 import { DataType } from "./src/index";
 import { faker } from "@faker-js/faker";
-import { createRange } from "@/structures/range";
-import { createGrid } from "@/grid";
-import { HeaderSelection } from "@/shared/enums";
+import { createGrid } from "./src/grid";
+import { HeaderSelection } from "@shared/enums";
+import { createRange } from "@structure/range";
 
 const hostElement = document.querySelector<HTMLDivElement>(".grid");
 
@@ -68,17 +68,10 @@ const grid = createGrid(hostElement!, {
     ],
 });
 
-grid.modify(data => {
-    return data.withMutations(grid => {
-        grid.set("selection", createRange(1, 1));
-        grid.set(
-            "columns",
-            grid.columns.map(c => {
-                if (c.binding === "dob") {
-                    c.visible = true;
-                }
-                return c;
-            }),
-        );
-    });
+grid.selection = createRange(1, 1);
+grid.columns = grid.columns.map(c => {
+    if (c.binding === "dob") {
+        c.visible = true;
+    }
+    return c;
 });

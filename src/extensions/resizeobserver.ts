@@ -1,11 +1,11 @@
-import type { ExtendObject } from "@/types";
 import { debounce } from "throttle-debounce";
+import type { Grid } from "../grid";
 
-export function resizeObserverExtension(meta: ExtendObject<any>): void {
+export function resizeObserverExtension(grid: Grid<any>): void {
     const resizeObserver = new ResizeObserver(
         debounce(100, () => {
-            meta.invalidate();
+            grid.invalidate();
         }),
     );
-    resizeObserver.observe(meta.hostElement);
+    resizeObserver.observe(grid.hostElement);
 }

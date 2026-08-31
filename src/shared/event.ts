@@ -1,47 +1,81 @@
-import { List } from "immutable";
-
 /**
  * A callable callback function used by the event system.
  */
 export type Callback = (...args: any[]) => void;
 
 /**
- * A simple event interface that supports subscribing and unsubscribing listeners.
- *
- * The event can be observed but cannot be raised directly.
+ * Barebones observable and raiseable event
  */
-export interface UnraiseableEvent<T extends Callback> {
+class Event<T extends Callback> {
+    #subscriptions: T[] = [];
+
     /**
      * Registers a callback to receive future notifications.
      *
      * @param callback The listener to subscribe.
      */
-    subscribe: (callback: T) => void;
+    subscribe(callback: T) {
+        this.#subscriptions.push(callback);
+    }
 
     /**
-     * Removes a previously registered callback.
+     * Remove a previously registered callback.
      *
      * @param callback The listener to unsubscribe.
      */
-    unsubscribe: (callback: T) => void;
-}
+    unsubscribe(callback: T) {
+        this.#subscriptions = this.#subscriptions.filter(c => c !== callback);
+    }
 
-/**
- * An event that can be raised and also exposes an unraiseable view.
- */
-export interface RaiseableEvent<T extends Callback> extends UnraiseableEvent<T> {
     /**
-     * Emits the event to all current subscribers.
+     * Emit the event to all current subscribers.
      *
      * @param args Arguments forwarded to each listener.
      */
-    raise: (...args: Parameters<T>) => void;
+    raise(...args: Parameters<T>): void {
+        for (const callback of this.#subscriptions) {
+            callback(...args);
+        }
+    }
 
     /**
-     * Gets a read-only view of the event that cannot trigger notifications.
+     * Get a read-only view of the event that cannot trigger notifications.
      */
-    get unraisable(): UnraiseableEvent<T>;
+    get unraisable() {
+        return new UnraiseableEvent<T>(this);
+    }
 }
+
+/**
+ * Barebones observable event
+ */
+class UnraiseableEvent<T extends Callback> {
+    #event: Event<T>;
+
+    constructor(event: Event<T>) {
+        this.#event = event;
+    }
+
+    /**
+     * Register a callback to receive future notifications.
+     *
+     * @param callback The listener to subscribe.
+     */
+    subscribe(callback: T) {
+        this.#event.subscribe(callback);
+    }
+
+    /**
+     * Remove a previously registered callback.
+     *
+     * @param callback The listener to unsubscribe.
+     */
+    unsubscribe(callback: T) {
+        this.#event.unsubscribe(callback);
+    }
+}
+
+export type { Event, UnraiseableEvent };
 
 /**
  * Creates a raiseable event with subscribe, unsubscribe, and raise capabilities.
@@ -49,29 +83,6 @@ export interface RaiseableEvent<T extends Callback> extends UnraiseableEvent<T> 
  * @template T The callback signature used by the event.
  * @returns A frozen event instance with both raiseable and unraiseable APIs.
  */
-export function createEvent<T extends Callback>(): RaiseableEvent<T> {
-    let subscriptions = List<Callback>();
-
-    function subscribe(callback: T) {
-        subscriptions = subscriptions.push(callback);
-    }
-
-    function unsubscribe(callback: T) {
-        subscriptions = subscriptions.filter(sub => sub !== callback);
-    }
-
-    function raise(...args: Parameters<T>): void {
-        for (const callback of subscriptions) {
-            callback(...args);
-        }
-    }
-
-    return Object.freeze({
-        subscribe,
-        unsubscribe,
-        raise,
-        get unraisable(): UnraiseableEvent<T> {
-            return Object.freeze({ subscribe, unsubscribe });
-        },
-    });
+export function createEvent<T extends Callback>() {
+    return new Event<T>();
 }

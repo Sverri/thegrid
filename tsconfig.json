@@ -21,7 +21,11 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
     "paths": {
-      "@/*": ["./src/*"]
+      "@structure/*": ["./src/structures/*"],
+      "@helpers/*": ["./src/helpers/*"],
+      "@extension/*": ["./src/extensions/*"],
+      "@shared/*": ["./src/shared/*"],
+      "@shard/*": ["./src/shards/*"]
     }
   },
   "include": ["src/**/*.ts", "app.ts"]

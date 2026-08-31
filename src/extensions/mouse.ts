@@ -1,11 +1,10 @@
-import { createRange } from "@/structures/range";
-import { rangeIdenticalTo } from "@/helpers/range";
-import type { ExtendObject } from "@/types";
+import type { Grid } from "../grid";
+import { createRange } from "@structure/range";
 
-export function mouseExtension(meta: ExtendObject<any>): void {
+export function mouseExtension(grid: Grid<any>): void {
     let startCoords: { row: number; column: number } | undefined;
 
-    meta.cellsElement.addEventListener("mousedown", event => {
+    grid.cellsElement.addEventListener("mousedown", event => {
         if (
             event.button !== 0 ||
             !(event.target instanceof HTMLElement) ||
@@ -15,7 +14,7 @@ export function mouseExtension(meta: ExtendObject<any>): void {
         }
 
         if (event.shiftKey) {
-            const { x1, y1 } = meta.grid.selection;
+            const { x1, y1 } = grid.selection;
             startCoords = {
                 row: y1,
                 column: x1,
@@ -25,13 +24,11 @@ export function mouseExtension(meta: ExtendObject<any>): void {
                 row: Number.parseInt(event.target!.dataset.row!, 10),
                 column: Number.parseInt(event.target!.dataset.column!, 10),
             };
-            meta.modify(data => {
-                return data.set("selection", createRange(startCoords?.column ?? -1, startCoords?.row ?? -1));
-            });
+            grid.selection = createRange(startCoords?.column ?? -1, startCoords?.row ?? -1);
         }
     });
 
-    meta.cellsElement.addEventListener("mousemove", event => {
+    grid.cellsElement.addEventListener("mousemove", event => {
         if (event.button !== 0 || !(event.target instanceof HTMLElement) || !startCoords) {
             return;
         }
@@ -49,24 +46,22 @@ export function mouseExtension(meta: ExtendObject<any>): void {
             return;
         }
 
-        const oldRange = meta.grid.selection;
+        const oldRange = grid.selection;
         const newRange = createRange(downColumnIndex, downRowIndex, upColumnIndex, upRowIndex);
-        if (!rangeIdenticalTo(newRange, oldRange)) {
-            meta.modify(data => {
-                return data.set("selection", createRange(downColumnIndex, downRowIndex, upColumnIndex, upRowIndex));
-            });
+        if (!newRange.identicalTo(oldRange)) {
+            grid.selection = newRange;
         }
     });
 
-    meta.cellsElement.addEventListener("mouseenter", () => {
+    grid.cellsElement.addEventListener("mouseenter", () => {
         startCoords = undefined;
     });
 
-    meta.cellsElement.addEventListener("mouseleave", () => {
+    grid.cellsElement.addEventListener("mouseleave", () => {
         startCoords = undefined;
     });
 
-    meta.cellsElement.addEventListener("mouseup", event => {
+    grid.cellsElement.addEventListener("mouseup", event => {
         if (event.button !== 0 || !(event.target instanceof HTMLElement)) {
             return;
         }
@@ -84,9 +79,8 @@ export function mouseExtension(meta: ExtendObject<any>): void {
             return;
         }
 
-        meta.modify(data => {
-            return data.set("selection", createRange(downColumnIndex, downRowIndex, upColumnIndex, upRowIndex));
-        });
+        grid.selection = createRange(downColumnIndex, downRowIndex, upColumnIndex, upRowIndex);
+
         startCoords = undefined;
     });
 }

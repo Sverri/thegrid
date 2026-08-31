@@ -1,52 +1,59 @@
-import type { DataItem } from "@/types";
-import { DataType } from "@/shared/enums";
-import { createEvent } from "@/shared/event";
+import type { DataItem } from "@shared/types";
+import { DataType } from "@shared/enums";
+import { createEvent } from "@shared/event";
 
 export interface ColumnOptions<T extends DataItem> {
     /**
      * The property name or key to bind this column to in the data objects.
+     *
      * This is required and determines which field from the data is displayed in this column.
      */
     binding: keyof T;
 
     /**
      * The display header text for this column.
+     *
      * Defaults to the binding property name if not provided.
      */
     header?: string;
 
     /**
      * The data type of the column, used for sorting and rendering.
+     *
      * Defaults to ColumnType.String if not provided.
      */
     dataType?: DataType;
 
     /**
      * The width of the column in pixels.
+     *
      * Defaults to 100 pixels if not provided.
      */
     width?: number;
 
     /**
      * The minimum width of the column in pixels.
+     *
      * Constrains the column from being resized smaller than this value.
      */
     minWidth?: number;
 
     /**
      * The maximum width of the column in pixels.
+     *
      * Constrains the column from being resized larger than this value.
      */
     maxWidth?: number;
 
     /**
      * Whether the column is visible in the grid.
+     *
      * Defaults to true if not provided.
      */
     visible?: boolean;
 }
 
-class ColumnImplementation<T extends DataItem> {
+class Column<T extends DataItem> {
     #binding: keyof T;
     #header: string;
     #dataType: DataType;
@@ -56,14 +63,14 @@ class ColumnImplementation<T extends DataItem> {
     #visible: boolean;
     #onChange = createEvent<() => void>();
 
-    constructor(options: ColumnOptions<T>) {
-        this.#binding = options.binding;
-        this.#header = options?.header ?? String(this.#binding);
-        this.#dataType = options.dataType ?? DataType.String;
-        this.#minWidth = options.minWidth ?? 1;
-        this.#maxWidth = options.maxWidth ?? 999999;
-        this.#width = Math.max(this.#minWidth, Math.min(this.#maxWidth, options.width ?? 100));
-        this.#visible = options.visible ?? true;
+    constructor({ binding, header, dataType, width, minWidth, maxWidth, visible }: ColumnOptions<T>) {
+        this.#binding = binding;
+        this.#header = header ?? String(this.#binding);
+        this.#dataType = dataType ?? DataType.String;
+        this.#minWidth = minWidth ?? 1;
+        this.#maxWidth = maxWidth ?? 999999;
+        this.#width = Math.max(this.#minWidth, Math.min(this.#maxWidth, width ?? 100));
+        this.#visible = visible ?? true;
 
         if (typeof this.#binding !== "string" || this.#binding.length === 0) {
             throw new Error("The binding must be a non-empty string");
@@ -75,6 +82,7 @@ class ColumnImplementation<T extends DataItem> {
 
     /**
      * The property name or key to bind this column to in the data objects.
+     *
      * This is required and determines which field from the data is displayed in this column.
      */
     get binding() {
@@ -87,6 +95,7 @@ class ColumnImplementation<T extends DataItem> {
 
     /**
      * The display header text for this column.
+     *
      * Defaults to the binding property name if not provided.
      */
     get header() {
@@ -99,6 +108,7 @@ class ColumnImplementation<T extends DataItem> {
 
     /**
      * The data type of the column, used for sorting and rendering.
+     *
      * Defaults to ColumnType.String if not provided.
      */
     get dataType() {
@@ -111,6 +121,7 @@ class ColumnImplementation<T extends DataItem> {
 
     /**
      * The width of the column in pixels.
+     *
      * Defaults to 100 pixels if not provided.
      */
     get width() {
@@ -123,6 +134,7 @@ class ColumnImplementation<T extends DataItem> {
 
     /**
      * The minimum width of the column in pixels.
+     *
      * Constrains the column from being resized smaller than this value.
      */
     get minWidth() {
@@ -135,6 +147,7 @@ class ColumnImplementation<T extends DataItem> {
 
     /**
      * The maximum width of the column in pixels.
+     *
      * Constrains the column from being resized larger than this value.
      */
     get maxWidth() {
@@ -147,6 +160,7 @@ class ColumnImplementation<T extends DataItem> {
 
     /**
      * Whether the column is visible in the grid.
+     *
      * Defaults to true if not provided.
      */
     get visible() {
@@ -165,8 +179,14 @@ class ColumnImplementation<T extends DataItem> {
     }
 }
 
-export type Column<T extends DataItem> = ColumnImplementation<T>;
+export type { Column };
 
-export function createColumn<T extends DataItem>(options: ColumnOptions<T>): Column<T> {
-    return new ColumnImplementation(options);
+/**
+ * Create a column
+ *
+ * @param options
+ * @returns `Column` instance
+ */
+export function createColumn<T extends DataItem>(options: ColumnOptions<T>) {
+    return new Column<T>(options);
 }

@@ -1,7 +1,6 @@
-import type { DataItem } from "@/types";
-import type { Column } from "@/structures/column";
-import { createRange, type Range } from "@/structures/range";
-import { rangeContains, rangeIntersectsColumn, rangeIntersectsRow } from "@/helpers/range";
+import type { DataItem } from "@shared/types";
+import type { Column } from "@structure/column";
+import { createRange, type Range } from "@structure/range";
 
 /**
  * Applies the current selection styling to a single cell element.
@@ -19,17 +18,17 @@ import { rangeContains, rangeIntersectsColumn, rangeIntersectsRow } from "@/help
 export function renderCellSelection<T extends DataItem>(
     cell: HTMLElement,
     selection: Range,
-    columns: Immutable.List<Column<T>>,
+    columns: Column<T>[],
     columnIndex: number,
     rowIndex: number,
 ): void {
     const { left, right, top, bottom, x2, y2 } = selection!;
 
-    if (rangeContains(selection, createRange(columnIndex, rowIndex))) {
+    if (selection.contains(createRange(columnIndex, rowIndex))) {
         cell.classList.add("selection");
     }
 
-    if (rangeIntersectsRow(selection, rowIndex)) {
+    if (selection.intersectsRow(rowIndex)) {
         const previousVisibleColumnIndex = columns.findLastIndex(
             column => columns.indexOf(column) < left && column.visible,
         );
@@ -41,7 +40,7 @@ export function renderCellSelection<T extends DataItem>(
         }
     }
 
-    if (rangeIntersectsColumn(selection, columnIndex)) {
+    if (selection.intersectsColumn(columnIndex)) {
         if (rowIndex === top - 1) {
             cell.classList.add("selection-bottom-border");
         }

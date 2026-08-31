@@ -1,7 +1,7 @@
-import type { ElementScrollDimensions } from "@/helpers/getelementscrolldimensions";
-import type { GridData } from "@/structures/grid";
-import { columnFromLeft } from "@/helpers/column";
-import { createRange, type Range } from "@/structures/range";
+import type { ElementScrollDimensions } from "@helpers/getelementscrolldimensions";
+import type { Grid } from "../../grid";
+import { columnFromLeft } from "@helpers/column";
+import { createRange, type Range } from "@structure/range";
 
 /**
  * Input options for computing the visible render area.
@@ -10,7 +10,7 @@ interface Options {
     /**
      * The grid
      */
-    grid: GridData<any>;
+    grid: Grid<any>;
 
     /**
      * The current scroll dimensions of the viewport.
@@ -41,16 +41,17 @@ export function calculateRenderArea({ grid, dimensions, renderAhead }: Options):
         columns.findIndex(column => column.visible && columnFromLeft(columns, column) + column.width >= scrollLeft) ??
         0;
     const lastIndex =
-        columns.reverse().findLastIndex(column => column.visible && columnFromLeft(columns, column) <= scrollRight) ??
-        0;
+        [...columns]
+            .reverse()
+            .findLastIndex(column => column.visible && columnFromLeft(columns, column) <= scrollRight) ?? 0;
 
     const firstColumnIndex = Math.max(0, firstIndex - renderAhead.columns);
-    const lastColumnIndex = Math.min(columns.size - 1, lastIndex + renderAhead.columns);
+    const lastColumnIndex = Math.min(columns.length - 1, lastIndex + renderAhead.columns);
 
     // Rows
     let firstRowIndex: number = -1;
     let lastRowIndex: number = -1;
-    const rowsCount = source.size;
+    const rowsCount = source.length;
     if (rowsCount > 0) {
         firstRowIndex = Math.max(0, Math.floor(scrollTop / cellSize) - renderAhead.rows);
         lastRowIndex = Math.min(rowsCount - 1, Math.floor(scrollBottom / cellSize) + renderAhead.rows);

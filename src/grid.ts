@@ -1,17 +1,16 @@
-import type { DataItem, ExtendObject } from "@/types";
-import type { ColumnOptions } from "@/structures/column";
-import { List } from "immutable";
-import { keyboardExtension } from "@/extensions/keyboard";
-import { mouseExtension } from "@/extensions/mouse";
-import { resizeObserverExtension } from "@/extensions/resizeobserver";
-import { renderExtension } from "@/extensions/render";
-import { expanderExtension } from "@/extensions/expander";
-import { HeaderSelection } from "@/shared/enums";
-import { createColumn, type Column } from "@/structures/column";
-import { createGridData, type GridData } from "@/structures/grid";
-import { useInvalidator } from "@/shards/invalidator";
-import { useDom } from "@/shards/dom";
-import { useScroller } from "@/shards/scroller";
+import type { DataItem } from "@shared/types";
+import { keyboardExtension } from "@extension/keyboard";
+import { mouseExtension } from "@extension/mouse";
+import { resizeObserverExtension } from "@extension/resizeobserver";
+import { renderExtension } from "@extension/render";
+import { expanderExtension } from "@extension/expander";
+import { HeaderSelection } from "@shared/enums";
+import { createColumn, type Column, type ColumnOptions } from "@structure/column";
+import { createEvent } from "@shared/event";
+import { debounce } from "throttle-debounce";
+import { getElementScrollDimensions } from "@helpers/getelementscrolldimensions";
+import { columnFromLeft } from "@helpers/column";
+import { createRange, type Range } from "@structure/range";
 
 const DEFAULT_CELL_SIZE = 50;
 
@@ -21,14 +20,14 @@ export interface TheGridOptions<T extends DataItem> {
      *
      * **Default:** `[]`
      */
-    source?: ArrayLike<T>;
+    source?: T[];
 
     /**
      * Columns
      *
      * **Default:** `[]`
      */
-    columns?: ArrayLike<ColumnOptions<T>>;
+    columns?: ColumnOptions<T>[];
 
     /**
      * Header selection indicator
@@ -43,121 +42,183 @@ export interface TheGridOptions<T extends DataItem> {
     cellSize?: number;
 }
 
-export function createGrid<T extends DataItem>(hostElement: HTMLElement, options?: TheGridOptions<T>) {
-    let grid = createGridData<T>().withMutations(data => {
-        const columns = List<Column<T>>(Array.from(options?.columns ?? []).map(data => createColumn(data)));
-        data.set("columns", columns);
-        if (options?.source) {
-            data.set("source", List(options.source));
+class Grid<T extends DataItem> {
+    #hostElement: HTMLElement;
+    #cellsElement: HTMLDivElement;
+    #columnHeadersElement: HTMLDivElement;
+    #rowHeadersElement: HTMLDivElement;
+
+    #source: T[];
+    #columns: Column<T>[];
+    #selection: Range;
+
+    #showHeaderSelection = HeaderSelection.Both;
+    #cellSize: number;
+
+    #onInvalidate = createEvent<() => void>();
+
+    constructor(hostElement: HTMLElement, options?: TheGridOptions<T>) {
+        this.#hostElement = hostElement;
+        this.#hostElement.innerHTML = `
+            <div class="thegrid-area-cells" tabindex="0"></div>
+            <div class="thegrid-area-topleft"></div>
+            <div class="thegrid-area-columnheaders"></div>
+            <div class="thegrid-area-rowheaders"></div>
+        `;
+        this.#hostElement.classList.add("thegrid");
+        this.#hostElement.style.setProperty("width", "100%");
+        this.#hostElement.style.setProperty("height", "100%");
+
+        this.#cellSize = options?.cellSize ?? DEFAULT_CELL_SIZE;
+
+        const cellsElement = hostElement.querySelector<HTMLDivElement>(".thegrid-area-cells");
+        if (!cellsElement) {
+            throw new Error("Could not find cells element");
+        } else {
+            this.#cellsElement = cellsElement;
         }
-        if (options?.showHeaderSelection) {
-            data.set("showHeaderSelection", options.showHeaderSelection);
+
+        const columnHeadersElement = hostElement.querySelector<HTMLDivElement>(".thegrid-area-columnheaders");
+        if (!columnHeadersElement) {
+            throw new Error("Could not find column headers element");
+        } else {
+            this.#columnHeadersElement = columnHeadersElement;
         }
-        data.set("cellSize", options?.cellSize ?? DEFAULT_CELL_SIZE);
+
+        const rowHeadersElement = hostElement.querySelector<HTMLDivElement>(".thegrid-area-rowheaders");
+        if (!rowHeadersElement) {
+            throw new Error("Could not find row headers element");
+        } else {
+            this.#rowHeadersElement = rowHeadersElement;
+        }
+
+        hostElement.style.setProperty("--cell-size", `${this.#cellSize}px`);
+
+        this.#showHeaderSelection = options?.showHeaderSelection ?? HeaderSelection.Both;
+        this.#source = options?.source ?? [];
+        this.#columns = (options?.columns ?? []).map(o => createColumn(o));
+        this.#selection = createRange(0, 0);
+
+        expanderExtension(this);
+        renderExtension(this);
+        mouseExtension(this);
+        keyboardExtension(this);
+        resizeObserverExtension(this);
+
+        this.invalidate(true);
+    }
+
+    get hostElement() {
+        return this.#hostElement;
+    }
+
+    get cellsElement() {
+        return this.#cellsElement;
+    }
+
+    get columnHeadersElement() {
+        return this.#columnHeadersElement;
+    }
+
+    get rowHeadersElement() {
+        return this.#rowHeadersElement;
+    }
+
+    get onInvalidate() {
+        return this.#onInvalidate;
+    }
+
+    get showHeaderSelection() {
+        return this.#showHeaderSelection;
+    }
+    set showHeaderSelection(value: HeaderSelection) {
+        this.#showHeaderSelection = value;
+        this.invalidate(true);
+    }
+
+    get source() {
+        return this.#source;
+    }
+    set source(value: T[]) {
+        this.#source = value;
+        this.invalidate(true);
+    }
+
+    get columns() {
+        return this.#columns;
+    }
+    set columns(value: Column<T>[]) {
+        this.#columns = value;
+        this.invalidate(true);
+    }
+
+    get cellSize() {
+        return this.#cellSize;
+    }
+    set cellSize(value: number) {
+        this.#cellSize = value;
+        this.invalidate(true);
+    }
+
+    get selection() {
+        return this.#selection;
+    }
+    set selection(value: Range) {
+        this.#selection = value;
+        this.invalidate(true);
+    }
+
+    debouncedInvalidate = debounce(100, () => {
+        this.#onInvalidate.raise();
     });
 
-    const { cellsElement, columnHeadersElement, rowHeadersElement } = useDom(hostElement, grid.cellSize);
-    const { onInvalidate, invalidate } = useInvalidator();
-    const { scrollIntoView } = useScroller({
-        get grid() {
-            return grid;
-        },
-        get cellsElement() {
-            return cellsElement;
-        },
+    invalidate(immediately = false) {
+        if (immediately) {
+            this.#onInvalidate.raise();
+        } else {
+            this.debouncedInvalidate();
+        }
+    }
+
+    scrollIntoView = debounce(64, (columnIndex: number, rowIndex: number) => {
+        const { scrollLeft, scrollRight, scrollTop, scrollBottom } = getElementScrollDimensions(this.#cellsElement);
+        const column = this.#columns.at(columnIndex)!;
+        let left = scrollLeft;
+        const columnStart = columnFromLeft(this.#columns, column);
+        const columnEnd = columnStart + column.width;
+        if (columnStart < scrollLeft) {
+            left = columnStart;
+        } else if (columnEnd > scrollRight) {
+            left = scrollLeft + (columnEnd - scrollRight);
+        }
+
+        let top = scrollTop;
+        const rowStart = rowIndex * this.#cellSize;
+        const rowEnd = rowStart + this.#cellSize;
+        if (rowStart < scrollTop) {
+            top = rowStart;
+        } else if (rowEnd > scrollBottom) {
+            top = scrollTop + (rowEnd - scrollBottom);
+        }
+
+        this.#cellsElement.scrollTo({ left, top, behavior: "instant" });
     });
-    const showHeaderSelection = options?.showHeaderSelection ?? HeaderSelection.Both;
 
-    const modify = (callback: (grid: Immutable.RecordOf<GridData<T>>) => Immutable.RecordOf<GridData<T>>) => {
-        grid = callback(grid);
-        invalidate(true);
-    };
-
-    const getCellData = <DT>(columnIndex: number, rowIndex: number): DT | undefined => {
-        const row = grid.source.get(rowIndex);
+    getCellData<DT>(columnIndex: number, rowIndex: number): DT | undefined {
+        const row = this.#source[rowIndex];
         if (!row) {
             return undefined;
         }
-        const column = grid.columns.get(columnIndex);
+        const column = this.#columns.at(columnIndex);
         if (!column) {
             return undefined;
         }
         return row[column.binding];
-    };
+    }
+}
 
-    const extend = (callback: (meta: ExtendObject<T>) => void): void => {
-        callback({
-            get grid() {
-                return grid;
-            },
-            get hostElement() {
-                return hostElement;
-            },
-            get cellsElement() {
-                return cellsElement;
-            },
-            get columnHeadersElement() {
-                return columnHeadersElement;
-            },
-            get rowHeadersElement() {
-                return rowHeadersElement;
-            },
-            modify,
-            invalidate,
-            scrollIntoView,
-            getCellData,
-            extend,
-            get cellSize() {
-                return grid.cellSize;
-            },
-            get onInvalidate() {
-                return onInvalidate;
-            },
-            get showHeaderSelection() {
-                return showHeaderSelection;
-            },
-        });
-    };
+export type { Grid };
 
-    // Official extensions
-    extend(expanderExtension);
-    extend(renderExtension);
-    extend(mouseExtension);
-    extend(keyboardExtension);
-    extend(resizeObserverExtension);
-
-    // Kick off rendering
-    invalidate(true);
-
-    return Object.freeze({
-        get hostElement() {
-            return hostElement;
-        },
-        get cellsElement() {
-            return cellsElement;
-        },
-        get columnHeadersElement() {
-            return columnHeadersElement;
-        },
-        get rowHeadersElement() {
-            return rowHeadersElement;
-        },
-        get grid() {
-            return grid;
-        },
-        get cellSize() {
-            return grid.cellSize;
-        },
-        get onInvalidate() {
-            return onInvalidate;
-        },
-        get showHeaderSelection() {
-            return showHeaderSelection;
-        },
-        invalidate,
-        scrollIntoView,
-        getCellData,
-        extend,
-        modify,
-    });
+export function createGrid<T extends DataItem>(hostElement: HTMLElement, options?: TheGridOptions<T>) {
+    return new Grid(hostElement, options);
 }

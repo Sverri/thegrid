@@ -1,4 +1,4 @@
-import { DataType } from "@/shared/enums";
+import { DataType } from "@shared/enums";
 
 /**
  * Populates a cell element with formatted content based on the column data type.

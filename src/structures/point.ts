@@ -1,4 +1,7 @@
-class PointImplementation {
+/**
+ * Represents a two-dimensional coordinate.
+ */
+class Point {
     #x: number;
     #y: number;
 
@@ -22,14 +25,11 @@ class PointImplementation {
     }
 }
 
-/**
- * Represents a two-dimensional coordinate.
- */
-export type Point = PointImplementation;
+export type { Point };
 
 /**
  * Create object representing a two-dimensional coordinate.
  */
-export function createPoint(x: number, y: number): Point {
-    return new PointImplementation(x, y);
+export function createPoint(x: number, y: number) {
+    return new Point(x, y);
 }
