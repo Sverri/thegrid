@@ -1,6 +1,6 @@
 import { getElementScrollDimensions } from "@helpers/getelementscrolldimensions";
 import { createRange } from "@structure/range";
-import { calculateRenderArea } from "@extension/shared/renderarea";
+import { calculateRenderArea } from "@extension/shared/calculaterenderarea";
 import {
     expandSelectionDown,
     expandSelectionLeft,
@@ -15,7 +15,7 @@ import type { Grid } from "../grid";
 
 function moveToFirstColumn(grid: Grid<any>, shiftHeld: boolean): void {
     const { x1, y1, y2 } = grid.selection;
-    const firstColumnIndex = grid.columns.findIndex(column => column.visible);
+    const firstColumnIndex = grid.columns.items.findIndex(column => column.visible);
     const newX1 = shiftHeld ? x1 : firstColumnIndex;
     const newY1 = shiftHeld ? y1 : y2;
     grid.selection = createRange(newX1, newY1, firstColumnIndex, y2);
@@ -33,7 +33,7 @@ function moveToFirstRow(grid: Grid<any>, shiftHeld: boolean): void {
 
 function moveToLastColumn(grid: Grid<any>, shiftHeld: boolean): void {
     const { x1, y1, y2 } = grid.selection;
-    const lastColumnIndex = grid.columns.findLastIndex(column => column.visible);
+    const lastColumnIndex = grid.columns.items.findLastIndex(column => column.visible);
     const newX1 = shiftHeld ? x1 : lastColumnIndex;
     const newY1 = shiftHeld ? y1 : y2;
     grid.selection = createRange(newX1, newY1, lastColumnIndex, y2);
@@ -51,7 +51,7 @@ function moveToLastRow(grid: Grid<any>, shiftHeld: boolean): void {
 
 function selectAll(grid: Grid<any>): void {
     const { scrollIntoView } = grid;
-    const lastVisibleIndex = grid.columns.findLastIndex(column => column.visible);
+    const lastVisibleIndex = grid.columns.items.findLastIndex(column => column.visible);
     const rowCount = grid.source.length - 1;
     grid.selection = createRange(0, 0, lastVisibleIndex, rowCount);
     scrollIntoView(grid.selection.x2, grid.selection.y2);
@@ -111,7 +111,7 @@ function moveDown(grid: Grid<any>, shiftHeld: boolean, ctrlHeld: boolean): void 
 
 function pageDown(grid: Grid<any>, shiftHeld: boolean): void {
     const dimensions = getElementScrollDimensions(grid.cellsElement);
-    const renderArea = calculateRenderArea({ grid, renderAhead: { columns: 0, rows: 0 }, dimensions });
+    const renderArea = calculateRenderArea({ grid, dimensions, renderAhead: { columns: 0, rows: 0 } });
     const rowsPerPage = renderArea.bottom - renderArea.top - 1;
     if (shiftHeld) {
         grid.selection = expandSelectionDown(grid, grid.selection, rowsPerPage);
@@ -123,7 +123,7 @@ function pageDown(grid: Grid<any>, shiftHeld: boolean): void {
 
 function pageUp(grid: Grid<any>, shiftHeld: boolean): void {
     const dimensions = getElementScrollDimensions(grid.cellsElement);
-    const renderArea = calculateRenderArea({ grid: grid, renderAhead: { columns: 0, rows: 0 }, dimensions });
+    const renderArea = calculateRenderArea({ grid, dimensions, renderAhead: { columns: 0, rows: 0 } });
     const rowsPerPage = renderArea.bottom - renderArea.top - 1;
     if (shiftHeld) {
         grid.selection = expandSelectionUp(grid, grid.selection, rowsPerPage);

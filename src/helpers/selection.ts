@@ -1,13 +1,13 @@
 import type { DataItem } from "@shared/types";
-import { createRange, type Range } from "@structure/range";
 import type { Grid } from "../grid";
+import { createRange, type Range } from "@structure/range";
 
 export function moveSelectionLeft<T extends DataItem>(grid: Grid<T>, range: Range, count = 1): Range {
     const { x2, y2 } = range;
     const minX2 = 0;
     let newX2 = x2;
     while (count > 0) {
-        const column = grid.columns.at(--newX2)!;
+        const column = grid.columns.items.at(--newX2);
         if (!column || newX2 === minX2) {
             // No more columns or already at left-most column
             break;
@@ -21,10 +21,10 @@ export function moveSelectionLeft<T extends DataItem>(grid: Grid<T>, range: Rang
 
 export function moveSelectionRight<T extends DataItem>(grid: Grid<T>, range: Range, count = 1): Range {
     const { x2, y2 } = range;
-    const maxX2 = grid.columns.findLastIndex(column => column.visible) ?? 0;
+    const maxX2 = grid.columns.items.findLastIndex(column => column.visible) ?? 0;
     let newX2 = x2;
     while (count > 0) {
-        const column = grid.columns.at(++newX2)!;
+        const column = grid.columns.items.at(++newX2);
         if (!column || newX2 === maxX2) {
             // No more columns or already at right-most column
             break;
@@ -53,7 +53,7 @@ export function expandSelectionLeft<T extends DataItem>(grid: Grid<T>, range: Ra
     const minX2 = 0;
     let newX2 = x2;
     while (count > 0) {
-        const column = grid.columns.at(--newX2)!;
+        const column = grid.columns.items.at(--newX2);
         if (!column || newX2 === minX2) {
             // No more columns or already at left-most column
             break;
@@ -67,10 +67,10 @@ export function expandSelectionLeft<T extends DataItem>(grid: Grid<T>, range: Ra
 
 export function expandSelectionRight<T extends DataItem>(grid: Grid<T>, range: Range, count = 1): Range {
     const { x1, y1, x2, y2 } = range;
-    const maxX2 = grid.columns.findLastIndex(column => column.visible);
+    const maxX2 = grid.columns.items.findLastIndex(column => column.visible);
     let newX2 = x2;
     while (count > 0) {
-        const column = grid.columns.at(++newX2)!;
+        const column = grid.columns.items.at(++newX2);
         if (!column || newX2 === maxX2) {
             // No more columns or already at right-most column
             break;

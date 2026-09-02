@@ -5,12 +5,12 @@ import { resizeObserverExtension } from "@extension/resizeobserver";
 import { renderExtension } from "@extension/render";
 import { expanderExtension } from "@extension/expander";
 import { HeaderSelection } from "@shared/enums";
-import { createColumn, type Column, type ColumnOptions } from "@structure/column";
+import { type ColumnOptions } from "@structure/column";
 import { createEvent } from "@shared/event";
 import { debounce } from "throttle-debounce";
 import { getElementScrollDimensions } from "@helpers/getelementscrolldimensions";
-import { columnFromLeft } from "@helpers/column";
 import { createRange, type Range } from "@structure/range";
+import { createColumnCollection, type ColumnCollection } from "@structure/columncollection";
 
 const DEFAULT_CELL_SIZE = 50;
 
@@ -47,14 +47,11 @@ class Grid<T extends DataItem> {
     #cellsElement: HTMLDivElement;
     #columnHeadersElement: HTMLDivElement;
     #rowHeadersElement: HTMLDivElement;
-
     #source: T[];
-    #columns: Column<T>[];
+    #columns: ColumnCollection<T>;
     #selection: Range;
-
     #showHeaderSelection = HeaderSelection.Both;
     #cellSize: number;
-
     #onInvalidate = createEvent<() => void>();
 
     constructor(hostElement: HTMLElement, options?: TheGridOptions<T>) {
@@ -96,7 +93,7 @@ class Grid<T extends DataItem> {
 
         this.#showHeaderSelection = options?.showHeaderSelection ?? HeaderSelection.Both;
         this.#source = options?.source ?? [];
-        this.#columns = (options?.columns ?? []).map(o => createColumn(o));
+        this.#columns = createColumnCollection(options?.columns ?? []);
         this.#selection = createRange(0, 0);
 
         expanderExtension(this);
@@ -147,10 +144,6 @@ class Grid<T extends DataItem> {
     get columns() {
         return this.#columns;
     }
-    set columns(value: Column<T>[]) {
-        this.#columns = value;
-        this.invalidate(true);
-    }
 
     get cellSize() {
         return this.#cellSize;
@@ -182,9 +175,13 @@ class Grid<T extends DataItem> {
 
     scrollIntoView = debounce(64, (columnIndex: number, rowIndex: number) => {
         const { scrollLeft, scrollRight, scrollTop, scrollBottom } = getElementScrollDimensions(this.#cellsElement);
-        const column = this.#columns.at(columnIndex)!;
+        const column = this.#columns.items.at(columnIndex);
+        if (!column) {
+            console.warn(`Was unable to scroll into view: [${columnIndex},${rowIndex}] (column does not exist)`);
+            return;
+        }
         let left = scrollLeft;
-        const columnStart = columnFromLeft(this.#columns, column);
+        const columnStart = column.fromLeft;
         const columnEnd = columnStart + column.width;
         if (columnStart < scrollLeft) {
             left = columnStart;
@@ -209,7 +206,7 @@ class Grid<T extends DataItem> {
         if (!row) {
             return undefined;
         }
-        const column = this.#columns.at(columnIndex);
+        const column = this.#columns.items.at(columnIndex);
         if (!column) {
             return undefined;
         }

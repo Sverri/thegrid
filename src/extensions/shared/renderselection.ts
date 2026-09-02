@@ -18,20 +18,18 @@ import { createRange, type Range } from "@structure/range";
 export function renderCellSelection<T extends DataItem>(
     cell: HTMLElement,
     selection: Range,
-    columns: Column<T>[],
+    columns: ReadonlyArray<Column<T>>,
     columnIndex: number,
     rowIndex: number,
 ): void {
-    const { left, right, top, bottom, x2, y2 } = selection!;
+    const { left, right, top, bottom, x2, y2 } = selection;
 
     if (selection.contains(createRange(columnIndex, rowIndex))) {
         cell.classList.add("selection");
     }
 
     if (selection.intersectsRow(rowIndex)) {
-        const previousVisibleColumnIndex = columns.findLastIndex(
-            column => columns.indexOf(column) < left && column.visible,
-        );
+        const previousVisibleColumnIndex = columns.findLastIndex(c => columns.indexOf(c) < left && c.visible);
         if (columnIndex === previousVisibleColumnIndex) {
             cell.classList.add("selection-right-border");
         }

@@ -1,7 +1,6 @@
 import "normalize.css";
-import { DataType } from "./src/index";
 import { faker } from "@faker-js/faker";
-import { createGrid } from "./src/grid";
+import { createGrid, DataType } from "./src/index";
 import { HeaderSelection } from "@shared/enums";
 import { createRange } from "@structure/range";
 
@@ -69,9 +68,12 @@ const grid = createGrid(hostElement!, {
 });
 
 grid.selection = createRange(1, 1);
-grid.columns = grid.columns.map(c => {
-    if (c.binding === "dob") {
-        c.visible = true;
-    }
-    return c;
+
+grid.columns.modify(options => {
+    return options.map(option => {
+        if (option.binding === "dob") {
+            option.visible = true;
+        }
+        return option;
+    });
 });

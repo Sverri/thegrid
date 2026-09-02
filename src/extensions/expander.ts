@@ -13,10 +13,10 @@ import type { Grid } from "../grid";
 export function expanderExtension(grid: Grid<any>): void {
     grid.onInvalidate.subscribe(() => {
         const { hostElement, columns, source, cellSize } = grid;
-        const totalWidth = columns.filter(column => column.visible).reduce((total, value) => total + value.width, 0);
-        const columnsWidth = `${totalWidth}px`;
-        const rowsHeight = `${source.length * cellSize}px`;
-        hostElement.style.setProperty("--internal-expander-x", columnsWidth, "important");
-        hostElement.style.setProperty("--internal-expander-y", rowsHeight, "important");
+        const totalWidth = columns.items
+            .filter(column => column.visible)
+            .reduce((total, column) => total + column.width, 0);
+        hostElement.style.setProperty("--internal-expander-x", `${totalWidth}px`, "important");
+        hostElement.style.setProperty("--internal-expander-y", `${source.length * cellSize}px`, "important");
     });
 }

@@ -1,6 +1,6 @@
 import type { DataItem } from "@shared/types";
 import { DataType } from "@shared/enums";
-import { createEvent } from "@shared/event";
+import type { ColumnCollection } from "./columncollection";
 
 export interface ColumnOptions<T extends DataItem> {
     /**
@@ -61,16 +61,17 @@ class Column<T extends DataItem> {
     #minWidth: number;
     #maxWidth: number;
     #visible: boolean;
-    #onChange = createEvent<() => void>();
+    #collection: ColumnCollection<T>;
 
-    constructor({ binding, header, dataType, width, minWidth, maxWidth, visible }: ColumnOptions<T>) {
-        this.#binding = binding;
-        this.#header = header ?? String(this.#binding);
-        this.#dataType = dataType ?? DataType.String;
-        this.#minWidth = minWidth ?? 1;
-        this.#maxWidth = maxWidth ?? 999999;
-        this.#width = Math.max(this.#minWidth, Math.min(this.#maxWidth, width ?? 100));
-        this.#visible = visible ?? true;
+    constructor(options: ColumnOptions<T>, collection: ColumnCollection<T>) {
+        this.#binding = options.binding;
+        this.#header = options.header ?? String(this.#binding);
+        this.#dataType = options.dataType ?? DataType.String;
+        this.#minWidth = options.minWidth ?? 1;
+        this.#maxWidth = options.maxWidth ?? 999999;
+        this.#width = Math.max(this.#minWidth, Math.min(this.#maxWidth, options.width ?? 100));
+        this.#visible = options.visible ?? true;
+        this.#collection = collection;
 
         if (typeof this.#binding !== "string" || this.#binding.length === 0) {
             throw new Error("The binding must be a non-empty string");
@@ -90,7 +91,6 @@ class Column<T extends DataItem> {
     }
     set binding(value: keyof T) {
         this.#binding = value;
-        this.#onChange.raise();
     }
 
     /**
@@ -103,7 +103,6 @@ class Column<T extends DataItem> {
     }
     set header(value: string) {
         this.#header = value;
-        this.#onChange.raise();
     }
 
     /**
@@ -116,7 +115,6 @@ class Column<T extends DataItem> {
     }
     set dataType(value: DataType) {
         this.#dataType = value;
-        this.#onChange.raise();
     }
 
     /**
@@ -129,7 +127,6 @@ class Column<T extends DataItem> {
     }
     set width(value: number) {
         this.#width = value;
-        this.#onChange.raise();
     }
 
     /**
@@ -142,7 +139,6 @@ class Column<T extends DataItem> {
     }
     set minWidth(value: number) {
         this.#minWidth = value;
-        this.#onChange.raise();
     }
 
     /**
@@ -155,7 +151,6 @@ class Column<T extends DataItem> {
     }
     set maxWidth(value: number) {
         this.#maxWidth = value;
-        this.#onChange.raise();
     }
 
     /**
@@ -168,14 +163,29 @@ class Column<T extends DataItem> {
     }
     set visible(value: boolean) {
         this.#visible = value;
-        this.#onChange.raise();
     }
 
     /**
-     * The `onChange` event
+     * Index of column in the column collection
      */
-    get onChange() {
-        return this.#onChange.unraisable;
+    get index() {
+        return this.#collection.items.findIndex(item => item === this);
+    }
+
+    /**
+     * Visual from left (in pixels)
+     */
+    get fromLeft() {
+        let left = 0;
+        for (const column of this.#collection.items) {
+            if (column === this) {
+                break;
+            }
+            if (column.visible) {
+                left += column.width;
+            }
+        }
+        return left;
     }
 }
 
@@ -187,6 +197,6 @@ export type { Column };
  * @param options
  * @returns `Column` instance
  */
-export function createColumn<T extends DataItem>(options: ColumnOptions<T>) {
-    return new Column<T>(options);
+export function createColumn<T extends DataItem>(options: ColumnOptions<T>, collection: ColumnCollection<T>) {
+    return new Column<T>(options, collection);
 }

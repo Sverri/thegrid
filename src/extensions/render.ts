@@ -2,19 +2,18 @@ import type { DataItem } from "@shared/types";
 import { type Range } from "@structure/range";
 import { getElementScrollDimensions, type ElementScrollDimensions } from "@helpers/getelementscrolldimensions";
 import { createCell } from "@extension/shared/createcell";
-import { calculateRenderArea } from "@extension/shared/renderarea";
+import { calculateRenderArea } from "@extension/shared/calculaterenderarea";
 import { renderCellSelection } from "@extension/shared/renderselection";
 import { setCellContents } from "@extension/shared/setcellcontents";
 import { CellType, HeaderSelection } from "@shared/enums";
-import { columnFromLeft } from "@helpers/column";
 import type { Grid } from "../grid";
 
-export function renderExtension<T extends DataItem>(grid: Grid<T>): void {
-    const renderAhead = {
-        columns: 1,
-        rows: 3,
-    };
+const renderAhead = {
+    columns: 1,
+    rows: 3,
+};
 
+export function renderExtension<T extends DataItem>(grid: Grid<T>): void {
     grid.cellsElement.classList.add("thegrid-enable-zebra");
 
     const renderCells = (range: Range) => {
@@ -22,24 +21,23 @@ export function renderExtension<T extends DataItem>(grid: Grid<T>): void {
         cellsElement.textContent = "";
 
         for (const { x, y } of range.iterator()) {
-            const { dataType, visible } = columns.at(x)!;
-            if (!visible) {
+            const column = columns.items.at(x);
+            if (!column?.visible) {
                 continue;
             }
-            const column = columns.at(x)!;
 
             const cell = createCell({
                 type: CellType.Cell,
                 width: column.width,
                 height: cellSize,
                 top: y * cellSize,
-                left: columnFromLeft(columns, column),
+                left: column.fromLeft,
                 columnIndex: x,
                 rowIndex: y,
             });
 
-            renderCellSelection(cell, selection, columns, x, y);
-            setCellContents(cell, dataType, grid.getCellData(x, y));
+            renderCellSelection(cell, selection, columns.items, x, y);
+            setCellContents(cell, column.dataType, grid.getCellData(x, y));
 
             cell.classList.add(y % 2 === 0 ? "row-even" : "row-odd");
             cellsElement.append(cell);
@@ -50,10 +48,9 @@ export function renderExtension<T extends DataItem>(grid: Grid<T>): void {
         const { columnHeadersElement, cellSize, showHeaderSelection, columns, selection } = grid;
         columnHeadersElement.textContent = "";
 
-        let s = "";
         for (const { x } of range.horizontalIterator()) {
-            const column = columns.at(x)!;
-            if (!column.visible) {
+            const column = columns.items.at(x);
+            if (!column?.visible) {
                 continue;
             }
 
@@ -62,22 +59,20 @@ export function renderExtension<T extends DataItem>(grid: Grid<T>): void {
                 width: column.width,
                 height: cellSize,
                 top: 0,
-                left: columnFromLeft(columns, column) - scrollLeft,
+                left: column.fromLeft - scrollLeft,
                 columnIndex: x,
                 rowIndex: 0,
             });
 
             const showColumnSelected =
-                showHeaderSelection === HeaderSelection.Columns || showHeaderSelection === HeaderSelection.Both;
+                showHeaderSelection === (HeaderSelection.Columns || showHeaderSelection === HeaderSelection.Both);
 
             if (showColumnSelected && selection && x >= selection.left && x <= selection.right) {
                 cell.classList.add("column-selected");
             }
             cell.textContent = column.header;
-            s += `, ${x} ${column.header}`;
             columnHeadersElement.append(cell);
         }
-        console.log("---", s);
     };
 
     const renderRowHeaders = (range: Range, { scrollTop }: ElementScrollDimensions) => {
