@@ -5,12 +5,12 @@ import { resizeObserverExtension } from "@extension/resizeobserver";
 import { renderExtension } from "@extension/render";
 import { expanderExtension } from "@extension/expander";
 import { HeaderSelection } from "@shared/enums";
-import { type ColumnOptions } from "@structure/column";
+import { createColumn, type Column, type ColumnOptions } from "@structure/column";
 import { createEvent } from "@shared/event";
 import { debounce } from "throttle-debounce";
 import { getElementScrollDimensions } from "@helpers/getelementscrolldimensions";
 import { createRange, type Range } from "@structure/range";
-import { createColumnCollection, type ColumnCollection } from "@structure/columncollection";
+import { createCollectionView, type CollectionView } from "@structure/collection";
 
 const DEFAULT_CELL_SIZE = 50;
 
@@ -48,7 +48,7 @@ class Grid<T extends DataItem> {
     #columnHeadersElement: HTMLDivElement;
     #rowHeadersElement: HTMLDivElement;
     #source: T[];
-    #columns: ColumnCollection<T>;
+    #columns: CollectionView<ColumnOptions<T>, Column<T>>;
     #selection: Range;
     #showHeaderSelection = HeaderSelection.Both;
     #cellSize: number;
@@ -93,7 +93,10 @@ class Grid<T extends DataItem> {
 
         this.#showHeaderSelection = options?.showHeaderSelection ?? HeaderSelection.Both;
         this.#source = options?.source ?? [];
-        this.#columns = createColumnCollection(options?.columns ?? []);
+        this.#columns = createCollectionView<ColumnOptions<T>, Column<T>>(options?.columns, {
+            filter: column => column.visible,
+            mapper: column => createColumn(column, this.#columns),
+        });
         this.#selection = createRange(0, 0);
 
         expanderExtension(this);
@@ -101,6 +104,11 @@ class Grid<T extends DataItem> {
         mouseExtension(this);
         keyboardExtension(this);
         resizeObserverExtension(this);
+
+        this.#columns.onChange.subscribe(() => {
+            console.log("Columns CHANGED");
+            this.invalidate();
+        });
 
         this.invalidate(true);
     }

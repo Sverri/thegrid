@@ -16,7 +16,8 @@ export function expanderExtension(grid: Grid<any>): void {
         const totalWidth = columns.items
             .filter(column => column.visible)
             .reduce((total, column) => total + column.width, 0);
+        const totalHeight = columns.size === 0 ? 0 : source.length * cellSize;
         hostElement.style.setProperty("--internal-expander-x", `${totalWidth}px`, "important");
-        hostElement.style.setProperty("--internal-expander-y", `${source.length * cellSize}px`, "important");
+        hostElement.style.setProperty("--internal-expander-y", `${totalHeight}px`, "important");
     });
 }

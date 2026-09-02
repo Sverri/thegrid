@@ -1,6 +1,6 @@
 import type { DataItem } from "@shared/types";
+import type { CollectionView } from "./collection";
 import { DataType } from "@shared/enums";
-import type { ColumnCollection } from "./columncollection";
 
 export interface ColumnOptions<T extends DataItem> {
     /**
@@ -61,9 +61,9 @@ class Column<T extends DataItem> {
     #minWidth: number;
     #maxWidth: number;
     #visible: boolean;
-    #collection: ColumnCollection<T>;
+    #collection: CollectionView<ColumnOptions<T>, Column<T>>;
 
-    constructor(options: ColumnOptions<T>, collection: ColumnCollection<T>) {
+    constructor(options: ColumnOptions<T>, collection: CollectionView<ColumnOptions<T>, Column<T>>) {
         this.#binding = options.binding;
         this.#header = options.header ?? String(this.#binding);
         this.#dataType = options.dataType ?? DataType.String;
@@ -197,6 +197,9 @@ export type { Column };
  * @param options
  * @returns `Column` instance
  */
-export function createColumn<T extends DataItem>(options: ColumnOptions<T>, collection: ColumnCollection<T>) {
+export function createColumn<T extends DataItem>(
+    options: ColumnOptions<T>,
+    collection: CollectionView<ColumnOptions<T>, Column<T>>,
+) {
     return new Column<T>(options, collection);
 }

@@ -2,36 +2,44 @@ import { createEvent } from "@shared/event";
 
 type Filter<T> = (item: T) => boolean;
 type Sorter<T> = (a: T, b: T) => -1 | 0 | 1;
+type Mapper<T, K> = (item: T) => K;
 
-interface Options<T> {
+interface Options<T, K = T> {
+    /**
+     * Mapper
+     */
+    mapper?: Mapper<T, K>;
+
     /**
      * Keeps matching source items in the active view.
      */
-    filter?: (item: T) => boolean;
+    filter?: Filter<K>;
 
     /**
      * Orders the active view after filtering.
      */
-    sorter?: (a: T, b: T) => -1 | 0 | 1;
+    sorter?: Sorter<K>;
 }
 
 /**
  * Maintains source items and a filtered and sorted active view of them.
  */
-class CollectionView<T> {
+class CollectionView<T, K = T> {
     #source: T[];
-    #items: T[];
-    #filter?: Filter<T>;
-    #sorter?: Sorter<T>;
+    #items: K[];
+    #mapper?: Mapper<T, K>;
+    #filter?: Filter<K>;
+    #sorter?: Sorter<K>;
     #isDirty = true;
     #onChange = createEvent<() => void>();
 
     /**
      * Creates a view over a copied set of source items.
      */
-    constructor(items: T[] | undefined, options?: Options<T>) {
+    constructor(items: T[] | undefined, options?: Options<T, K>) {
         this.#source = [...(items ?? [])];
-        this.#items = [...this.#source];
+        this.#items = [];
+        this.#mapper = options?.mapper;
         this.#filter = options?.filter;
         this.#sorter = options?.sorter;
     }
@@ -49,10 +57,10 @@ class CollectionView<T> {
     /**
      * Predicate used to derive active items.
      */
-    get filter(): Filter<T> | undefined {
+    get filter(): Filter<K> | undefined {
         return this.#filter;
     }
-    set filter(value: Filter<T> | undefined) {
+    set filter(value: Filter<K> | undefined) {
         this.#filter = value;
         this.#dirty = true;
     }
@@ -60,10 +68,10 @@ class CollectionView<T> {
     /**
      * Comparator used to order active items.
      */
-    get sorter(): Sorter<T> | undefined {
+    get sorter(): Sorter<K> | undefined {
         return this.#sorter;
     }
-    set sorter(value: Sorter<T> | undefined) {
+    set sorter(value: Sorter<K> | undefined) {
         this.#sorter = value;
         this.#dirty = true;
     }
@@ -71,7 +79,7 @@ class CollectionView<T> {
     /**
      * Returns a snapshot of the filtered and sorted items.
      */
-    get items(): readonly T[] {
+    get items(): readonly K[] {
         if (this.#dirty) {
             this.#updateItems();
         }
@@ -110,12 +118,13 @@ class CollectionView<T> {
     /**
      * Exposes a live view with only `items` and `onChange`.
      */
-    get observableView(): ObservableCollectionView<T> {
-        return new ObservableCollectionView<T>(this);
+    get observableView(): ObservableCollectionView<T, K> {
+        return new ObservableCollectionView<T, K>(this);
     }
 
     #updateItems() {
-        let items = [...this.#source];
+        let source = [...this.#source];
+        let items: K[] = this.#mapper ? source.map(this.#mapper) : ([...this.#source] as never as K[]);
         if (this.#filter) {
             items = items.filter(this.#filter);
         }
@@ -130,18 +139,20 @@ class CollectionView<T> {
 /**
  * Read-only live facade for observing a collection view.
  */
-class ObservableCollectionView<T> {
-    #view: CollectionView<T>;
+class ObservableCollectionView<T, K = T> {
+    #view: CollectionView<T, K>;
 
-    constructor(view: CollectionView<T>) {
+    constructor(view: CollectionView<T, K>) {
         this.#view = view;
     }
+
     /**
      * Returns the current active items.
      */
-    get items(): readonly T[] {
+    get items(): readonly K[] {
         return this.#view.items;
     }
+
     /**
      * Notifies subscribers when the source view changes.
      */
@@ -155,6 +166,6 @@ export type { CollectionView, ObservableCollectionView as ReadonlyCollectionView
 /**
  * Creates a collection view from optional source items and view options.
  */
-export function createCollectionView<T>(items: T[] | undefined, options?: Options<T>): CollectionView<T> {
-    return new CollectionView<T>(items, options);
+export function createCollectionView<T, K = T>(items: T[] | undefined, options?: Options<T, K>): CollectionView<T, K> {
+    return new CollectionView<T, K>(items, options);
 }

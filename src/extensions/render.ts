@@ -22,7 +22,7 @@ export function renderExtension<T extends DataItem>(grid: Grid<T>): void {
 
         for (const { x, y } of range.iterator()) {
             const column = columns.items.at(x);
-            if (!column?.visible) {
+            if (!column) {
                 continue;
             }
 
@@ -50,7 +50,7 @@ export function renderExtension<T extends DataItem>(grid: Grid<T>): void {
 
         for (const { x } of range.horizontalIterator()) {
             const column = columns.items.at(x);
-            if (!column?.visible) {
+            if (!column) {
                 continue;
             }
 
@@ -78,7 +78,10 @@ export function renderExtension<T extends DataItem>(grid: Grid<T>): void {
     const renderRowHeaders = (range: Range, { scrollTop }: ElementScrollDimensions) => {
         const { rowHeadersElement, cellSize, showHeaderSelection, selection } = grid;
         rowHeadersElement.textContent = "";
-
+        if (range.left === -1) {
+            // No columns, don't show rows
+            return;
+        }
         for (const { y } of range.verticalIterator()) {
             const cell = createCell({
                 type: CellType.RowHeader,

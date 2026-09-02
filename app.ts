@@ -69,11 +69,11 @@ const grid = createGrid(hostElement!, {
 
 grid.selection = createRange(1, 1);
 
-grid.columns.modify(options => {
-    return options.map(option => {
+setTimeout(() => {
+    grid.columns.source = grid.columns.source.map(option => {
         if (option.binding === "dob") {
             option.visible = true;
         }
         return option;
     });
-});
+}, 1000);
