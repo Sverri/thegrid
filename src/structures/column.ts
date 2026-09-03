@@ -1,5 +1,6 @@
 import type { DataItem } from "@shared/types";
 import { DataType } from "@shared/enums";
+import { clampNumber } from "@helpers/numbers";
 
 export interface ColumnOptions<T extends DataItem> {
     /**
@@ -67,14 +68,14 @@ class Column<T extends DataItem> {
         this.#dataType = options.dataType ?? DataType.String;
         this.#minWidth = options.minWidth ?? 1;
         this.#maxWidth = options.maxWidth ?? 999999;
-        this.#width = Math.max(this.#minWidth, Math.min(this.#maxWidth, options.width ?? 100));
+        this.#width = clampNumber(this.#minWidth, options.width ?? 100, this.#maxWidth);
         this.#visible = options.visible ?? true;
 
         if (typeof this.#binding !== "string" || this.#binding.length === 0) {
             throw new Error("The binding must be a non-empty string");
         }
         if (this.#minWidth > this.#maxWidth) {
-            throw new Error("The minWidth option cannot be greater than maxWidth");
+            throw new Error("The minWidth and maxWidth options");
         }
     }
 
@@ -87,6 +88,9 @@ class Column<T extends DataItem> {
         return this.#binding;
     }
     set binding(value: keyof T) {
+        if (typeof value !== "string" || value.length === 0) {
+            throw new Error("Invalid binding");
+        }
         this.#binding = value;
     }
 
@@ -123,7 +127,7 @@ class Column<T extends DataItem> {
         return this.#width;
     }
     set width(value: number) {
-        this.#width = Math.max(this.#minWidth, Math.min(this.#maxWidth, value));
+        this.#width = clampNumber(this.#minWidth, value, this.#maxWidth);
     }
 
     /**
@@ -139,7 +143,7 @@ class Column<T extends DataItem> {
             throw new Error("minWidth cannot be greater than maxWidth");
         }
         this.#minWidth = value;
-        this.#width = Math.max(this.#minWidth, Math.min(this.#maxWidth, this.#width));
+        this.#width = clampNumber(this.#minWidth, this.#width, this.#maxWidth);
     }
 
     /**
@@ -152,10 +156,10 @@ class Column<T extends DataItem> {
     }
     set maxWidth(value: number) {
         if (value < this.#minWidth) {
-            throw new Error("maxWidth cannot be greater than minWidth");
+            throw new Error("maxWidth cannot be less than minWidth");
         }
         this.#maxWidth = value;
-        this.#width = Math.max(this.#minWidth, Math.min(this.#maxWidth, this.#width));
+        this.#width = clampNumber(this.#minWidth, this.#width, this.#maxWidth);
     }
 
     /**
@@ -174,16 +178,30 @@ class Column<T extends DataItem> {
 export type { Column };
 
 /**
- * Create a column
+ * Creates a column from its configuration.
  *
- * @param options
- * @returns `Column` instance
+ * @param options The column configuration.
+ * @returns A mutable column instance.
  */
 export function createColumn<T extends DataItem>(options: ColumnOptions<T>) {
     return new Column<T>(options);
 }
 
+/**
+ * Calculates the horizontal offset of a column from the left edge.
+ *
+ * Hidden columns take up no horizontal space. The index refers to the
+ * column's position in the supplied collection, including hidden columns.
+ *
+ * @param columns The columns in collection order.
+ * @param index The zero-based index of the target column.
+ * @returns The sum of the widths of visible columns before the target.
+ * @throws {Error} If index is outside the collection.
+ */
 export function columnFromLeft<T extends DataItem>(columns: readonly Column<T>[], index: number): number {
+    if (index < 0 || index > columns.length - 1) {
+        throw new Error("Invalid column index");
+    }
     let left = 0;
     for (let i = 0; i < index; i++) {
         const column = columns[i];
