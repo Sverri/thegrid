@@ -20,7 +20,7 @@ function calculateColumns(grid: Grid<any>, dimensions: ElementScrollDimensions, 
 }
 
 function calculateRows(grid: Grid<any>, dimensions: ElementScrollDimensions, renderAhead: RenderAhead) {
-    const { source, cellSize } = grid;
+    const { data: source, cellSize } = grid;
     const { scrollTop, scrollBottom } = dimensions;
     const count = source.length;
     return {

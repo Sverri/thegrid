@@ -41,7 +41,7 @@ function moveToLastColumn(grid: Grid<any>, shiftHeld: boolean): void {
 
 function moveToLastRow(grid: Grid<any>, shiftHeld: boolean): void {
     const { x1, y1, x2 } = grid.selection;
-    const lastRowIndex = grid.source.length - 1;
+    const lastRowIndex = grid.data.length - 1;
     const newX1 = shiftHeld ? x1 : x2;
     const newY1 = shiftHeld ? y1 : lastRowIndex;
     grid.selection = createRange(newX1, newY1, x2, lastRowIndex);
@@ -51,7 +51,7 @@ function moveToLastRow(grid: Grid<any>, shiftHeld: boolean): void {
 function selectAll(grid: Grid<any>): void {
     const { scrollIntoView } = grid;
     const lastVisibleIndex = grid.columns.items.findLastIndex(column => column.visible);
-    const rowCount = grid.source.length - 1;
+    const rowCount = grid.data.length - 1;
     grid.selection = createRange(0, 0, lastVisibleIndex, rowCount);
     scrollIntoView(grid.selection.x2, grid.selection.y2);
 }

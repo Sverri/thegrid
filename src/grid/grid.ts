@@ -47,7 +47,7 @@ class Grid<T extends DataItem> {
     #cellsElement: HTMLDivElement;
     #columnHeadersElement: HTMLDivElement;
     #rowHeadersElement: HTMLDivElement;
-    #source: T[];
+    #data: T[];
     #columns: CollectionView<ColumnOptions<T>, Column<T>>;
     #selection: Range;
     #showHeaderSelection = HeaderSelection.Both;
@@ -92,7 +92,7 @@ class Grid<T extends DataItem> {
         hostElement.style.setProperty("--cell-size", `${this.#cellSize}px`);
 
         this.#showHeaderSelection = options?.showHeaderSelection ?? HeaderSelection.Both;
-        this.#source = options?.source ?? [];
+        this.#data = options?.source ?? [];
         this.#columns = createCollectionView<ColumnOptions<T>, Column<T>>(options?.columns, {
             filter: column => column.visible,
             mapper: column => createColumn(column),
@@ -140,11 +140,11 @@ class Grid<T extends DataItem> {
         this.invalidate();
     }
 
-    get source() {
-        return this.#source;
+    get data() {
+        return this.#data;
     }
-    set source(value: T[]) {
-        this.#source = value;
+    set data(value: T[]) {
+        this.#data = value;
         this.invalidate();
     }
 
@@ -209,7 +209,7 @@ class Grid<T extends DataItem> {
     });
 
     getCellData<DT>(columnIndex: number, rowIndex: number): DT | undefined {
-        const row = this.#source[rowIndex];
+        const row = this.#data[rowIndex];
         if (!row) {
             return undefined;
         }

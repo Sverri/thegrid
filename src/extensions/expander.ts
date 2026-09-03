@@ -12,7 +12,7 @@ import type { Grid } from "@grid/grid";
  */
 export function expanderExtension(grid: Grid<any>): void {
     grid.onInvalidate.subscribe(() => {
-        const { hostElement, columns, source, cellSize } = grid;
+        const { hostElement, columns, data: source, cellSize } = grid;
         const totalWidth = columns.items.reduce((total, column) => total + (column.visible ? column.width : 0), 0);
         const totalHeight = columns.size === 0 ? 0 : source.length * cellSize;
         hostElement.style.setProperty("--internal-expander-x", `${totalWidth}px`, "important");

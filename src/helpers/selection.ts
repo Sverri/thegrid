@@ -44,7 +44,7 @@ export function moveSelectionUp<T extends DataItem>(_grid: Grid<T>, range: Range
 
 export function moveSelectionDown<T extends DataItem>(grid: Grid<T>, range: Range, count = 1): Range {
     const { x2, y2 } = range;
-    const maxY2 = grid.source.length - 1;
+    const maxY2 = grid.data.length - 1;
     return createRange(x2, Math.min(maxY2, y2 + count));
 }
 
@@ -90,6 +90,6 @@ export function expandSelectionUp<T extends DataItem>(_grid: Grid<T>, range: Ran
 
 export function expandSelectionDown<T extends DataItem>(grid: Grid<T>, range: Range, count = 1): Range {
     const { x1, y1, x2, y2 } = range;
-    const maxY2 = grid.source.length - 1;
+    const maxY2 = grid.data.length - 1;
     return createRange(x1, y1, x2, Math.min(maxY2, y2 + count));
 }
