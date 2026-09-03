@@ -5,7 +5,7 @@ import { resizeObserverExtension } from "@extension/resizeobserver";
 import { renderExtension } from "@extension/render";
 import { expanderExtension } from "@extension/expander";
 import { HeaderSelection } from "@shared/enums";
-import { createColumn, type Column, type ColumnOptions } from "@structure/column";
+import { columnFromLeft, createColumn, type Column, type ColumnOptions } from "@structure/column";
 import { createEvent } from "@shared/event";
 import { debounce } from "throttle-debounce";
 import { getElementScrollDimensions } from "@helpers/getelementscrolldimensions";
@@ -95,7 +95,11 @@ class Grid<T extends DataItem> {
         this.#source = options?.source ?? [];
         this.#columns = createCollectionView<ColumnOptions<T>, Column<T>>(options?.columns, {
             filter: column => column.visible,
-            mapper: column => createColumn(column, this.#columns),
+            mapper: column => createColumn(column),
+        });
+        this.#columns.onChange.subscribe(() => {
+            console.log("Columns CHANGED");
+            this.invalidate();
         });
         this.#selection = createRange(0, 0);
 
@@ -105,12 +109,7 @@ class Grid<T extends DataItem> {
         keyboardExtension(this);
         resizeObserverExtension(this);
 
-        this.#columns.onChange.subscribe(() => {
-            console.log("Columns CHANGED");
-            this.invalidate();
-        });
-
-        this.invalidate(true);
+        this.invalidate();
     }
 
     get hostElement() {
@@ -138,7 +137,7 @@ class Grid<T extends DataItem> {
     }
     set showHeaderSelection(value: HeaderSelection) {
         this.#showHeaderSelection = value;
-        this.invalidate(true);
+        this.invalidate();
     }
 
     get source() {
@@ -146,7 +145,7 @@ class Grid<T extends DataItem> {
     }
     set source(value: T[]) {
         this.#source = value;
-        this.invalidate(true);
+        this.invalidate();
     }
 
     get columns() {
@@ -158,7 +157,7 @@ class Grid<T extends DataItem> {
     }
     set cellSize(value: number) {
         this.#cellSize = value;
-        this.invalidate(true);
+        this.invalidate();
     }
 
     get selection() {
@@ -166,10 +165,10 @@ class Grid<T extends DataItem> {
     }
     set selection(value: Range) {
         this.#selection = value;
-        this.invalidate(true);
+        this.invalidate();
     }
 
-    debouncedInvalidate = debounce(100, () => {
+    debouncedInvalidate = debounce(32, () => {
         this.#onInvalidate.raise();
     });
 
@@ -189,7 +188,7 @@ class Grid<T extends DataItem> {
             return;
         }
         let left = scrollLeft;
-        const columnStart = column.fromLeft;
+        const columnStart = columnFromLeft(this.#columns.items, columnIndex);
         const columnEnd = columnStart + column.width;
         if (columnStart < scrollLeft) {
             left = columnStart;

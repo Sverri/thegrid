@@ -22,6 +22,7 @@ export default defineConfig({
             "@extension": path.resolve(import.meta.dirname, "./src/extensions"),
             "@shared": path.resolve(import.meta.dirname, "./src/shared"),
             "@shard": path.resolve(import.meta.dirname, "./src/shards"),
+            "@grid": path.resolve(import.meta.dirname, "./src/grid"),
         },
     },
 });

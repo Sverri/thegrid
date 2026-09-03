@@ -1,5 +1,4 @@
 import type { DataItem } from "@shared/types";
-import type { CollectionView } from "./collection";
 import { DataType } from "@shared/enums";
 
 export interface ColumnOptions<T extends DataItem> {
@@ -61,9 +60,8 @@ class Column<T extends DataItem> {
     #minWidth: number;
     #maxWidth: number;
     #visible: boolean;
-    #collection: CollectionView<ColumnOptions<T>, Column<T>>;
 
-    constructor(options: ColumnOptions<T>, collection: CollectionView<ColumnOptions<T>, Column<T>>) {
+    constructor(options: ColumnOptions<T>) {
         this.#binding = options.binding;
         this.#header = options.header ?? String(this.#binding);
         this.#dataType = options.dataType ?? DataType.String;
@@ -71,7 +69,6 @@ class Column<T extends DataItem> {
         this.#maxWidth = options.maxWidth ?? 999999;
         this.#width = Math.max(this.#minWidth, Math.min(this.#maxWidth, options.width ?? 100));
         this.#visible = options.visible ?? true;
-        this.#collection = collection;
 
         if (typeof this.#binding !== "string" || this.#binding.length === 0) {
             throw new Error("The binding must be a non-empty string");
@@ -126,7 +123,7 @@ class Column<T extends DataItem> {
         return this.#width;
     }
     set width(value: number) {
-        this.#width = value;
+        this.#width = Math.max(this.#minWidth, Math.min(this.#maxWidth, value));
     }
 
     /**
@@ -138,7 +135,11 @@ class Column<T extends DataItem> {
         return this.#minWidth;
     }
     set minWidth(value: number) {
+        if (value > this.#maxWidth) {
+            throw new Error("minWidth cannot be greater than maxWidth");
+        }
         this.#minWidth = value;
+        this.#width = Math.max(this.#minWidth, Math.min(this.#maxWidth, this.#width));
     }
 
     /**
@@ -150,7 +151,11 @@ class Column<T extends DataItem> {
         return this.#maxWidth;
     }
     set maxWidth(value: number) {
+        if (value < this.#minWidth) {
+            throw new Error("maxWidth cannot be greater than minWidth");
+        }
         this.#maxWidth = value;
+        this.#width = Math.max(this.#minWidth, Math.min(this.#maxWidth, this.#width));
     }
 
     /**
@@ -164,29 +169,6 @@ class Column<T extends DataItem> {
     set visible(value: boolean) {
         this.#visible = value;
     }
-
-    /**
-     * Index of column in the column collection
-     */
-    get index() {
-        return this.#collection.items.findIndex(item => item === this);
-    }
-
-    /**
-     * Visual from left (in pixels)
-     */
-    get fromLeft() {
-        let left = 0;
-        for (const column of this.#collection.items) {
-            if (column === this) {
-                break;
-            }
-            if (column.visible) {
-                left += column.width;
-            }
-        }
-        return left;
-    }
 }
 
 export type { Column };
@@ -197,9 +179,17 @@ export type { Column };
  * @param options
  * @returns `Column` instance
  */
-export function createColumn<T extends DataItem>(
-    options: ColumnOptions<T>,
-    collection: CollectionView<ColumnOptions<T>, Column<T>>,
-) {
-    return new Column<T>(options, collection);
+export function createColumn<T extends DataItem>(options: ColumnOptions<T>) {
+    return new Column<T>(options);
+}
+
+export function columnFromLeft<T extends DataItem>(columns: readonly Column<T>[], index: number): number {
+    let left = 0;
+    for (let i = 0; i < index; i++) {
+        const column = columns[i];
+        if (column.visible) {
+            left += column.width;
+        }
+    }
+    return left;
 }

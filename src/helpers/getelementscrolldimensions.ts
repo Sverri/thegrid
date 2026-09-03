@@ -26,7 +26,7 @@ export interface ElementScrollDimensions {
 /**
  * Minimal element shape required to derive scroll dimensions.
  */
-export interface ElementScrollLike {
+interface ElementScrollLike {
     /**
      * The current horizontal scroll position.
      */

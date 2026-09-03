@@ -1,5 +1,5 @@
 import type { DataItem } from "@shared/types";
-import type { Grid } from "../grid";
+import type { Grid } from "@grid/grid";
 import { createRange, type Range } from "@structure/range";
 
 export function moveSelectionLeft<T extends DataItem>(grid: Grid<T>, range: Range, count = 1): Range {

@@ -1,4 +1,4 @@
-import { getElementScrollDimensions } from "@helpers/getelementscrolldimensions";
+import type { Grid } from "@grid/grid";
 import { createRange } from "@structure/range";
 import { calculateRenderArea } from "@extension/shared/calculaterenderarea";
 import {
@@ -11,7 +11,6 @@ import {
     moveSelectionRight,
     moveSelectionUp,
 } from "@helpers/selection";
-import type { Grid } from "../grid";
 
 function moveToFirstColumn(grid: Grid<any>, shiftHeld: boolean): void {
     const { x1, y1, y2 } = grid.selection;
@@ -110,8 +109,7 @@ function moveDown(grid: Grid<any>, shiftHeld: boolean, ctrlHeld: boolean): void 
 }
 
 function pageDown(grid: Grid<any>, shiftHeld: boolean): void {
-    const dimensions = getElementScrollDimensions(grid.cellsElement);
-    const renderArea = calculateRenderArea({ grid, dimensions, renderAhead: { columns: 0, rows: 0 } });
+    const renderArea = calculateRenderArea(grid, { columns: 0, rows: 0 });
     const rowsPerPage = renderArea.bottom - renderArea.top - 1;
     if (shiftHeld) {
         grid.selection = expandSelectionDown(grid, grid.selection, rowsPerPage);
@@ -122,8 +120,7 @@ function pageDown(grid: Grid<any>, shiftHeld: boolean): void {
 }
 
 function pageUp(grid: Grid<any>, shiftHeld: boolean): void {
-    const dimensions = getElementScrollDimensions(grid.cellsElement);
-    const renderArea = calculateRenderArea({ grid, dimensions, renderAhead: { columns: 0, rows: 0 } });
+    const renderArea = calculateRenderArea(grid, { columns: 0, rows: 0 });
     const rowsPerPage = renderArea.bottom - renderArea.top - 1;
     if (shiftHeld) {
         grid.selection = expandSelectionUp(grid, grid.selection, rowsPerPage);

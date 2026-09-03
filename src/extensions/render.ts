@@ -1,4 +1,5 @@
 import type { DataItem } from "@shared/types";
+import type { Grid } from "@grid/grid";
 import { type Range } from "@structure/range";
 import { getElementScrollDimensions, type ElementScrollDimensions } from "@helpers/getelementscrolldimensions";
 import { createCell } from "@extension/shared/createcell";
@@ -6,7 +7,7 @@ import { calculateRenderArea } from "@extension/shared/calculaterenderarea";
 import { renderCellSelection } from "@extension/shared/renderselection";
 import { setCellContents } from "@extension/shared/setcellcontents";
 import { CellType, HeaderSelection } from "@shared/enums";
-import type { Grid } from "../grid";
+import { columnFromLeft } from "@structure/column";
 
 const renderAhead = {
     columns: 1,
@@ -31,7 +32,7 @@ export function renderExtension<T extends DataItem>(grid: Grid<T>): void {
                 width: column.width,
                 height: cellSize,
                 top: y * cellSize,
-                left: column.fromLeft,
+                left: columnFromLeft(columns.items, x),
                 columnIndex: x,
                 rowIndex: y,
             });
@@ -59,7 +60,7 @@ export function renderExtension<T extends DataItem>(grid: Grid<T>): void {
                 width: column.width,
                 height: cellSize,
                 top: 0,
-                left: column.fromLeft - scrollLeft,
+                left: columnFromLeft(columns.items, x) - scrollLeft,
                 columnIndex: x,
                 rowIndex: 0,
             });
@@ -105,7 +106,7 @@ export function renderExtension<T extends DataItem>(grid: Grid<T>): void {
 
     const render = () => {
         const dimensions = getElementScrollDimensions(grid.cellsElement);
-        const renderArea = calculateRenderArea({ grid, renderAhead, dimensions });
+        const renderArea = calculateRenderArea(grid, renderAhead);
         renderCells(renderArea);
         renderColumnHeaders(renderArea, dimensions);
         renderRowHeaders(renderArea, dimensions);

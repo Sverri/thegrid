@@ -1,4 +1,4 @@
-import type { Grid } from "../grid";
+import type { Grid } from "@grid/grid";
 import { createRange } from "@structure/range";
 
 export function mouseExtension(grid: Grid<any>): void {

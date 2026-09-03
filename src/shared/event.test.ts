@@ -36,4 +36,16 @@ describe("createEvent", () => {
         expect(listener).toHaveBeenCalledWith("ready");
         expect("raise" in event.unraisable).toBe(false);
     });
+
+    it("can unsubscribe from unraiseable event", () => {
+        const event = createEvent<(value: string) => void>();
+        const listener = vi.fn();
+
+        event.unraisable.subscribe(listener);
+        event.unraisable.unsubscribe(listener);
+        event.raise("ready");
+
+        expect(listener).not.toHaveBeenCalledWith("ready");
+        expect("raise" in event.unraisable).toBe(false);
+    });
 });
