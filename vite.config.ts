@@ -1,8 +1,12 @@
 import path from "path";
 import { defineConfig } from "vitest/config";
+import { Features } from "lightningcss";
 
 export default defineConfig({
     base: "/thegrid/",
+    css: {
+        lightningcss: { exclude: Features.LightDark },
+    },
     test: {
         include: ["src/**/*.test.ts"],
         environment: "node",
