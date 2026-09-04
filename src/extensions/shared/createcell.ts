@@ -13,8 +13,8 @@ interface CellSpecs {
 export function createCell({ type, width, height, columnIndex, rowIndex, left, top }: CellSpecs) {
     const cell = document.createElement("div");
     cell.className = "thegrid-cell";
-    cell.dataset.column = String(columnIndex);
-    cell.dataset.row = String(rowIndex);
+    cell.dataset["column"] = String(columnIndex);
+    cell.dataset["row"] = String(rowIndex);
     cell.style.transform = `translate(${left}px, ${top}px)`;
     cell.style.width = `${width}px`;
     cell.style.height = `${height}px`;

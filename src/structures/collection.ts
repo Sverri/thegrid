@@ -1,10 +1,10 @@
 import { createEvent } from "@shared/event";
 
 type Filter<T> = (item: T) => boolean;
-type Sorter<T> = (a: T, b: T) => -1 | 0 | 1;
+type Sorter<T> = (a: T, b: T) => number;
 type Mapper<T, K> = (item: T) => K;
 
-interface Options<SourceItem, ViewItem = SourceItem> {
+export interface CollectionViewOptions<SourceItem, ViewItem = SourceItem> {
     /**
      * Mapper
      */
@@ -25,23 +25,30 @@ interface Options<SourceItem, ViewItem = SourceItem> {
  * Maintains source items and a filtered and sorted active view of them.
  */
 class CollectionView<SourceItem, ViewItem = SourceItem> {
+    readonly onChange = createEvent<() => void>();
     #source: SourceItem[];
     #items: ViewItem[];
-    #mapper?: Mapper<SourceItem, ViewItem>;
-    #filter?: Filter<ViewItem>;
-    #sorter?: Sorter<ViewItem>;
-    #onChange = createEvent<() => void>();
+    #mapper: Mapper<SourceItem, ViewItem> | undefined;
+    #filter: Filter<ViewItem> | undefined;
+    #sorter: Sorter<ViewItem> | undefined;
     #isDirty = true;
 
     /**
      * Creates a view over a copied set of source items.
      */
-    constructor(items: SourceItem[], options?: Options<SourceItem, ViewItem>) {
+    constructor(items: SourceItem[], options?: CollectionViewOptions<SourceItem, ViewItem>) {
         this.#source = [...items];
         this.#items = [];
-        this.#mapper = options?.mapper;
-        this.#filter = options?.filter;
-        this.#sorter = options?.sorter;
+
+        if (options?.mapper) {
+            this.#mapper = options.mapper;
+        }
+        if (options?.filter) {
+            this.#filter = options.filter;
+        }
+        if (options?.sorter) {
+            this.#sorter = options.sorter;
+        }
     }
 
     /**
@@ -124,15 +131,8 @@ class CollectionView<SourceItem, ViewItem = SourceItem> {
         const triggerOnChange = value === true && this.#isDirty === false;
         this.#isDirty = value;
         if (triggerOnChange) {
-            this.#onChange.raise();
+            this.onChange.raise();
         }
-    }
-
-    /**
-     * Notifies subscribers when a change invalidates the active view.
-     */
-    get onChange() {
-        return this.#onChange.unraisable;
     }
 
     /**
@@ -181,14 +181,23 @@ class ObservableCollectionView<SourceItem, ViewItem = SourceItem> {
     }
 }
 
-export type { CollectionView, ObservableCollectionView as ReadonlyCollectionView };
+export type { CollectionView, ObservableCollectionView };
 
 /**
  * Creates a collection view from optional source items and view options.
  */
 export function createCollectionView<SourceItem, ViewItem = SourceItem>(
     items: SourceItem[] | undefined,
-    options?: Options<SourceItem, ViewItem>,
+    options?: CollectionViewOptions<SourceItem, ViewItem>,
 ): CollectionView<SourceItem, ViewItem> {
     return new CollectionView<SourceItem, ViewItem>(items ?? [], options);
+}
+
+/**
+ * Find out if a value is a Column instance
+ *
+ * @param value
+ */
+export function isCollectionView(value: unknown) {
+    return value instanceof CollectionView;
 }

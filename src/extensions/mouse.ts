@@ -21,10 +21,10 @@ export function mouseExtension(grid: Grid<any>): void {
             };
         } else {
             startCoords = {
-                row: Number.parseInt(event.target!.dataset.row!, 10),
-                column: Number.parseInt(event.target!.dataset.column!, 10),
+                row: Number.parseInt(event.target!.dataset["row"]!, 10),
+                column: Number.parseInt(event.target!.dataset["column"]!, 10),
             };
-            grid.selection = createRange(startCoords?.column ?? -1, startCoords?.row ?? -1);
+            grid.select(startCoords?.column ?? -1, startCoords?.row ?? -1);
         }
     });
 
@@ -35,8 +35,8 @@ export function mouseExtension(grid: Grid<any>): void {
 
         const downRowIndex = startCoords.row;
         const downColumnIndex = startCoords.column;
-        const upRowIndex = Number.parseInt(event.target.dataset.row!, 10);
-        const upColumnIndex = Number.parseInt(event.target.dataset.column!, 10);
+        const upRowIndex = Number.parseInt(event.target.dataset["row"]!, 10);
+        const upColumnIndex = Number.parseInt(event.target.dataset["column"]!, 10);
         if (
             Number.isNaN(downRowIndex) ||
             Number.isNaN(downColumnIndex) ||
@@ -49,7 +49,7 @@ export function mouseExtension(grid: Grid<any>): void {
         const oldRange = grid.selection;
         const newRange = createRange(downColumnIndex, downRowIndex, upColumnIndex, upRowIndex);
         if (!newRange.identicalTo(oldRange)) {
-            grid.selection = newRange;
+            grid.select(newRange);
         }
     });
 
@@ -65,8 +65,8 @@ export function mouseExtension(grid: Grid<any>): void {
         if (event.button !== 0 || !(event.target instanceof HTMLElement)) {
             return;
         }
-        const upColumnIndex = Number.parseInt(event.target.dataset.column!, 10);
-        const upRowIndex = Number.parseInt(event.target.dataset.row!, 10);
+        const upColumnIndex = Number.parseInt(event.target.dataset["column"]!, 10);
+        const upRowIndex = Number.parseInt(event.target.dataset["row"]!, 10);
         const downColumnIndex = startCoords?.column ?? upColumnIndex;
         const downRowIndex = startCoords?.row ?? upRowIndex;
 
@@ -79,7 +79,7 @@ export function mouseExtension(grid: Grid<any>): void {
             return;
         }
 
-        grid.selection = createRange(downColumnIndex, downRowIndex, upColumnIndex, upRowIndex);
+        grid.select(downColumnIndex, downRowIndex, upColumnIndex, upRowIndex);
 
         startCoords = undefined;
     });

@@ -22,7 +22,7 @@ function calculateColumns(grid: Grid<any>, dimensions: ElementScrollDimensions, 
 function calculateRows(grid: Grid<any>, dimensions: ElementScrollDimensions, renderAhead: RenderAhead) {
     const { data, cellSize } = grid;
     const { scrollTop, scrollBottom } = dimensions;
-    const count = data.length;
+    const count = data.size;
     return {
         firstRowIndex: count > 0 ? Math.max(0, Math.floor(scrollTop / cellSize) - renderAhead.rows) : -1,
         lastRowIndex: count > 0 ? Math.min(count - 1, Math.floor(scrollBottom / cellSize) + renderAhead.rows) : -1,

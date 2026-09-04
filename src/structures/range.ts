@@ -159,3 +159,12 @@ export type { Range };
 export function createRange(x1: number, y1: number, x2 = x1, y2 = y1) {
     return new Range(x1, y1, x2, y2);
 }
+
+/**
+ * Find out if a value is a Range instance
+ *
+ * @param value
+ */
+export function isRange(value: unknown) {
+    return value instanceof Range;
+}

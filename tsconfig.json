@@ -16,10 +16,19 @@
     "noEmit": true,
 
     /* Linting */
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+    "exactOptionalPropertyTypes": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noUncheckedIndexedAccess": true,
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
+
+    /* Paths */
     "paths": {
       "@structure/*": ["./src/structures/*"],
       "@helpers/*": ["./src/helpers/*"],

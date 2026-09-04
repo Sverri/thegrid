@@ -188,6 +188,15 @@ export function createColumn<T extends DataItem>(options: ColumnOptions<T>) {
 }
 
 /**
+ * Find out if a value is a Column instance
+ *
+ * @param value
+ */
+export function isColumn(value: unknown) {
+    return value instanceof Column;
+}
+
+/**
  * Calculates the horizontal offset of a column from the left edge.
  *
  * Hidden columns take up no horizontal space. The index refers to the
@@ -204,8 +213,8 @@ export function columnFromLeft<T extends DataItem>(columns: readonly Column<T>[]
     }
     let left = 0;
     for (let i = 0; i < index; i++) {
-        const column = columns[i];
-        if (column.visible) {
+        const column = columns.at(i);
+        if (column?.visible) {
             left += column.width;
         }
     }

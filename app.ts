@@ -2,7 +2,6 @@ import "normalize.css";
 import { faker } from "@faker-js/faker";
 import { createGrid, DataType } from "./src/index";
 import { HeaderSelection } from "@shared/enums";
-import { createRange } from "@structure/range";
 
 const hostElement = document.querySelector<HTMLDivElement>(".grid");
 
@@ -67,7 +66,7 @@ const grid = createGrid(hostElement!, {
     ],
 });
 
-grid.selection = createRange(1, 1);
+grid.select(1, 1);
 
 grid.columns.modify(options => {
     return options.map(option => {
@@ -77,3 +76,12 @@ grid.columns.modify(options => {
         return option;
     });
 });
+
+setTimeout(() => {
+    // Filter out items with odd "id"
+    grid.data.filter = item => item.id % 2 === 0;
+
+    // Sort by name, natural sort algorithm
+    const collator = new Intl.Collator("en", { numeric: true });
+    grid.data.sorter = (a, b) => collator.compare(a.name!, b.name!);
+}, 1000);

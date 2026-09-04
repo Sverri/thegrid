@@ -33,3 +33,11 @@ export type { Point };
 export function createPoint(x: number, y: number) {
     return new Point(x, y);
 }
+/**
+ * Find out if a value is a Point instance
+ *
+ * @param value
+ */
+export function isPoint(value: unknown) {
+    return value instanceof Point;
+}

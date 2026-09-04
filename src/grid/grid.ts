@@ -9,7 +9,7 @@ import { columnFromLeft, createColumn, type Column, type ColumnOptions } from "@
 import { createEvent } from "@shared/event";
 import { debounce } from "throttle-debounce";
 import { getElementScrollDimensions } from "@helpers/getelementscrolldimensions";
-import { createRange, type Range } from "@structure/range";
+import { createRange, isRange, type Range } from "@structure/range";
 import { createCollectionView, type CollectionView } from "@structure/collection";
 import { setupDomElements } from "./setup";
 
@@ -49,26 +49,31 @@ class Grid<T extends DataItem> {
     readonly columnHeadersElement: HTMLDivElement;
     readonly rowHeadersElement: HTMLDivElement;
     readonly columns: CollectionView<ColumnOptions<T>, Column<T>>;
-    #data: T[];
+    readonly data: CollectionView<T>;
+    readonly cellSize: number;
+    readonly onInvalidate = createEvent<() => void>();
+
+    // See getters and setters
     #selection: Range;
     #showHeaderSelection = HeaderSelection.Both;
-    #cellSize: number;
-    readonly onInvalidate = createEvent<() => void>();
 
     constructor(hostElement: HTMLElement, options?: GridOptions<T>) {
         // Miscellaneous
-        this.#cellSize = options?.cellSize ?? DEFAULT_CELL_SIZE;
+        this.cellSize = options?.cellSize ?? DEFAULT_CELL_SIZE;
         this.#showHeaderSelection = options?.showHeaderSelection ?? HeaderSelection.Both;
 
         // DOM elements
-        const { cellsElement, columnHeadersElement, rowHeadersElement } = setupDomElements(hostElement, this.#cellSize);
+        const { cellsElement, columnHeadersElement, rowHeadersElement } = setupDomElements(hostElement, this.cellSize);
         this.hostElement = hostElement;
         this.cellsElement = cellsElement;
         this.columnHeadersElement = columnHeadersElement;
         this.rowHeadersElement = rowHeadersElement;
 
         // Data
-        this.#data = options?.source ?? [];
+        this.data = createCollectionView<T>(options?.source ?? []);
+        this.data.onChange.subscribe(() => {
+            this.invalidate();
+        });
 
         // Columns
         this.columns = createCollectionView<ColumnOptions<T>, Column<T>>(options?.columns, {
@@ -76,7 +81,6 @@ class Grid<T extends DataItem> {
             mapper: column => createColumn(column),
         });
         this.columns.onChange.subscribe(() => {
-            console.log("Columns CHANGED");
             this.invalidate();
         });
 
@@ -102,27 +106,30 @@ class Grid<T extends DataItem> {
         this.invalidate();
     }
 
-    get data() {
-        return this.#data;
-    }
-    set data(value: T[]) {
-        this.#data = value;
-        this.invalidate();
-    }
-
-    get cellSize() {
-        return this.#cellSize;
-    }
-    set cellSize(value: number) {
-        this.#cellSize = value;
-        this.invalidate();
-    }
-
     get selection() {
         return this.#selection;
     }
-    set selection(value: Range) {
-        this.#selection = value;
+
+    /**
+     * Change selection using a Range
+     *
+     * @param range
+     */
+    select(range: Range): void;
+
+    /**
+     * Change selection using coordinates
+     *
+     * @param range
+     */
+    select(x1: number, y1: number, x2?: number, y2?: number): void;
+
+    select(x1: number | Range, y1?: number, x2?: number, y2?: number): void {
+        if (isRange(x1)) {
+            this.#selection = x1;
+        } else {
+            this.#selection = createRange(x1, y1!, x2, y2);
+        }
         this.invalidate();
     }
 
@@ -155,8 +162,8 @@ class Grid<T extends DataItem> {
         }
 
         let top = scrollTop;
-        const rowStart = rowIndex * this.#cellSize;
-        const rowEnd = rowStart + this.#cellSize;
+        const rowStart = rowIndex * this.cellSize;
+        const rowEnd = rowStart + this.cellSize;
         if (rowStart < scrollTop) {
             top = rowStart;
         } else if (rowEnd > scrollBottom) {
@@ -167,7 +174,7 @@ class Grid<T extends DataItem> {
     });
 
     getCellData<DT>(columnIndex: number, rowIndex: number): DT | undefined {
-        const row = this.#data[rowIndex];
+        const row = this.data.items.at(rowIndex);
         if (!row) {
             return undefined;
         }
