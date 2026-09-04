@@ -30,8 +30,8 @@ class CollectionView<SourceItem, ViewItem = SourceItem> {
     #mapper?: Mapper<SourceItem, ViewItem>;
     #filter?: Filter<ViewItem>;
     #sorter?: Sorter<ViewItem>;
-    #isDirty = true;
     #onChange = createEvent<() => void>();
+    #isDirty = true;
 
     /**
      * Creates a view over a copied set of source items.
@@ -95,6 +95,26 @@ class CollectionView<SourceItem, ViewItem = SourceItem> {
     set source(values: readonly SourceItem[]) {
         this.#source = [...values];
         this.#dirty = true;
+    }
+
+    /**
+     * Modify source items (alternative to setting {@link source} property directly)
+     *
+     * @example
+     * ```ts
+     * foods.modify(items => {
+     *    return items.map(item => {
+     *        if (item.type === "banana") {
+     *            item.crispy = false;
+     *        }
+     *        return item;
+     *    });
+     * });
+     * ```
+     * @param callback
+     */
+    modify(callback: (values: SourceItem[]) => SourceItem[]) {
+        this.source = callback(this.#source);
     }
 
     get #dirty() {

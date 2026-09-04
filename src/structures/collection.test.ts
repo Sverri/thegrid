@@ -18,7 +18,7 @@ describe("createCollectionView", () => {
 
     it("updates items, if dirty, when 'size' is called", () => {
         const view = createCollectionView<number>([]);
-        view.source = [1, 2, 3];
+        view.modify(() => [1, 2, 3]);
         expect(view.size).toBe(3);
     });
 

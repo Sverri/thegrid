@@ -18,7 +18,7 @@ type TestColumn = {
 function createGrid(columns: TestColumn[], rowCount: number, cellSize = 25) {
     return {
         columns: { items: columns },
-        source: Array.from({ length: rowCount }, () => ({})),
+        data: Array.from({ length: rowCount }, () => ({})),
         cellSize,
         cellsElement: {},
     } as unknown as Grid<Record<string, never>>;
