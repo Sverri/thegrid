@@ -4,7 +4,7 @@ import { mouseExtension } from "@extension/mouse";
 import { resizeObserverExtension } from "@extension/resizeobserver";
 import { renderExtension } from "@extension/render";
 import { expanderExtension } from "@extension/expander";
-import { HeaderSelection } from "@shared/enums";
+import { DataType, HeaderSelection } from "@shared/enums";
 import { columnFromLeft, createColumn, type Column, type ColumnOptions } from "@structure/column";
 import { createEvent } from "@shared/event";
 import { debounce } from "throttle-debounce";
@@ -148,7 +148,7 @@ class Grid<T extends DataItem> {
         this.cellsElement.scrollTo({ left, top, behavior: "instant" });
     });
 
-    getCellData<DT>(columnIndex: number, rowIndex: number): DT | undefined {
+    getCellData<DT extends DataType>(columnIndex: number, rowIndex: number): DT | undefined {
         const row = this.data.items.at(rowIndex);
         if (!row) {
             return undefined;
@@ -158,6 +158,20 @@ class Grid<T extends DataItem> {
             return undefined;
         }
         return row[column.binding];
+    }
+
+    setCellData(columnIndex: number, rowIndex: number, value: T[keyof T]): void {
+        const row = this.data.items.at(rowIndex);
+        if (!row) {
+            return undefined;
+        }
+        const column = this.columns.items.at(columnIndex);
+        if (!column) {
+            return undefined;
+        }
+        row[column.binding] = value;
+
+        this.invalidate();
     }
 }
 

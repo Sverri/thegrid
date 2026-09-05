@@ -1,20 +1,19 @@
 import type { Grid } from "@grid/grid";
 
 /**
- * Expander extension
+ * Registers the grid expander dimensions with the invalidate event.
  *
- * Cells are positioned in the grid using the CSS `translate` function, which
- * means scrollbars will not be visible. This extension sets x and y variables
- * that are used to position a :after pseudo-element to the bottom right,
- * exactly so that you can scroll to the last column and row.
+ * Cells are positioned with CSS `translate`, so their layout does not create
+ * scrollbars. The extension updates CSS variables used by the expander pseudo-element
+ * to make the final visible column and row scrollable.
  *
- * @param grid
+ * @param grid The grid whose host element should expose the expander dimensions.
  */
 export function expanderExtension(grid: Grid<any>): void {
     grid.onInvalidate.subscribe(() => {
-        const { hostElement, columns, data: source, cellSize } = grid;
-        const totalWidth = columns.items.reduce((total, column) => total + (column.visible ? column.width : 0), 0);
-        const totalHeight = columns.size === 0 ? 0 : source.size * cellSize;
+        const { hostElement, columns, data, cellSize } = grid;
+        const totalWidth = columns.items.reduce((total, column) => total + column.width, 0);
+        const totalHeight = columns.size === 0 ? 0 : data.size * cellSize;
         hostElement.style.setProperty("--internal-expander-x", `${totalWidth}px`, "important");
         hostElement.style.setProperty("--internal-expander-y", `${totalHeight}px`, "important");
     });

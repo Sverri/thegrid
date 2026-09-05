@@ -51,7 +51,7 @@ const grid = createGrid(hostElement!, {
         { binding: "id", header: "Id", width: 100, dataType: DataType.Text },
         { binding: "name", header: "Name", width: 200, dataType: DataType.String },
         { binding: "age", header: "Age", width: 100, dataType: DataType.Integer },
-        { binding: "dob", header: "Date of birth", width: 400, dataType: DataType.Date, visible: false },
+        { binding: "dob", header: "Date of birth", width: 400, dataType: DataType.Date },
         { binding: "salary", header: "Salary", width: 150, dataType: DataType.Decimal },
         { binding: "email", header: "Email address", width: 300, dataType: DataType.Email },
         { binding: "website", header: "Website", width: 300, dataType: DataType.URL },
@@ -66,22 +66,20 @@ const grid = createGrid(hostElement!, {
     ],
 });
 
-grid.selection.select(1, 1);
-
 grid.columns.modify(options => {
     return options.map(option => {
         if (option.binding === "dob") {
-            option.visible = true;
+            option.visible = false;
         }
         return option;
     });
 });
 
-setTimeout(() => {
-    // Filter out items with odd "id"
-    grid.data.filter = item => item.id % 2 === 0;
+// Filter out items with odd "id"
+grid.data.filter = item => item.id % 2 === 0;
 
-    // Sort by name, natural sort algorithm
-    const collator = new Intl.Collator("en", { numeric: true });
-    grid.data.sorter = (a, b) => collator.compare(a.name!, b.name!);
-}, 1000);
+// Sort by name, natural sort algorithm
+const collator = new Intl.Collator("en", { numeric: true });
+grid.data.sorter = (a, b) => collator.compare(a.name!, b.name!);
+
+grid.selection.select(1, 1);
