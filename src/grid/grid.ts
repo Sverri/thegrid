@@ -44,25 +44,29 @@ export interface GridOptions<T extends DataItem> {
 }
 
 class Grid<T extends DataItem> {
+    // DOM elements
     readonly hostElement: HTMLElement;
     readonly cellsElement: HTMLDivElement;
     readonly columnHeadersElement: HTMLDivElement;
     readonly rowHeadersElement: HTMLDivElement;
+
+    // Data, columns and selection
     readonly data: CollectionView<T>;
     readonly columns: CollectionView<ColumnOptions<T>, Column<T>>;
     readonly selection: Selection;
-    readonly cellSize: number;
-    #onInvalidate = createEvent<() => void>();
 
+    // Misc.
+    #cellSize: number;
     #showHeaderSelection = HeaderSelection.Both;
+    #onInvalidate = createEvent<() => void>();
 
     constructor(hostElement: HTMLElement, options?: GridOptions<T>) {
         // Miscellaneous
-        this.cellSize = options?.cellSize ?? DEFAULT_CELL_SIZE;
+        this.#cellSize = options?.cellSize ?? DEFAULT_CELL_SIZE;
         this.#showHeaderSelection = options?.showHeaderSelection ?? HeaderSelection.Both;
 
         // DOM elements
-        const { cellsElement, columnHeadersElement, rowHeadersElement } = setupDomElements(hostElement, this.cellSize);
+        const { cellsElement, columnHeadersElement, rowHeadersElement } = setupDomElements(hostElement, this.#cellSize);
         this.hostElement = hostElement;
         this.cellsElement = cellsElement;
         this.columnHeadersElement = columnHeadersElement;
@@ -104,6 +108,15 @@ class Grid<T extends DataItem> {
         this.invalidate();
     }
 
+    get cellSize() {
+        return this.#cellSize;
+    }
+    set cellSize(value: number) {
+        this.#cellSize = value;
+        this.hostElement.style.setProperty("--cell-size", `${value}px`);
+        this.invalidate();
+    }
+
     get onInvalidate() {
         return this.#onInvalidate.unraisable;
     }
@@ -137,8 +150,8 @@ class Grid<T extends DataItem> {
         }
 
         let top = scrollTop;
-        const rowStart = rowIndex * this.cellSize;
-        const rowEnd = rowStart + this.cellSize;
+        const rowStart = rowIndex * this.#cellSize;
+        const rowEnd = rowStart + this.#cellSize;
         if (rowStart < scrollTop) {
             top = rowStart;
         } else if (rowEnd > scrollBottom) {

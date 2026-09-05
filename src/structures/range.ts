@@ -148,16 +148,25 @@ class Range {
  */
 export type { Range };
 
-/**
- * Create a rectangular selection or span in grid coordinates.
- * @param x1
- * @param y1
- * @param x2
- * @param y2
- * @returns
- */
-export function createRange(x1: number, y1: number, x2 = x1, y2 = y1) {
-    return new Range(x1, y1, x2, y2);
+export function createRange(range: Range): Range;
+export function createRange(x1: number, y1: number): Range;
+export function createRange(x1: number, y1: number, x2: number, y2: number): Range;
+export function createRange(x1: Range | number, y1?: number, x2 = x1, y2 = y1): Range {
+    switch (arguments.length) {
+        case 1: {
+            if (!isRange(x1)) {
+                throw new Error("Invalid range");
+            }
+            return new Range(x1.x1, x1.y1, x1.x2, x1.y2);
+        }
+        case 2: {
+            return new Range(x1 as number, y1!, x1 as number, y1);
+        }
+        case 4: {
+            return new Range(x1 as number, y1!, x2 as number, y2);
+        }
+    }
+    throw new Error("Was not able to create a range from providede arguments");
 }
 
 /**

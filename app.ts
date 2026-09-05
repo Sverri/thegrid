@@ -83,3 +83,46 @@ const collator = new Intl.Collator("en", { numeric: true });
 grid.data.sorter = (a, b) => collator.compare(a.name!, b.name!);
 
 grid.selection.select(1, 1);
+
+// Cell size slider
+
+const cellSizeValue = document.querySelector(".cell-size .value")!;
+const cellSizeSlider = document.querySelector<HTMLInputElement>(".cell-size .slider")!;
+cellSizeValue.textContent = String(grid.cellSize);
+cellSizeSlider.value = String(grid.cellSize);
+
+cellSizeSlider.addEventListener("input", event => {
+    const value = Number.parseInt((event.target! as HTMLInputElement).value, 10);
+    if (Number.isNaN(value)) {
+        return;
+    }
+    cellSizeValue.textContent = String(value);
+    grid.cellSize = value;
+});
+
+// Header selection dropdown
+
+const headerSelectionDropdown = document.querySelector<HTMLInputElement>(".header-selection .dropdown")!;
+// headerSelectionDropdown.value = String(grid.cellSize);
+
+headerSelectionDropdown.addEventListener("input", event => {
+    const value = (event.target! as HTMLInputElement).value;
+    switch (value) {
+        case "both": {
+            grid.showHeaderSelection = HeaderSelection.Both;
+            break;
+        }
+        case "columns": {
+            grid.showHeaderSelection = HeaderSelection.Columns;
+            break;
+        }
+        case "rows": {
+            grid.showHeaderSelection = HeaderSelection.Rows;
+            break;
+        }
+        case "none": {
+            grid.showHeaderSelection = HeaderSelection.None;
+            break;
+        }
+    }
+});

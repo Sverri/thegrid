@@ -14,6 +14,25 @@
                 <label style="margin-right: 1rem"><input type="radio" name="color-scheme" value="light" /> Light</label>
                 <label><input type="radio" name="color-scheme" value="dark" checked /> Dark</label>
             </div>
+            <div class="control cell-size">
+                <h2>Cell size</h2>
+                <label>
+                    <input class="slider" type="range" name="cell-size" min="20" max="150" value="50" step="10" />
+                    <span class="value">50</span>
+                </label>
+            </div>
+            <div class="control header-selection">
+                <h2>Header selection</h2>
+                <label>
+                    <select class="dropdown">
+                        <option value="both" selected>Both</option>
+                        <option value="columns">Columns only</option>
+                        <option value="rows">Rows only</option>
+                        <option value="none">None</option>
+                    </select>
+                    <span class="value">Both</span>
+                </label>
+            </div>
         </div>
         <div id="app">
             <div class="grid"></div>

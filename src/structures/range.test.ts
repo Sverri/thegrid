@@ -2,6 +2,14 @@ import { describe, expect, it } from "vitest";
 import { createRange } from "./range";
 
 describe("createRange", () => {
+    it("rejects an invalid single argument", () => {
+        expect(() => (createRange as any)("invalid")).toThrow("Invalid range");
+    });
+
+    it("rejects unsupported argument counts", () => {
+        expect(() => (createRange as any)(1, 2, 3)).toThrow("Was not able to create a range");
+    });
+
     it("creates a single-cell range when the ending coordinates are omitted", () => {
         const range = createRange(3, 4);
 

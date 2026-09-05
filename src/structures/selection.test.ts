@@ -27,6 +27,20 @@ describe("Selection", () => {
         expect(selection.range).toEqual(createRange(1, 2, 2, 2));
     });
 
+    it("rejects an invalid single argument", () => {
+        const grid = createTestGrid();
+        const selection = createSelection(grid);
+
+        expect(() => (selection.select as any)("invalid")).toThrow("Invalid range");
+    });
+
+    it("rejects unsupported argument counts", () => {
+        const grid = createTestGrid();
+        const selection = createSelection(grid);
+
+        expect(() => (selection.select as any)(1, 2, 3)).toThrow("Was not able to create a range");
+    });
+
     it("selects using coordinate overloads", () => {
         const grid = createTestGrid();
         const selection = createSelection(grid);

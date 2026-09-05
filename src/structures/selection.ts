@@ -9,7 +9,7 @@ import { createRange, isRange, type Range } from "./range";
  */
 class Selection {
     #range = createRange(0, 0);
-    #onChange = createEvent<() => void>();
+    #onChange = createEvent<(range: Range) => void>();
     #grid: Grid<any>;
 
     /**
@@ -41,8 +41,7 @@ class Selection {
      * @param value The new selected range.
      */
     set range(value: Range) {
-        this.#range = value;
-        this.#onChange.raise();
+        this.select(value);
     }
 
     /**
@@ -57,10 +56,18 @@ class Selection {
      *
      * @param x1 The starting x coordinate.
      * @param y1 The starting y coordinate.
-     * @param x2 The ending x coordinate. Defaults to the starting x coordinate.
-     * @param y2 The ending y coordinate. Defaults to the starting y coordinate.
      */
-    select(x1: number, y1: number, x2?: number, y2?: number): void;
+    select(x1: number, y1: number): void;
+
+    /**
+     * Selects a range by absolute coordinates.
+     *
+     * @param x1 The starting x coordinate.
+     * @param y1 The starting y coordinate.
+     * @param x2 The ending x coordinate.
+     * @param y2 The ending y coordinate.
+     */
+    select(x1: number, y1: number, x2: number, y2: number): void;
 
     /**
      * Applies a selection using either a range instance or coordinate values.
@@ -70,13 +77,28 @@ class Selection {
      * @param x2 The ending x coordinate when using coordinate values.
      * @param y2 The ending y coordinate when using coordinate values.
      */
-    select(x1: number | Range, y1?: number, x2?: number, y2?: number): void {
-        if (isRange(x1)) {
-            this.#range = x1;
-        } else {
-            this.#range = createRange(x1, y1!, x2, y2);
+    select(x1: number | Range, y1?: number, x2 = x1, y2 = y1): void {
+        switch (arguments.length) {
+            case 1: {
+                if (!isRange(x1)) {
+                    throw new Error("Invalid range");
+                }
+                this.#range = createRange(x1.x1, x1.y1, x1.x2, x1.y2);
+                break;
+            }
+            case 2: {
+                this.#range = createRange(x1 as number, y1!, x1 as number, y1!);
+                break;
+            }
+            case 4: {
+                this.#range = createRange(x1 as number, y1!, x2 as number, y2!);
+                break;
+            }
+            default: {
+                throw new Error("Was not able to create a range from providede arguments");
+            }
         }
-        this.#onChange.raise();
+        this.#onChange.raise(createRange(this.#range));
     }
 
     /**
