@@ -66,7 +66,7 @@ const grid = createGrid(hostElement!, {
     ],
 });
 
-grid.select(1, 1);
+grid.selection.select(1, 1);
 
 grid.columns.modify(options => {
     return options.map(option => {

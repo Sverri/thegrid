@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createCollectionView } from "./collection";
+import { createCollectionView, isCollectionView } from "./collection";
 
 describe("createCollectionView", () => {
     it("starts empty when no source items are supplied", () => {
@@ -136,5 +136,14 @@ describe("createCollectionView", () => {
 
         expect(view.sorter).toStrictEqual(sorter);
         expect(view.filter).toStrictEqual(filter);
+    });
+
+    it("recognizes collection views and rejects unrelated values", () => {
+        const view = createCollectionView([1, 2, 3]);
+
+        expect(isCollectionView(view)).toBe(true);
+        expect(isCollectionView({})).toBe(false);
+        expect(isCollectionView(null)).toBe(false);
+        expect(isCollectionView([])).toBe(false);
     });
 });

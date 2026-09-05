@@ -14,7 +14,7 @@ export function mouseExtension(grid: Grid<any>): void {
         }
 
         if (event.shiftKey) {
-            const { x1, y1 } = grid.selection;
+            const { x1, y1 } = grid.selection.range;
             startCoords = {
                 row: y1,
                 column: x1,
@@ -24,7 +24,7 @@ export function mouseExtension(grid: Grid<any>): void {
                 row: Number.parseInt(event.target!.dataset["row"]!, 10),
                 column: Number.parseInt(event.target!.dataset["column"]!, 10),
             };
-            grid.select(startCoords?.column ?? -1, startCoords?.row ?? -1);
+            grid.selection.select(startCoords?.column ?? -1, startCoords?.row ?? -1);
         }
     });
 
@@ -46,10 +46,10 @@ export function mouseExtension(grid: Grid<any>): void {
             return;
         }
 
-        const oldRange = grid.selection;
+        const oldRange = grid.selection.range;
         const newRange = createRange(downColumnIndex, downRowIndex, upColumnIndex, upRowIndex);
         if (!newRange.identicalTo(oldRange)) {
-            grid.select(newRange);
+            grid.selection.select(newRange);
         }
     });
 
@@ -79,7 +79,7 @@ export function mouseExtension(grid: Grid<any>): void {
             return;
         }
 
-        grid.select(downColumnIndex, downRowIndex, upColumnIndex, upRowIndex);
+        grid.selection.select(downColumnIndex, downRowIndex, upColumnIndex, upRowIndex);
 
         startCoords = undefined;
     });

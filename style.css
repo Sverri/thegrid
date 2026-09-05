@@ -1,0 +1,39 @@
+html {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    color-scheme: light dark;
+
+    &:has(input[name="color-scheme"][value="light"]:checked) {
+        color-scheme: light;
+    }
+    &:has(input[name="color-scheme"][value="dark"]:checked) {
+        color-scheme: dark;
+    }
+}
+body {
+    background: light-dark(#fff, #000);
+    width: 100%;
+    height: 100%;
+    font-family: "Gill Sans", "Gill Sans MT", Calibri, "Trebuchet MS", sans-serif;
+    overflow: auto;
+    display: flex;
+    flex-direction: row;
+}
+
+#controls {
+    padding: 3rem;
+    .control {
+        border-bottom: 1px solid red;
+        &:last-of-type {
+            border-bottom: none;
+        }
+    }
+}
+
+#app {
+    flex: 1;
+    width: calc(100% - 6rem);
+    height: calc(100% - 6rem);
+    margin: 3rem;
+}

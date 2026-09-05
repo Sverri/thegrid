@@ -9,9 +9,9 @@ import { columnFromLeft, createColumn, type Column, type ColumnOptions } from "@
 import { createEvent } from "@shared/event";
 import { debounce } from "throttle-debounce";
 import { getElementScrollDimensions } from "@helpers/getelementscrolldimensions";
-import { createRange, isRange, type Range } from "@structure/range";
 import { createCollectionView, type CollectionView } from "@structure/collection";
 import { setupDomElements } from "./setup";
+import { createSelection, type Selection } from "@structure/selection";
 
 const DEFAULT_CELL_SIZE = 50;
 
@@ -48,13 +48,12 @@ class Grid<T extends DataItem> {
     readonly cellsElement: HTMLDivElement;
     readonly columnHeadersElement: HTMLDivElement;
     readonly rowHeadersElement: HTMLDivElement;
-    readonly columns: CollectionView<ColumnOptions<T>, Column<T>>;
     readonly data: CollectionView<T>;
+    readonly columns: CollectionView<ColumnOptions<T>, Column<T>>;
+    readonly selection: Selection;
     readonly cellSize: number;
     readonly onInvalidate = createEvent<() => void>();
 
-    // See getters and setters
-    #selection: Range;
     #showHeaderSelection = HeaderSelection.Both;
 
     constructor(hostElement: HTMLElement, options?: GridOptions<T>) {
@@ -85,7 +84,10 @@ class Grid<T extends DataItem> {
         });
 
         // Selection
-        this.#selection = createRange(0, 0);
+        this.selection = createSelection(this);
+        this.selection.onChange.subscribe(() => {
+            this.invalidate(true);
+        });
 
         // Extensions
         expanderExtension(this);
@@ -103,33 +105,6 @@ class Grid<T extends DataItem> {
     }
     set showHeaderSelection(value: HeaderSelection) {
         this.#showHeaderSelection = value;
-        this.invalidate();
-    }
-
-    get selection() {
-        return this.#selection;
-    }
-
-    /**
-     * Change selection using a Range
-     *
-     * @param range
-     */
-    select(range: Range): void;
-
-    /**
-     * Change selection using coordinates
-     *
-     * @param range
-     */
-    select(x1: number, y1: number, x2?: number, y2?: number): void;
-
-    select(x1: number | Range, y1?: number, x2?: number, y2?: number): void {
-        if (isRange(x1)) {
-            this.#selection = x1;
-        } else {
-            this.#selection = createRange(x1, y1!, x2, y2);
-        }
         this.invalidate();
     }
 

@@ -37,7 +37,7 @@ export function renderExtension<T extends DataItem>(grid: Grid<T>): void {
                 rowIndex: y,
             });
 
-            renderCellSelection(cell, selection, columns.items, x, y);
+            renderCellSelection(cell, selection.range, columns.items, x, y);
             setCellContents(cell, column.dataType, grid.getCellData(x, y));
 
             cell.classList.add(y % 2 === 0 ? "row-even" : "row-odd");
@@ -68,7 +68,7 @@ export function renderExtension<T extends DataItem>(grid: Grid<T>): void {
             const showColumnSelected =
                 showHeaderSelection === (HeaderSelection.Columns || showHeaderSelection === HeaderSelection.Both);
 
-            if (showColumnSelected && selection && x >= selection.left && x <= selection.right) {
+            if (showColumnSelected && x >= selection.range.left && x <= selection.range.right) {
                 cell.classList.add("column-selected");
             }
             cell.textContent = column.header;
@@ -97,7 +97,7 @@ export function renderExtension<T extends DataItem>(grid: Grid<T>): void {
             const showColumnSelected =
                 showHeaderSelection === HeaderSelection.Rows || showHeaderSelection === HeaderSelection.Both;
 
-            if (showColumnSelected && selection && y >= selection.top && y <= selection.bottom) {
+            if (showColumnSelected && y >= selection.range.top && y <= selection.range.bottom) {
                 cell.classList.add("row-selected");
             }
             rowHeadersElement.append(cell);

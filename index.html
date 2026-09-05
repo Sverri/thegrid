@@ -4,43 +4,18 @@
         <meta charset="UTF-8" />
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="stylesheet" href="/style.css" />
         <title>thegrid</title>
-        <style>
-            html,
-            body {
-                background: light-dark(#fff, #000);
-                width: calc(100% - 8rem);
-                height: calc(100% - 6rem);
-                padding: 2rem 2.5rem;
-                font-family: "Gill Sans", "Gill Sans MT", Calibri, "Trebuchet MS", sans-serif;
-            }
-            html {
-                color-scheme: light dark;
-                &:has(input[name="color-scheme"][value="light"]:checked) {
-                    color-scheme: light;
-                }
-                &:has(input[name="color-scheme"][value="dark"]:checked) {
-                    color-scheme: dark;
-                }
-            }
-            #app {
-                width: 100%;
-                height: 100%;
-            }
-        </style>
     </head>
     <body>
-        <div id="app">
-            <div style="margin-bottom: 2rem">
-                <label style="margin-right: 1rem">
-                    <input type="radio" name="color-scheme" value="light" />
-                    Light
-                </label>
-                <label>
-                    <input type="radio" name="color-scheme" value="dark" checked />
-                    Dark
-                </label>
+        <div id="controls">
+            <div class="control">
+                <h2>Theme</h2>
+                <label style="margin-right: 1rem"><input type="radio" name="color-scheme" value="light" /> Light</label>
+                <label><input type="radio" name="color-scheme" value="dark" checked /> Dark</label>
             </div>
+        </div>
+        <div id="app">
             <div class="grid"></div>
         </div>
         <script type="module" src="./app.ts"></script>

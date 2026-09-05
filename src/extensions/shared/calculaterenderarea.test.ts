@@ -18,7 +18,7 @@ type TestColumn = {
 function createGrid(columns: TestColumn[], rowCount: number, cellSize = 25) {
     return {
         columns: { items: columns },
-        data: Array.from({ length: rowCount }, () => ({})),
+        data: { size: rowCount },
         cellSize,
         cellsElement: {},
     } as unknown as Grid<Record<string, never>>;
@@ -47,7 +47,10 @@ describe("calculateRenderArea", () => {
 
         const result = calculateRenderArea(grid, { columns: 0, rows: 0 });
 
-        expect(result).toEqual(expect.objectContaining({ x1: 1, y1: 2, x2: 2, y2: 3 }));
+        expect(result.x1).toBe(1);
+        expect(result.y1).toBe(2);
+        expect(result.x2).toBe(2);
+        expect(result.y2).toBe(3);
     });
 
     it("includes render-ahead rows and columns and clamps them to the grid", () => {
@@ -63,7 +66,10 @@ describe("calculateRenderArea", () => {
 
         const result = calculateRenderArea(grid, { columns: 2, rows: 3 });
 
-        expect(result).toEqual(expect.objectContaining({ x1: 0, y1: 0, x2: 2, y2: 4 }));
+        expect(result.x1).toBe(0);
+        expect(result.y1).toBe(0);
+        expect(result.x2).toBe(2);
+        expect(result.y2).toBe(4);
     });
 
     it("skips hidden columns while preserving their collection indexes", () => {
@@ -79,7 +85,10 @@ describe("calculateRenderArea", () => {
 
         const result = calculateRenderArea(grid, { columns: 0, rows: 0 });
 
-        expect(result).toEqual(expect.objectContaining({ x1: 2, x2: 2, y1: 0, y2: 1 }));
+        expect(result.x1).toBe(2);
+        expect(result.x2).toBe(2);
+        expect(result.y1).toBe(0);
+        expect(result.y2).toBe(1);
     });
 
     it("uses floor-based row indexes for partially visible rows", () => {
@@ -88,7 +97,8 @@ describe("calculateRenderArea", () => {
 
         const result = calculateRenderArea(grid, { columns: 0, rows: 0 });
 
-        expect(result).toEqual(expect.objectContaining({ y1: 1, y2: 2 }));
+        expect(result.y1).toBe(1);
+        expect(result.y2).toBe(2);
     });
 
     it("returns an empty row range when the source is empty", () => {
@@ -97,6 +107,9 @@ describe("calculateRenderArea", () => {
 
         const result = calculateRenderArea(grid, { columns: 0, rows: 0 });
 
-        expect(result).toEqual(expect.objectContaining({ x1: 0, x2: 0, y1: -1, y2: -1 }));
+        expect(result.x1).toBe(0);
+        expect(result.x2).toBe(0);
+        expect(result.y1).toBe(-1);
+        expect(result.y2).toBe(-1);
     });
 });

@@ -25,13 +25,13 @@ export interface CollectionViewOptions<SourceItem, ViewItem = SourceItem> {
  * Maintains source items and a filtered and sorted active view of them.
  */
 class CollectionView<SourceItem, ViewItem = SourceItem> {
-    readonly onChange = createEvent<() => void>();
     #source: SourceItem[];
     #items: ViewItem[];
     #mapper: Mapper<SourceItem, ViewItem> | undefined;
     #filter: Filter<ViewItem> | undefined;
     #sorter: Sorter<ViewItem> | undefined;
     #isDirty = true;
+    readonly onChange = createEvent<() => void>();
 
     /**
      * Creates a view over a copied set of source items.
@@ -177,7 +177,7 @@ class ObservableCollectionView<SourceItem, ViewItem = SourceItem> {
      * Notifies subscribers when the source view changes.
      */
     get onChange() {
-        return this.#view.onChange;
+        return this.#view.onChange.unraisable;
     }
 }
 

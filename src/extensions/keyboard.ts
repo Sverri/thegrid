@@ -1,49 +1,39 @@
 import type { Grid } from "@grid/grid";
 import { calculateRenderArea } from "@extension/shared/calculaterenderarea";
-import {
-    expandSelectionDown,
-    expandSelectionLeft,
-    expandSelectionRight,
-    expandSelectionUp,
-    moveSelectionDown,
-    moveSelectionLeft,
-    moveSelectionRight,
-    moveSelectionUp,
-} from "@helpers/selection";
 
 function moveToFirstColumn(grid: Grid<any>, shiftHeld: boolean): void {
-    const { x1, y1, y2 } = grid.selection;
+    const { x1, y1, y2 } = grid.selection.range;
     const firstColumnIndex = grid.columns.items.findIndex(column => column.visible);
     const newX1 = shiftHeld ? x1 : firstColumnIndex;
     const newY1 = shiftHeld ? y1 : y2;
-    grid.select(newX1, newY1, firstColumnIndex, y2);
-    grid.scrollIntoView(firstColumnIndex, grid.selection.y2);
+    grid.selection.select(newX1, newY1, firstColumnIndex, y2);
+    grid.scrollIntoView(firstColumnIndex, grid.selection.range.y2);
 }
 
 function moveToFirstRow(grid: Grid<any>, shiftHeld: boolean): void {
-    const { x1, y1, x2 } = grid.selection;
+    const { x1, y1, x2 } = grid.selection.range;
     const firstRowIndex = 0;
     const newX1 = shiftHeld ? x1 : x2;
     const newY1 = shiftHeld ? y1 : firstRowIndex;
-    grid.select(newX1, newY1, x2, firstRowIndex);
-    grid.scrollIntoView(grid.selection.x2, firstRowIndex);
+    grid.selection.select(newX1, newY1, x2, firstRowIndex);
+    grid.scrollIntoView(grid.selection.range.x2, firstRowIndex);
 }
 
 function moveToLastColumn(grid: Grid<any>, shiftHeld: boolean): void {
-    const { x1, y1, y2 } = grid.selection;
+    const { x1, y1, y2 } = grid.selection.range;
     const lastColumnIndex = grid.columns.items.findLastIndex(column => column.visible);
     const newX1 = shiftHeld ? x1 : lastColumnIndex;
     const newY1 = shiftHeld ? y1 : y2;
-    grid.select(newX1, newY1, lastColumnIndex, y2);
+    grid.selection.select(newX1, newY1, lastColumnIndex, y2);
     grid.scrollIntoView(lastColumnIndex, y2);
 }
 
 function moveToLastRow(grid: Grid<any>, shiftHeld: boolean): void {
-    const { x1, y1, x2 } = grid.selection;
+    const { x1, y1, x2 } = grid.selection.range;
     const lastRowIndex = grid.data.size - 1;
     const newX1 = shiftHeld ? x1 : x2;
     const newY1 = shiftHeld ? y1 : lastRowIndex;
-    grid.select(newX1, newY1, x2, lastRowIndex);
+    grid.selection.select(newX1, newY1, x2, lastRowIndex);
     grid.scrollIntoView(x2, lastRowIndex);
 }
 
@@ -51,8 +41,8 @@ function selectAll(grid: Grid<any>): void {
     const { scrollIntoView } = grid;
     const lastVisibleIndex = grid.columns.items.findLastIndex(column => column.visible);
     const rowCount = grid.data.size - 1;
-    grid.select(0, 0, lastVisibleIndex, rowCount);
-    scrollIntoView(grid.selection.x2, grid.selection.y2);
+    grid.selection.select(0, 0, lastVisibleIndex, rowCount);
+    scrollIntoView(grid.selection.range.x2, grid.selection.range.y2);
 }
 
 function moveLeft(grid: Grid<any>, shiftHeld: boolean, ctrlHeld: boolean): void {
@@ -61,11 +51,11 @@ function moveLeft(grid: Grid<any>, shiftHeld: boolean, ctrlHeld: boolean): void 
         return;
     }
     if (shiftHeld) {
-        grid.select(expandSelectionLeft(grid.columns.items, grid.selection));
+        grid.selection.expandSelectionLeft();
     } else {
-        grid.select(moveSelectionLeft(grid.columns.items, grid.selection));
+        grid.selection.moveSelectionLeft();
     }
-    grid.scrollIntoView(grid.selection.x2, grid.selection.y2);
+    grid.scrollIntoView(grid.selection.range.x2, grid.selection.range.y2);
 }
 
 function moveRight(grid: Grid<any>, shiftHeld: boolean, ctrlHeld: boolean): void {
@@ -74,11 +64,11 @@ function moveRight(grid: Grid<any>, shiftHeld: boolean, ctrlHeld: boolean): void
         return;
     }
     if (shiftHeld) {
-        grid.select(expandSelectionRight(grid.columns.items, grid.selection));
+        grid.selection.expandSelectionRight();
     } else {
-        grid.select(moveSelectionRight(grid.columns.items, grid.selection));
+        grid.selection.moveSelectionRight();
     }
-    grid.scrollIntoView(grid.selection.x2, grid.selection.y2);
+    grid.scrollIntoView(grid.selection.range.x2, grid.selection.range.y2);
 }
 
 function moveUp(grid: Grid<any>, shiftHeld: boolean, ctrlHeld: boolean): void {
@@ -87,11 +77,11 @@ function moveUp(grid: Grid<any>, shiftHeld: boolean, ctrlHeld: boolean): void {
         return;
     }
     if (shiftHeld) {
-        grid.select(expandSelectionUp(grid, grid.selection));
+        grid.selection.expandSelectionUp();
     } else {
-        grid.select(moveSelectionUp(grid, grid.selection));
+        grid.selection.moveSelectionUp();
     }
-    grid.scrollIntoView(grid.selection.x2, grid.selection.y2);
+    grid.scrollIntoView(grid.selection.range.x2, grid.selection.range.y2);
 }
 
 function moveDown(grid: Grid<any>, shiftHeld: boolean, ctrlHeld: boolean): void {
@@ -100,33 +90,33 @@ function moveDown(grid: Grid<any>, shiftHeld: boolean, ctrlHeld: boolean): void 
         return;
     }
     if (shiftHeld) {
-        grid.select(expandSelectionDown(grid.data.size, grid.selection));
+        grid.selection.expandSelectionDown();
     } else {
-        grid.select(moveSelectionDown(grid.data.size, grid.selection));
+        grid.selection.moveSelectionDown();
     }
-    grid.scrollIntoView(grid.selection.x2, grid.selection.y2);
+    grid.scrollIntoView(grid.selection.range.x2, grid.selection.range.y2);
 }
 
 function pageDown(grid: Grid<any>, shiftHeld: boolean): void {
     const renderArea = calculateRenderArea(grid, { columns: 0, rows: 0 });
     const rowsPerPage = renderArea.bottom - renderArea.top - 1;
     if (shiftHeld) {
-        grid.select(expandSelectionDown(grid.data.size, grid.selection, rowsPerPage));
+        grid.selection.expandSelectionDown(rowsPerPage);
     } else {
-        grid.select(moveSelectionDown(grid.data.size, grid.selection, rowsPerPage));
+        grid.selection.moveSelectionDown(rowsPerPage);
     }
-    grid.scrollIntoView(grid.selection.x2, grid.selection.y2);
+    grid.scrollIntoView(grid.selection.range.x2, grid.selection.range.y2);
 }
 
 function pageUp(grid: Grid<any>, shiftHeld: boolean): void {
     const renderArea = calculateRenderArea(grid, { columns: 0, rows: 0 });
     const rowsPerPage = renderArea.bottom - renderArea.top - 1;
     if (shiftHeld) {
-        grid.select(expandSelectionUp(grid, grid.selection, rowsPerPage));
+        grid.selection.expandSelectionUp(rowsPerPage);
     } else {
-        grid.select(moveSelectionUp(grid, grid.selection, rowsPerPage));
+        grid.selection.moveSelectionUp(rowsPerPage);
     }
-    grid.scrollIntoView(grid.selection.x2, grid.selection.y2);
+    grid.scrollIntoView(grid.selection.range.x2, grid.selection.range.y2);
 }
 
 export function keyboardExtension(grid: Grid<any>): void {

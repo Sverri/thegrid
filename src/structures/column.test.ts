@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { DataType } from "@shared/enums";
-import { columnFromLeft, createColumn } from "./column";
+import { columnFromLeft, createColumn, isColumn } from "./column";
 
 type Row = {
     name: string;
@@ -115,5 +115,16 @@ describe("columnFromLeft", () => {
         expect(() => columnFromLeft(columns, -1)).toThrow("Invalid column index");
         expect(() => columnFromLeft(columns, 1)).toThrow("Invalid column index");
         expect(() => columnFromLeft([], 0)).toThrow("Invalid column index");
+    });
+});
+
+describe("isColumn", () => {
+    it("recognizes column instances and rejects other objects", () => {
+        const column = createColumn<Row>({ binding: "name" });
+
+        expect(isColumn(column)).toBe(true);
+        expect(isColumn({ binding: "name" })).toBe(false);
+        expect(isColumn(null)).toBe(false);
+        expect(isColumn(123)).toBe(false);
     });
 });
