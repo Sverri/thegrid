@@ -29,7 +29,7 @@ export function renderCellSelection<T extends DataItem>(
     }
 
     if (selection.intersectsRow(rowIndex)) {
-        const previousVisibleColumnIndex = columns.findLastIndex(c => columns.indexOf(c) < left && c.visible);
+        const previousVisibleColumnIndex = columns.findLastIndex(c => columns.indexOf(c) < left);
         if (columnIndex === previousVisibleColumnIndex) {
             cell.classList.add("selection-right-border");
         }

@@ -10,6 +10,23 @@ interface CellSpecs {
     left: number;
 }
 
+/**
+ * Creates a DOM element representing a grid cell.
+ *
+ * The returned element is positioned by translating it into the grid's coordinate space,
+ * sized according to the supplied dimensions, and tagged with dataset metadata and CSS
+ * classes that describe the cell type.
+ *
+ * @param specs The cell configuration.
+ * @param specs.type The kind of cell being rendered.
+ * @param specs.width The cell width in pixels.
+ * @param specs.height The cell height in pixels.
+ * @param specs.columnIndex The logical column index for the cell.
+ * @param specs.rowIndex The logical row index for the cell.
+ * @param specs.top The vertical offset in pixels.
+ * @param specs.left The horizontal offset in pixels.
+ * @returns A configured HTML div element ready to be appended to the grid.
+ */
 export function createCell({ type, width, height, columnIndex, rowIndex, left, top }: CellSpecs) {
     const cell = document.createElement("div");
     cell.className = "thegrid-cell";
