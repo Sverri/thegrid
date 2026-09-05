@@ -45,7 +45,7 @@ for (let i = 0; i < 1000; i++) {
 }
 
 const grid = createGrid(hostElement!, {
-    source: users,
+    data: users,
     showHeaderSelection: HeaderSelection.Both,
     columns: [
         { binding: "id", header: "Id", width: 100, dataType: DataType.Text },

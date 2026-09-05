@@ -1,3 +1,4 @@
+import type { Callback } from "@shared/event";
 import { createEvent } from "@shared/event";
 
 type Filter<T> = (item: T) => boolean;
@@ -19,6 +20,11 @@ export interface CollectionViewOptions<SourceItem, ViewItem = SourceItem> {
      * Orders the active view after filtering.
      */
     sorter?: Sorter<ViewItem>;
+
+    /**
+     * OnChange event handler
+     */
+    onChange?: Callback;
 }
 
 /**
@@ -31,7 +37,7 @@ class CollectionView<SourceItem, ViewItem = SourceItem> {
     #filter: Filter<ViewItem> | undefined;
     #sorter: Sorter<ViewItem> | undefined;
     #isDirty = true;
-    readonly onChange = createEvent<() => void>();
+    #onChange = createEvent<() => void>();
 
     /**
      * Creates a view over a copied set of source items.
@@ -48,6 +54,9 @@ class CollectionView<SourceItem, ViewItem = SourceItem> {
         }
         if (options?.sorter) {
             this.#sorter = options.sorter;
+        }
+        if (options?.onChange) {
+            this.#onChange.subscribe(options?.onChange);
         }
     }
 
@@ -131,7 +140,7 @@ class CollectionView<SourceItem, ViewItem = SourceItem> {
         const triggerOnChange = value === true && this.#isDirty === false;
         this.#isDirty = value;
         if (triggerOnChange) {
-            this.onChange.raise();
+            this.#onChange.raise();
         }
     }
 
@@ -140,6 +149,13 @@ class CollectionView<SourceItem, ViewItem = SourceItem> {
      */
     get observableView(): ObservableCollectionView<SourceItem, ViewItem> {
         return new ObservableCollectionView<SourceItem, ViewItem>(this);
+    }
+
+    /**
+     * onChange event
+     */
+    get onChange() {
+        return this.#onChange.unraisable;
     }
 
     #updateItems() {
@@ -177,7 +193,7 @@ class ObservableCollectionView<SourceItem, ViewItem = SourceItem> {
      * Notifies subscribers when the source view changes.
      */
     get onChange() {
-        return this.#view.onChange.unraisable;
+        return this.#view.onChange;
     }
 }
 

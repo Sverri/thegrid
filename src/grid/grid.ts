@@ -21,7 +21,7 @@ export interface GridOptions<T extends DataItem> {
      *
      * **Default:** `[]`
      */
-    source?: T[];
+    data?: T[];
 
     /**
      * Columns
@@ -52,7 +52,7 @@ class Grid<T extends DataItem> {
     readonly columns: CollectionView<ColumnOptions<T>, Column<T>>;
     readonly selection: Selection;
     readonly cellSize: number;
-    readonly onInvalidate = createEvent<() => void>();
+    #onInvalidate = createEvent<() => void>();
 
     #showHeaderSelection = HeaderSelection.Both;
 
@@ -69,24 +69,20 @@ class Grid<T extends DataItem> {
         this.rowHeadersElement = rowHeadersElement;
 
         // Data
-        this.data = createCollectionView<T>(options?.source ?? []);
-        this.data.onChange.subscribe(() => {
-            this.invalidate();
+        this.data = createCollectionView<T>(options?.data ?? [], {
+            onChange: () => this.invalidate(),
         });
 
         // Columns
         this.columns = createCollectionView<ColumnOptions<T>, Column<T>>(options?.columns, {
             filter: column => column.visible,
             mapper: column => createColumn(column),
-        });
-        this.columns.onChange.subscribe(() => {
-            this.invalidate();
+            onChange: () => this.invalidate(),
         });
 
         // Selection
-        this.selection = createSelection(this);
-        this.selection.onChange.subscribe(() => {
-            this.invalidate(true);
+        this.selection = createSelection(this, {
+            onChange: () => this.invalidate(true),
         });
 
         // Extensions
@@ -108,13 +104,17 @@ class Grid<T extends DataItem> {
         this.invalidate();
     }
 
+    get onInvalidate() {
+        return this.#onInvalidate.unraisable;
+    }
+
     debouncedInvalidate = debounce(32, () => {
-        this.onInvalidate.raise();
+        this.#onInvalidate.raise();
     });
 
     invalidate(immediately = false) {
         if (immediately) {
-            this.onInvalidate.raise();
+            this.#onInvalidate.raise();
         } else {
             this.debouncedInvalidate();
         }

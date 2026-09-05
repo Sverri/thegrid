@@ -9,7 +9,7 @@ describe("Selection", () => {
     function createTestGrid() {
         const host = document.createElement("div");
         return createGrid(host, {
-            source: [
+            data: [
                 { id: 1, name: "A" },
                 { id: 2, name: "B" },
                 { id: 3, name: "C" },

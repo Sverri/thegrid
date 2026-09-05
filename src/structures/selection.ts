@@ -1,5 +1,5 @@
 import type { Grid } from "@grid/grid";
-import { createEvent } from "@shared/event";
+import { createEvent, type Callback } from "@shared/event";
 import { createRange, isRange, type Range } from "./range";
 
 /**
@@ -230,12 +230,20 @@ class Selection {
 
 export type { Selection };
 
+interface Options {
+    onChange?: Callback;
+}
+
 /**
  * Creates a new selection instance for the supplied grid.
  *
  * @param grid The grid the selection should be associated with.
  * @returns A new selection bound to the given grid.
  */
-export function createSelection(grid: Grid<any>) {
-    return new Selection(grid);
+export function createSelection(grid: Grid<any>, options?: Options) {
+    const instance = new Selection(grid);
+    if (options?.onChange) {
+        instance.onChange.subscribe(options.onChange);
+    }
+    return instance;
 }
