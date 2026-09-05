@@ -85,7 +85,7 @@ export type DataType = (typeof DataType)[keyof typeof DataType];
 /**
  * Identifies the different kinds of cells that can exist in the grid.
  */
-export const HeaderSelection = Object.freeze({
+export const Headers = Object.freeze({
     /**
      * A regular data cell.
      */
@@ -107,4 +107,4 @@ export const HeaderSelection = Object.freeze({
     Both: Symbol("HeaderSelection.Both"),
 } as const);
 
-export type HeaderSelection = (typeof HeaderSelection)[keyof typeof HeaderSelection];
+export type Headers = (typeof Headers)[keyof typeof Headers];

@@ -1,7 +1,7 @@
 import "normalize.css";
 import { faker } from "@faker-js/faker";
 import { createGrid, DataType } from "./src/index";
-import { HeaderSelection } from "@shared/enums";
+import { Headers } from "@shared/enums";
 
 const hostElement = document.querySelector<HTMLDivElement>(".grid");
 
@@ -46,7 +46,8 @@ for (let i = 0; i < 1000; i++) {
 
 const grid = createGrid(hostElement!, {
     data: users,
-    showHeaderSelection: HeaderSelection.Both,
+    showHeaders: Headers.Both,
+    showHeaderSelection: Headers.Both,
     columns: [
         { binding: "id", header: "Id", width: 100, dataType: DataType.Text },
         { binding: "name", header: "Name", width: 200, dataType: DataType.String },
@@ -100,28 +101,51 @@ cellSizeSlider.addEventListener("input", event => {
     grid.cellSize = value;
 });
 
-// Header selection dropdown
+// Show headers
 
-const headerSelectionDropdown = document.querySelector<HTMLInputElement>(".header-selection .dropdown")!;
-// headerSelectionDropdown.value = String(grid.cellSize);
-
-headerSelectionDropdown.addEventListener("input", event => {
-    const value = (event.target! as HTMLInputElement).value;
+const showHeaders = document.querySelector<HTMLSelectElement>(".show-headers .dropdown")!;
+showHeaders.addEventListener("input", event => {
+    const value = (event.target! as HTMLSelectElement).value;
     switch (value) {
         case "both": {
-            grid.showHeaderSelection = HeaderSelection.Both;
+            grid.showHeaders = Headers.Both;
             break;
         }
         case "columns": {
-            grid.showHeaderSelection = HeaderSelection.Columns;
+            grid.showHeaders = Headers.Columns;
             break;
         }
         case "rows": {
-            grid.showHeaderSelection = HeaderSelection.Rows;
+            grid.showHeaders = Headers.Rows;
             break;
         }
         case "none": {
-            grid.showHeaderSelection = HeaderSelection.None;
+            grid.showHeaders = Headers.None;
+            break;
+        }
+    }
+});
+
+// Header selection dropdown
+
+const headerSelectionDropdown = document.querySelector<HTMLSelectElement>(".header-selection .dropdown")!;
+headerSelectionDropdown.addEventListener("input", event => {
+    const value = (event.target! as HTMLSelectElement).value;
+    switch (value) {
+        case "both": {
+            grid.showHeaderSelection = Headers.Both;
+            break;
+        }
+        case "columns": {
+            grid.showHeaderSelection = Headers.Columns;
+            break;
+        }
+        case "rows": {
+            grid.showHeaderSelection = Headers.Rows;
+            break;
+        }
+        case "none": {
+            grid.showHeaderSelection = Headers.None;
             break;
         }
     }

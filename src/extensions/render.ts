@@ -6,7 +6,7 @@ import { createCell } from "@extension/shared/createcell";
 import { calculateRenderArea } from "@extension/shared/calculaterenderarea";
 import { renderCellSelection } from "@extension/shared/renderselection";
 import { setCellContents } from "@extension/shared/setcellcontents";
-import { CellType, HeaderSelection } from "@shared/enums";
+import { CellType, Headers } from "@shared/enums";
 import { columnFromLeft } from "@structure/column";
 
 const renderAhead = {
@@ -75,8 +75,7 @@ export function renderExtension<T extends DataItem>(grid: Grid<T>): void {
                 rowIndex: 0,
             });
 
-            const showColumnSelected =
-                showHeaderSelection === HeaderSelection.Columns || showHeaderSelection === HeaderSelection.Both;
+            const showColumnSelected = showHeaderSelection === Headers.Columns || showHeaderSelection === Headers.Both;
 
             if (showColumnSelected && x >= selection.range.left && x <= selection.range.right) {
                 cell.classList.add("column-selected");
@@ -104,8 +103,7 @@ export function renderExtension<T extends DataItem>(grid: Grid<T>): void {
                 rowIndex: y,
             });
 
-            const showColumnSelected =
-                showHeaderSelection === HeaderSelection.Rows || showHeaderSelection === HeaderSelection.Both;
+            const showColumnSelected = showHeaderSelection === Headers.Rows || showHeaderSelection === Headers.Both;
 
             if (showColumnSelected && y >= selection.range.top && y <= selection.range.bottom) {
                 cell.classList.add("row-selected");
@@ -118,8 +116,18 @@ export function renderExtension<T extends DataItem>(grid: Grid<T>): void {
         const dimensions = getElementScrollDimensions(grid.cellsElement);
         const renderArea = calculateRenderArea(grid, renderAhead);
         renderCells(renderArea);
-        renderColumnHeaders(renderArea, dimensions);
-        renderRowHeaders(renderArea, dimensions);
+        if (grid.showHeaders == Headers.Columns || grid.showHeaders == Headers.Both) {
+            grid.hostElement.classList.remove("thegrid-hide-column-headers");
+            renderColumnHeaders(renderArea, dimensions);
+        } else {
+            grid.hostElement.classList.add("thegrid-hide-column-headers");
+        }
+        if (grid.showHeaders == Headers.Rows || grid.showHeaders == Headers.Both) {
+            grid.hostElement.classList.remove("thegrid-hide-row-headers");
+            renderRowHeaders(renderArea, dimensions);
+        } else {
+            grid.hostElement.classList.add("thegrid-hide-row-headers");
+        }
     };
 
     grid.cellsElement.addEventListener("scroll", render, { passive: true });

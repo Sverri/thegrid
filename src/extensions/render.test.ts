@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { getElementScrollDimensions, type ElementScrollDimensions } from "@helpers/getelementscrolldimensions";
 import { calculateRenderArea } from "@extension/shared/calculaterenderarea";
 import { createRange } from "@structure/range";
-import { DataType, HeaderSelection } from "@shared/enums";
+import { DataType, Headers } from "@shared/enums";
 import { renderExtension } from "./render";
 
 vi.mock("@helpers/getelementscrolldimensions", () => ({
@@ -25,8 +25,9 @@ interface TestColumn {
     dataType: DataType;
 }
 
-function createGrid(columns: TestColumn[], showHeaderSelection: HeaderSelection) {
+function createGrid(columns: TestColumn[], showHeaderSelection: Headers) {
     let invalidateCallback: (() => void) | undefined;
+    const hostElement = document.createElement("div");
     const cellsElement = document.createElement("div");
     const columnHeadersElement = document.createElement("div");
     const rowHeadersElement = document.createElement("div");
@@ -36,6 +37,7 @@ function createGrid(columns: TestColumn[], showHeaderSelection: HeaderSelection)
 
     return {
         grid: {
+            hostElement,
             cellsElement,
             columnHeadersElement,
             rowHeadersElement,
@@ -44,6 +46,7 @@ function createGrid(columns: TestColumn[], showHeaderSelection: HeaderSelection)
             data: { size: 4 },
             selection: { range: createRange(0, 0, 0, 0) },
             showHeaderSelection,
+            showHeaders: showHeaderSelection,
             getCellData: vi.fn(() => "value"),
             onInvalidate: { subscribe },
         },
@@ -74,7 +77,7 @@ describe("renderExtension", () => {
     it("renders cells and column headers through the invalidate callback", () => {
         const { grid, cellsElement, columnHeadersElement, rowHeadersElement, subscribe, invalidate } = createGrid(
             [{ visible: true, width: 100, header: "Name", dataType: DataType.String }],
-            HeaderSelection.Both,
+            Headers.Both,
         );
         mockRenderArea(createRange(0, 0, 1, 1));
 
@@ -96,7 +99,7 @@ describe("renderExtension", () => {
     it("marks selected row headers when row selection is enabled", () => {
         const { grid, rowHeadersElement, invalidate } = createGrid(
             [{ visible: true, width: 100, header: "Name", dataType: DataType.String }],
-            HeaderSelection.Rows,
+            Headers.Rows,
         );
         mockRenderArea();
 
@@ -108,7 +111,7 @@ describe("renderExtension", () => {
     });
 
     it("clears row headers without rendering rows when there are no columns", () => {
-        const { grid, rowHeadersElement, invalidate } = createGrid([], HeaderSelection.Both);
+        const { grid, rowHeadersElement, invalidate } = createGrid([], Headers.Both);
         rowHeadersElement.append(document.createElement("div"));
         mockRenderArea(createRange(-1, 0, -1, 1));
 
@@ -116,5 +119,19 @@ describe("renderExtension", () => {
         invalidate();
 
         expect(rowHeadersElement.children.length).toBe(0);
+    });
+
+    it("hides both header regions when headers are disabled", () => {
+        const { grid, invalidate } = createGrid(
+            [{ visible: true, width: 100, header: "Name", dataType: DataType.String }],
+            Headers.None,
+        );
+        mockRenderArea();
+
+        renderExtension(grid as any);
+        invalidate();
+
+        expect(grid.hostElement.classList.contains("thegrid-hide-column-headers")).toBe(true);
+        expect(grid.hostElement.classList.contains("thegrid-hide-row-headers")).toBe(true);
     });
 });

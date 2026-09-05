@@ -4,7 +4,7 @@ import { mouseExtension } from "@extension/mouse";
 import { resizeObserverExtension } from "@extension/resizeobserver";
 import { renderExtension } from "@extension/render";
 import { expanderExtension } from "@extension/expander";
-import { DataType, HeaderSelection } from "@shared/enums";
+import { DataType, Headers } from "@shared/enums";
 import { columnFromLeft, createColumn, type Column, type ColumnOptions } from "@structure/column";
 import { createEvent } from "@shared/event";
 import { debounce } from "throttle-debounce";
@@ -31,11 +31,18 @@ export interface GridOptions<T extends DataItem> {
     columns?: ColumnOptions<T>[];
 
     /**
+     * Which headers to show
+     *
+     * **Default:** {@link Headers.Both}
+     */
+    showHeaders?: Headers;
+
+    /**
      * Header selection indicator
      *
-     * **Default:** {@link HeaderSelection.Both}
+     * **Default:** {@link Headers.Both}
      */
-    showHeaderSelection?: HeaderSelection;
+    showHeaderSelection?: Headers;
 
     /**
      * Cell size
@@ -57,13 +64,15 @@ class Grid<T extends DataItem> {
 
     // Misc.
     #cellSize: number;
-    #showHeaderSelection = HeaderSelection.Both;
+    #showHeaderSelection: Headers;
+    #showHeaders: Headers;
     #onInvalidate = createEvent<() => void>();
 
     constructor(hostElement: HTMLElement, options?: GridOptions<T>) {
         // Miscellaneous
         this.#cellSize = options?.cellSize ?? DEFAULT_CELL_SIZE;
-        this.#showHeaderSelection = options?.showHeaderSelection ?? HeaderSelection.Both;
+        this.#showHeaders = options?.showHeaders ?? Headers.Both;
+        this.#showHeaderSelection = options?.showHeaderSelection ?? Headers.Both;
 
         // DOM elements
         const { cellsElement, columnHeadersElement, rowHeadersElement } = setupDomElements(hostElement, this.#cellSize);
@@ -100,10 +109,18 @@ class Grid<T extends DataItem> {
         this.invalidate();
     }
 
+    get showHeaders() {
+        return this.#showHeaders;
+    }
+    set showHeaders(value: Headers) {
+        this.#showHeaders = value;
+        this.invalidate();
+    }
+
     get showHeaderSelection() {
         return this.#showHeaderSelection;
     }
-    set showHeaderSelection(value: HeaderSelection) {
+    set showHeaderSelection(value: Headers) {
         this.#showHeaderSelection = value;
         this.invalidate();
     }
@@ -121,19 +138,26 @@ class Grid<T extends DataItem> {
         return this.#onInvalidate.unraisable;
     }
 
-    debouncedInvalidate = debounce(32, () => {
+    #debouncedInvalidate = debounce(32, () => {
         this.#onInvalidate.raise();
     });
 
-    invalidate(immediately = false) {
-        if (immediately) {
+    /**
+     * Invalidate the grid
+     *
+     * Invalidating the grid causes everything to be re-rendered.
+     *
+     * @param immediate
+     */
+    invalidate(immediate = false) {
+        if (immediate) {
             this.#onInvalidate.raise();
         } else {
-            this.debouncedInvalidate();
+            this.#debouncedInvalidate();
         }
     }
 
-    scrollIntoView = debounce(64, (columnIndex: number, rowIndex: number) => {
+    scrollIntoView(columnIndex: number, rowIndex: number) {
         const { scrollLeft, scrollRight, scrollTop, scrollBottom } = getElementScrollDimensions(this.cellsElement);
         const column = this.columns.items.at(columnIndex);
         if (!column) {
@@ -159,7 +183,7 @@ class Grid<T extends DataItem> {
         }
 
         this.cellsElement.scrollTo({ left, top, behavior: "instant" });
-    });
+    }
 
     getCellData<DT extends DataType>(columnIndex: number, rowIndex: number): DT | undefined {
         const row = this.data.items.at(rowIndex);

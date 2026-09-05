@@ -44,11 +44,10 @@ function moveToEdge(grid: Grid<any>, direction: Direction, shiftHeld: boolean): 
 }
 
 function selectAll(grid: Grid<any>): void {
-    const { scrollIntoView } = grid;
     const lastVisibleIndex = grid.columns.items.length - 1;
     const rowCount = grid.data.size - 1;
     grid.selection.select(0, 0, lastVisibleIndex, rowCount);
-    scrollIntoView(grid.selection.range.x2, grid.selection.range.y2);
+    grid.scrollIntoView(grid.selection.range.x2, grid.selection.range.y2);
 }
 
 function moveSelection(grid: Grid<any>, direction: Direction, shiftHeld: boolean, ctrlHeld: boolean): void {
