@@ -12,6 +12,7 @@ import { getElementScrollDimensions } from "@helpers/getelementscrolldimensions"
 import { createCollectionView, type CollectionView } from "@structure/collection";
 import { setupDomElements } from "./setup";
 import { createSelection, type Selection } from "@structure/selection";
+import { createPoint, isPoint, type Point } from "@structure/point";
 
 const DEFAULT_CELL_SIZE = 50;
 
@@ -105,7 +106,7 @@ class Grid<T extends DataItem> {
         keyboardExtension(this);
         resizeObserverExtension(this);
 
-        // Get the show on the road
+        // Get the show on the road!
         this.invalidate();
     }
 
@@ -157,15 +158,19 @@ class Grid<T extends DataItem> {
         }
     }
 
-    scrollIntoView(columnIndex: number, rowIndex: number) {
+    scrollIntoView(point: Point): void;
+    scrollIntoView(columnIndex: number, rowIndex: number): void;
+    scrollIntoView(columnIndex: number | Point, rowIndex?: number): void {
+        const point = isPoint(columnIndex) ? columnIndex : createPoint(columnIndex, rowIndex!);
         const { scrollLeft, scrollRight, scrollTop, scrollBottom } = getElementScrollDimensions(this.cellsElement);
-        const column = this.columns.items.at(columnIndex);
+        const column = this.columns.items.at(point.x);
         if (!column) {
-            console.warn(`Was unable to scroll into view: [${columnIndex},${rowIndex}] (column does not exist)`);
+            console.warn(`Was unable to scroll into view: [${point.x},${point.y}] (column does not exist)`);
             return;
         }
+
         let left = scrollLeft;
-        const columnStart = columnFromLeft(this.columns.items, columnIndex);
+        const columnStart = columnFromLeft(this.columns.items, point.x);
         const columnEnd = columnStart + column.width;
         if (columnStart < scrollLeft) {
             left = columnStart;
@@ -174,7 +179,7 @@ class Grid<T extends DataItem> {
         }
 
         let top = scrollTop;
-        const rowStart = rowIndex * this.#cellSize;
+        const rowStart = point.y * this.#cellSize;
         const rowEnd = rowStart + this.#cellSize;
         if (rowStart < scrollTop) {
             top = rowStart;
@@ -186,12 +191,12 @@ class Grid<T extends DataItem> {
     }
 
     getCellData<DT extends DataType>(columnIndex: number, rowIndex: number): DT | undefined {
-        const row = this.data.items.at(rowIndex);
-        if (!row) {
-            return undefined;
-        }
         const column = this.columns.items.at(columnIndex);
         if (!column) {
+            return undefined;
+        }
+        const row = this.data.items.at(rowIndex);
+        if (!row) {
             return undefined;
         }
         return row[column.binding];

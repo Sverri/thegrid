@@ -8,10 +8,13 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "test": "vitest run",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
     "format": "prettier ./src ./index.html --write"
   },
   "devDependencies": {
     "@faker-js/faker": "10.6.0",
+    "@playwright/test": "^1.63.0",
     "@types/node": "26.4.1",
     "@types/throttle-debounce": "5.0.2",
     "@vitest/coverage-v8": "5.0.0",

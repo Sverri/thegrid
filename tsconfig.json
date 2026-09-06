@@ -3,7 +3,7 @@
     "target": "esnext",
     "module": "esnext",
     "lib": ["ESNext", "DOM"],
-    "types": ["vite/client"],
+    "types": ["node", "vite/client"],
     "skipLibCheck": true,
 
     "strict": true,
@@ -38,5 +38,5 @@
       "@grid/*": ["./src/grid/*"]
     }
   },
-  "include": ["src/**/*.ts", "app.ts"]
+  "include": ["src/**/*.ts", "app.ts", "*.config.ts"]
 }

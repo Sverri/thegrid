@@ -7,3 +7,14 @@ A personal project creating a grid component
 Pull it down and run:
 
     npm run dev
+
+Run the unit tests with:
+
+    npm test
+
+Run the Playwright browser tests with:
+
+    npx playwright install chromium
+    npm run test:e2e
+
+Use `npm run test:e2e:ui` to run the Playwright UI mode.
