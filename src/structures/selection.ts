@@ -78,27 +78,32 @@ class Selection {
      * @param y2 The ending y coordinate when using coordinate values.
      */
     select(x1: number | Range, y1?: number, x2 = x1, y2 = y1): void {
+        let newRange: Range;
         switch (arguments.length) {
             case 1: {
                 if (!isRange(x1)) {
                     throw new Error("Invalid range");
                 }
-                this.#range = createRange(x1.x1, x1.y1, x1.x2, x1.y2);
+                newRange = createRange(x1.x1, x1.y1, x1.x2, x1.y2);
                 break;
             }
             case 2: {
-                this.#range = createRange(x1 as number, y1!, x1 as number, y1!);
+                newRange = createRange(x1 as number, y1!, x1 as number, y1!);
                 break;
             }
             case 4: {
-                this.#range = createRange(x1 as number, y1!, x2 as number, y2!);
+                newRange = createRange(x1 as number, y1!, x2 as number, y2!);
                 break;
             }
             default: {
                 throw new Error("Was not able to create a range from providede arguments");
             }
         }
-        this.#onChange.raise(createRange(this.#range));
+        if (this.#range.identicalTo(newRange)) {
+            return;
+        }
+        this.#range = newRange;
+        this.#onChange.raise(createRange(newRange));
     }
 
     /**

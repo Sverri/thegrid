@@ -34,7 +34,7 @@
     );
     --selection-cell-border-color: light-dark(
         color-mix(in srgb, hsl(from var(--selection-color) h 30% l), black 10%),
-        color-mix(in srgb, var(--selection-color), black 50%)
+        color-mix(in srgb, var(--selection-color), black 40%)
     );
     --selection-header-bg-color: var(--selection-cell-bg-color);
     --selection-header-border-color: light-dark(

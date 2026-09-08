@@ -2,6 +2,12 @@ import type { DataItem } from "@shared/types";
 import { DataType } from "@shared/enums";
 import { clampNumber } from "@helpers/numbers";
 
+interface CellFormatterData {
+    cell: HTMLDivElement;
+    rowIndex: number;
+    columnIndex: number;
+}
+
 export interface ColumnOptions<T extends DataItem> {
     /**
      * The property name or key to bind this column to in the data objects.
@@ -11,18 +17,18 @@ export interface ColumnOptions<T extends DataItem> {
     binding: keyof T;
 
     /**
-     * The display header text for this column.
-     *
-     * Defaults to the binding property name if not provided.
-     */
-    header?: string;
-
-    /**
      * The data type of the column, used for sorting and rendering.
      *
      * Defaults to ColumnType.String if not provided.
      */
     dataType?: DataType;
+
+    /**
+     * The display header text for this column.
+     *
+     * Defaults to the binding property name if not provided.
+     */
+    header?: string;
 
     /**
      * The width of the column in pixels.
@@ -51,6 +57,22 @@ export interface ColumnOptions<T extends DataItem> {
      * Defaults to true if not provided.
      */
     visible?: boolean;
+
+    /**
+     * Whether the column is readonly.
+     *
+     * Defaults to false if not provided.
+     */
+    readonly?: boolean;
+
+    /**
+     * Formatter
+     *
+     * TODO
+     *
+     * @param details
+     */
+    formatter?: (details: CellFormatterData) => void;
 }
 
 class Column<T extends DataItem> {
@@ -61,6 +83,8 @@ class Column<T extends DataItem> {
     #minWidth: number;
     #maxWidth: number;
     #visible: boolean;
+    #readonly: boolean;
+    #formatter?: ((details: CellFormatterData) => void) | undefined;
 
     constructor(options: ColumnOptions<T>) {
         this.#binding = options.binding;
@@ -70,6 +94,8 @@ class Column<T extends DataItem> {
         this.#maxWidth = options.maxWidth ?? 999999;
         this.#width = clampNumber(this.#minWidth, options.width ?? 100, this.#maxWidth);
         this.#visible = options.visible ?? true;
+        this.#readonly = options.readonly ?? false;
+        this.#formatter = options.formatter ?? undefined;
 
         if (typeof this.#binding !== "string" || this.#binding.length === 0) {
             throw new Error("The binding must be a non-empty string");
@@ -77,6 +103,10 @@ class Column<T extends DataItem> {
         if (this.#minWidth > this.#maxWidth) {
             throw new Error("The minWidth and maxWidth options");
         }
+    }
+
+    get formatter() {
+        return this.#formatter;
     }
 
     /**
@@ -172,6 +202,13 @@ class Column<T extends DataItem> {
     }
     set visible(value: boolean) {
         this.#visible = value;
+    }
+
+    get readonly() {
+        return this.#readonly;
+    }
+    set readonly(value: boolean) {
+        this.#readonly = value;
     }
 }
 

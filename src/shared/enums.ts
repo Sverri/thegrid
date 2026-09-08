@@ -45,19 +45,29 @@ export const DataType = Object.freeze({
     Boolean: Symbol("DataType.Boolean"),
 
     /**
-     * Numeric values rendered with decimal precision.
+     * Number, integer or decimal (exact value).
      */
-    Decimal: Symbol("DataType.Decimal"),
-
-    /**
-     * Date values.
-     */
-    Date: Symbol("DataType.Date"),
+    Number: Symbol("DataType.Number"),
 
     /**
      * Whole-number values.
      */
     Integer: Symbol("DataType.Integer"),
+
+    /**
+     * Numeric values rendered with decimal precision.
+     */
+    Decimal: Symbol("DataType.Decimal"),
+
+    /**
+     * Id
+     */
+    Id: Symbol("DataType.Id"),
+
+    /**
+     * Date values.
+     */
+    Date: Symbol("DataType.Date"),
 
     /**
      * URL values.

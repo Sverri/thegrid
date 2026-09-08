@@ -28,7 +28,7 @@ for (let i = 0; i < 1000; i++) {
     users.push({
         id: i,
         name: faker.person.fullName(),
-        age: faker.number.int({ min: 18, max: 130 }),
+        age: faker.number.int({ min: 10, max: 130 }),
         dob: faker.date.birthdate(),
         salary: faker.number.float({ min: 10_000, max: 500_000, fractionDigits: 2 }),
         email: faker.internet.email(),
@@ -50,17 +50,26 @@ const grid = createGrid(hostElement!, {
     showHeaderSelection: Headers.Both,
     columns: [
         { binding: "id", header: "Id", width: 100, dataType: DataType.Text },
+        { binding: "subscribed", header: "Subscribed", width: 115, dataType: DataType.Boolean, readonly: true },
         { binding: "name", header: "Name", width: 200, dataType: DataType.String },
         { binding: "age", header: "Age", width: 100, dataType: DataType.Integer },
         { binding: "dob", header: "Date of birth", width: 400, dataType: DataType.Date },
-        { binding: "salary", header: "Salary", width: 150, dataType: DataType.Decimal },
+        {
+            binding: "salary",
+            header: "Salary",
+            width: 150,
+            dataType: DataType.Decimal,
+            formatter: ({ cell, columnIndex, rowIndex }) => {
+                const data = grid.getCellData(columnIndex, rowIndex);
+                cell.textContent = `${Number(data).toFixed(0)} EUR`;
+            },
+        },
         { binding: "email", header: "Email address", width: 300, dataType: DataType.Email },
         { binding: "website", header: "Website", width: 300, dataType: DataType.URL },
         { binding: "postcode", header: "Post code", width: 150, dataType: DataType.String },
         { binding: "country", header: "Country", width: 250 },
         { binding: "telephone", header: "Telephone", width: 175, dataType: DataType.String },
         { binding: "faxephone", header: "Telephone", width: 175, dataType: DataType.String },
-        { binding: "subscribed", header: "Subscribed", width: 100, dataType: DataType.Boolean },
         { binding: "summary", header: "Summary", width: 400, dataType: DataType.Text },
         { binding: "note", header: "Note", width: 300, dataType: DataType.Text },
         { binding: "children", header: "Children", width: 100, dataType: DataType.Integer },
@@ -70,7 +79,7 @@ const grid = createGrid(hostElement!, {
 grid.columns.modify(options => {
     return options.map(option => {
         if (option.binding === "dob") {
-            option.visible = false;
+            // option.visible = false;
         }
         return option;
     });

@@ -4,7 +4,11 @@ import { getElementScrollDimensions, type ElementScrollDimensions } from "@helpe
 import { createRange, type Range } from "@structure/range";
 import { columnFromLeft } from "@structure/column";
 
-function calculateColumns(grid: Grid<any>, dimensions: ElementScrollDimensions, renderAhead: RenderAhead) {
+function calculateColumns(
+    grid: Pick<Grid<any>, "columns">,
+    dimensions: ElementScrollDimensions,
+    renderAhead: RenderAhead,
+) {
     const { columns } = grid;
     const { scrollLeft, scrollRight } = dimensions;
     const firstIndex = columns.items.findIndex(
@@ -19,7 +23,11 @@ function calculateColumns(grid: Grid<any>, dimensions: ElementScrollDimensions, 
     };
 }
 
-function calculateRows(grid: Grid<any>, dimensions: ElementScrollDimensions, renderAhead: RenderAhead) {
+function calculateRows(
+    grid: Pick<Grid<any>, "data" | "cellSize">,
+    dimensions: ElementScrollDimensions,
+    renderAhead: RenderAhead,
+) {
     const { data, cellSize } = grid;
     const { scrollTop, scrollBottom } = dimensions;
     const count = data.size;
@@ -38,7 +46,10 @@ function calculateRows(grid: Grid<any>, dimensions: ElementScrollDimensions, ren
  * @param options The render-area calculation inputs.
  * @returns A range describing the visible and buffered render region.
  */
-export function calculateRenderArea(grid: Grid<any>, renderAhead: RenderAhead): Range {
+export function calculateRenderArea(
+    grid: Pick<Grid<any>, "cellsElement" | "columns" | "data" | "cellSize">,
+    renderAhead: RenderAhead,
+): Range {
     const dimensions = getElementScrollDimensions(grid.cellsElement);
     const { firstColumnIndex, lastColumnIndex } = calculateColumns(grid, dimensions, renderAhead);
     const { firstRowIndex, lastRowIndex } = calculateRows(grid, dimensions, renderAhead);

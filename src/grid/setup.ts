@@ -10,11 +10,11 @@
  */
 export function setupDomElements(hostElement: HTMLElement, cellSize: number) {
     hostElement.innerHTML = `
-            <div class="thegrid-area-cells" tabindex="0"></div>
-            <div class="thegrid-area-topleft"></div>
-            <div class="thegrid-area-columnheaders"></div>
-            <div class="thegrid-area-rowheaders"></div>
-        `;
+        <div class="thegrid-area-cells" tabindex="0"></div>
+        <div class="thegrid-area-topleft"></div>
+        <div class="thegrid-area-columnheaders"></div>
+        <div class="thegrid-area-rowheaders"></div>
+    `;
     hostElement.classList.add("thegrid");
     hostElement.style.setProperty("width", "100%");
     hostElement.style.setProperty("height", "100%");
@@ -23,6 +23,8 @@ export function setupDomElements(hostElement: HTMLElement, cellSize: number) {
     const cellsElement = hostElement.querySelector<HTMLDivElement>(".thegrid-area-cells")!;
     const columnHeadersElement = hostElement.querySelector<HTMLDivElement>(".thegrid-area-columnheaders")!;
     const rowHeadersElement = hostElement.querySelector<HTMLDivElement>(".thegrid-area-rowheaders")!;
+
+    cellsElement.classList.add("thegrid-enable-zebra");
 
     return { cellsElement, columnHeadersElement, rowHeadersElement };
 }

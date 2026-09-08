@@ -2,7 +2,6 @@ import type { DataItem } from "@shared/types";
 import { keyboardExtension } from "@extension/keyboard";
 import { mouseExtension } from "@extension/mouse";
 import { resizeObserverExtension } from "@extension/resizeobserver";
-import { renderExtension } from "@extension/render";
 import { expanderExtension } from "@extension/expander";
 import { DataType, Headers } from "@shared/enums";
 import { columnFromLeft, createColumn, type Column, type ColumnOptions } from "@structure/column";
@@ -13,6 +12,7 @@ import { createCollectionView, type CollectionView } from "@structure/collection
 import { setupDomElements } from "./setup";
 import { createSelection, type Selection } from "@structure/selection";
 import { createPoint, isPoint, type Point } from "@structure/point";
+import { createRenderer, type Renderer } from "./renderer";
 
 const DEFAULT_CELL_SIZE = 50;
 
@@ -68,6 +68,7 @@ class Grid<T extends DataItem> {
     #showHeaderSelection: Headers;
     #showHeaders: Headers;
     #onInvalidate = createEvent<() => void>();
+    #renderer: Renderer;
 
     constructor(hostElement: HTMLElement, options?: GridOptions<T>) {
         // Miscellaneous
@@ -96,12 +97,16 @@ class Grid<T extends DataItem> {
 
         // Selection
         this.selection = createSelection(this, {
-            onChange: () => this.invalidate(true),
+            onChange: () => this.#renderer.updateSelection(),
         });
+
+        // Renderer
+        this.#renderer = createRenderer(this);
+        this.cellsElement.addEventListener("scroll", () => this.#renderer.render(), { passive: true });
+        this.#onInvalidate.subscribe(() => this.#renderer.render());
 
         // Extensions
         expanderExtension(this);
-        renderExtension(this);
         mouseExtension(this);
         keyboardExtension(this);
         resizeObserverExtension(this);
