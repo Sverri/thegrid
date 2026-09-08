@@ -86,12 +86,18 @@ class Renderer {
                 rowIndex: y,
             });
 
-            setCellContents(cell, column, grid.getCellData(x, y));
+            setCellContents({
+                cell,
+                column,
+                cellData: grid.getCellData(x, y),
+                locale: grid.locale,
+            });
+
             renderCellSelection(cell, selection.range, columns.items, x, y);
 
             cell.classList.add(y % 2 === 0 ? "row-even" : "row-odd");
 
-            column.formatter?.(
+            column.cellFormatter?.(
                 Object.freeze({
                     cell,
                     columnIndex: x,

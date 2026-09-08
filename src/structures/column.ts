@@ -8,20 +8,25 @@ interface CellFormatterData {
     columnIndex: number;
 }
 
-export interface ColumnOptions<T extends DataItem> {
+type NumericDataType =
+    | (typeof DataType)["Number"]
+    | (typeof DataType)["Integer"]
+    | (typeof DataType)["Decimal"]
+    | (typeof DataType)["Currency"];
+
+type DataFormatter<DT extends DataType> = DT extends NumericDataType
+    ? Intl.NumberFormat
+    : DT extends (typeof DataType)["Date"]
+      ? Intl.DateTimeFormat
+      : never;
+
+interface ColumnOptionsBase<T extends DataItem> {
     /**
      * The property name or key to bind this column to in the data objects.
      *
      * This is required and determines which field from the data is displayed in this column.
      */
     binding: keyof T;
-
-    /**
-     * The data type of the column, used for sorting and rendering.
-     *
-     * Defaults to ColumnType.String if not provided.
-     */
-    dataType?: DataType;
 
     /**
      * The display header text for this column.
@@ -72,8 +77,24 @@ export interface ColumnOptions<T extends DataItem> {
      *
      * @param details
      */
-    formatter?: (details: CellFormatterData) => void;
+    cellFormatter?: (details: CellFormatterData) => void;
 }
+
+export type ColumnOptions<T extends DataItem> =
+    | (ColumnOptionsBase<T> & {
+          dataType?: undefined;
+          dataFormatter?: never;
+      })
+    | (ColumnOptionsBase<T> &
+          {
+              [DT in DataType]: {
+                  /**
+                   * The data type of the column, used for sorting and rendering.
+                   */
+                  dataType: DT;
+                  dataFormatter?: DataFormatter<DT>;
+              };
+          }[DataType]);
 
 class Column<T extends DataItem> {
     #binding: keyof T;
@@ -84,7 +105,8 @@ class Column<T extends DataItem> {
     #maxWidth: number;
     #visible: boolean;
     #readonly: boolean;
-    #formatter?: ((details: CellFormatterData) => void) | undefined;
+    #cellFormatter?: ((details: CellFormatterData) => void) | undefined;
+    #dataFormatter?: Intl.NumberFormat | Intl.DateTimeFormat | undefined;
 
     constructor(options: ColumnOptions<T>) {
         this.#binding = options.binding;
@@ -95,7 +117,8 @@ class Column<T extends DataItem> {
         this.#width = clampNumber(this.#minWidth, options.width ?? 100, this.#maxWidth);
         this.#visible = options.visible ?? true;
         this.#readonly = options.readonly ?? false;
-        this.#formatter = options.formatter ?? undefined;
+        this.#cellFormatter = options.cellFormatter ?? undefined;
+        this.#dataFormatter = options.dataFormatter ?? undefined;
 
         if (typeof this.#binding !== "string" || this.#binding.length === 0) {
             throw new Error("The binding must be a non-empty string");
@@ -105,8 +128,12 @@ class Column<T extends DataItem> {
         }
     }
 
-    get formatter() {
-        return this.#formatter;
+    get cellFormatter() {
+        return this.#cellFormatter;
+    }
+
+    get dataFormatter() {
+        return this.#dataFormatter;
     }
 
     /**

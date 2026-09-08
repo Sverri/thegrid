@@ -32,62 +32,62 @@ export const DataType = Object.freeze({
     /**
      * Plain text values.
      */
-    String: Symbol("DataType.String"),
+    String: "DataType.String",
 
     /**
      * Multi-line text values.
      */
-    Text: Symbol("DataType.Text"),
+    Text: "DataType.Text",
 
     /**
      * Boolean values.
      */
-    Boolean: Symbol("DataType.Boolean"),
+    Boolean: "DataType.Boolean",
 
     /**
      * Number, integer or decimal (exact value).
      */
-    Number: Symbol("DataType.Number"),
+    Number: "DataType.Number",
 
     /**
      * Whole-number values.
      */
-    Integer: Symbol("DataType.Integer"),
+    Integer: "DataType.Integer",
 
     /**
      * Numeric values rendered with decimal precision.
      */
-    Decimal: Symbol("DataType.Decimal"),
+    Decimal: "DataType.Decimal",
 
     /**
      * Id
      */
-    Id: Symbol("DataType.Id"),
+    Id: "DataType.Id",
 
     /**
      * Date values.
      */
-    Date: Symbol("DataType.Date"),
+    Date: "DataType.Date",
 
     /**
      * URL values.
      */
-    URL: Symbol("DataType.URL"),
+    URL: "DataType.URL",
 
     /**
      * Email address values.
      */
-    Email: Symbol("DataType.Email"),
+    Email: "DataType.Email",
 
     /**
      * Currency values.
      */
-    Currency: Symbol("DataType.Currency"),
+    Currency: "DataType.Currency",
 
     /**
      * Custom or application-defined data types.
      */
-    Custom: Symbol("DataType.Custom"),
+    Custom: "DataType.Custom",
 } as const);
 
 export type DataType = (typeof DataType)[keyof typeof DataType];

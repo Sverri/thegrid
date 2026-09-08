@@ -49,6 +49,17 @@ export interface GridOptions<T extends DataItem> {
      * Cell size
      */
     cellSize?: number;
+
+    /**
+     * Locale
+     *
+     * You can either provide a simple locale like "en-UK", "de" or "pl", or,
+     * if you need to customize it further you can also provide a `Intl.Locale`
+     * instance.
+     *
+     * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Locale
+     */
+    locale?: string | Intl.Locale;
 }
 
 class Grid<T extends DataItem> {
@@ -62,6 +73,7 @@ class Grid<T extends DataItem> {
     readonly data: CollectionView<T>;
     readonly columns: CollectionView<ColumnOptions<T>, Column<T>>;
     readonly selection: Selection;
+    readonly locale: Intl.Locale;
 
     // Misc.
     #cellSize: number;
@@ -75,6 +87,7 @@ class Grid<T extends DataItem> {
         this.#cellSize = options?.cellSize ?? DEFAULT_CELL_SIZE;
         this.#showHeaders = options?.showHeaders ?? Headers.Both;
         this.#showHeaderSelection = options?.showHeaderSelection ?? Headers.Both;
+        this.locale = new Intl.Locale(options?.locale ?? "en-US");
 
         // DOM elements
         const { cellsElement, columnHeadersElement, rowHeadersElement } = setupDomElements(hostElement, this.#cellSize);

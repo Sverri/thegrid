@@ -1,6 +1,13 @@
 import { DataType } from "@shared/enums";
 import type { Column } from "@structure/column";
 
+interface Data {
+    cell: HTMLElement;
+    cellData: unknown;
+    column: Column<any>;
+    locale: Intl.Locale;
+}
+
 /**
  * Populates a cell element with formatted content based on the column data type.
  *
@@ -8,7 +15,7 @@ import type { Column } from "@structure/column";
  * @param columnType The data type that determines how the value should be displayed.
  * @param cellData The raw value to render inside the cell.
  */
-export function setCellContents(cell: HTMLElement, column: Column<any>, cellData: unknown): void {
+export function setCellContents({ cell, cellData, column, locale }: Data): void {
     if (cellData == undefined) {
         cell.textContent = "";
         return;
@@ -31,19 +38,39 @@ export function setCellContents(cell: HTMLElement, column: Column<any>, cellData
         }
 
         case DataType.Decimal: {
-            cell.textContent = Number(cellData).toFixed(2);
+            if (typeof cellData === "number") {
+                const formatter =
+                    column.dataFormatter ??
+                    new Intl.NumberFormat(locale, {
+                        maximumFractionDigits: 2,
+                        minimumFractionDigits: 2,
+                    });
+                cell.textContent = formatter.format(cellData);
+            } else {
+                cell.textContent = String(cellData);
+            }
             cell.style.textAlign = "right";
             break;
         }
 
         case DataType.Integer: {
-            cell.textContent = Number(cellData).toFixed(0);
+            if (typeof cellData === "number") {
+                const formatter = column.dataFormatter ?? new Intl.NumberFormat(locale, { maximumFractionDigits: 0 });
+                cell.textContent = formatter.format(cellData);
+            } else {
+                cell.textContent = String(cellData);
+            }
             cell.style.textAlign = "right";
             break;
         }
 
         case DataType.Id: {
-            cell.textContent = Number(cellData).toFixed(0);
+            if (typeof cellData === "number") {
+                const formatter = column.dataFormatter ?? new Intl.NumberFormat(locale, { maximumFractionDigits: 0 });
+                cell.textContent = formatter.format(cellData);
+            } else {
+                cell.textContent = String(cellData);
+            }
             cell.style.textAlign = "left";
             break;
         }
@@ -64,7 +91,18 @@ export function setCellContents(cell: HTMLElement, column: Column<any>, cellData
         }
 
         case DataType.Date: {
-            cell.textContent = new Date(cellData as Date).toDateString();
+            const formatter =
+                (column.dataFormatter as Intl.DateTimeFormat) ??
+                new Intl.DateTimeFormat(locale, {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                });
+            if (cellData instanceof Date) {
+                cell.textContent = formatter.format(cellData);
+            } else {
+                cell.textContent = new Date(cellData as Date).toDateString();
+            }
             break;
         }
     }
