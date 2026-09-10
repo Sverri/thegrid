@@ -18,6 +18,9 @@ describe("createColumn", () => {
         expect(column.minWidth).toBe(1);
         expect(column.maxWidth).toBe(999999);
         expect(column.visible).toBe(true);
+        expect(column.readonly).toBe(false);
+        expect(column.cellFormatter).toBeUndefined();
+        expect(column.dataFormatter).toBeUndefined();
     });
 
     it("preserves custom settings and clamps the initial width", () => {
@@ -29,6 +32,7 @@ describe("createColumn", () => {
             minWidth: 100,
             maxWidth: 300,
             visible: false,
+            readonly: true,
         });
 
         expect(column.header).toBe("Amount");
@@ -37,6 +41,10 @@ describe("createColumn", () => {
         expect(column.minWidth).toBe(100);
         expect(column.maxWidth).toBe(300);
         expect(column.visible).toBe(false);
+        expect(column.readonly).toBe(true);
+
+        column.readonly = false;
+        expect(column.readonly).toBe(false);
     });
 
     it("clamps width assignments between the current bounds", () => {

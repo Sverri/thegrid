@@ -1,80 +1,24 @@
 import { createPoint, type Point } from "./point";
 
 class Range {
-    #x1: number;
-    #x2: number;
-    #y1: number;
-    #y2: number;
-    #left: number;
-    #right: number;
-    #top: number;
-    #bottom: number;
+    readonly x1: number;
+    readonly x2: number;
+    readonly y1: number;
+    readonly y2: number;
+    readonly left: number;
+    readonly right: number;
+    readonly top: number;
+    readonly bottom: number;
 
     constructor(x1: number, y1: number, x2 = x1, y2 = y1) {
-        this.#x1 = x1;
-        this.#x2 = x2;
-        this.#y1 = y1;
-        this.#y2 = y2;
-        this.#left = Math.min(x1, x2);
-        this.#right = Math.max(x1, x2);
-        this.#top = Math.min(y1, y2);
-        this.#bottom = Math.max(y1, y2);
-    }
-
-    /**
-     * The first x-coordinate of the range.
-     */
-    get x1() {
-        return this.#x1;
-    }
-
-    /**
-     * The second x-coordinate of the range.
-     */
-    get x2() {
-        return this.#x2;
-    }
-
-    /**
-     * The first y-coordinate of the range.
-     */
-    get y1() {
-        return this.#y1;
-    }
-
-    /**
-     * The second y-coordinate of the range.
-     */
-    get y2() {
-        return this.#y2;
-    }
-
-    /**
-     * The smallest x-coordinate covered by the range.
-     */
-    get left() {
-        return this.#left;
-    }
-
-    /**
-     * The largest x-coordinate covered by the range.
-     */
-    get right() {
-        return this.#right;
-    }
-
-    /**
-     * The smallest y-coordinate covered by the range.
-     */
-    get top() {
-        return this.#top;
-    }
-
-    /**
-     * The largest y-coordinate covered by the range.
-     */
-    get bottom() {
-        return this.#bottom;
+        this.x1 = x1;
+        this.x2 = x2;
+        this.y1 = y1;
+        this.y2 = y2;
+        this.left = Math.min(x1, x2);
+        this.right = Math.max(x1, x2);
+        this.top = Math.min(y1, y2);
+        this.bottom = Math.max(y1, y2);
     }
 
     contains(range: Range): boolean {
@@ -152,21 +96,28 @@ export function createRange(range: Range): Range;
 export function createRange(x1: number, y1: number): Range;
 export function createRange(x1: number, y1: number, x2: number, y2: number): Range;
 export function createRange(x1: Range | number, y1?: number, x2 = x1, y2 = y1): Range {
+    let range: Range;
     switch (arguments.length) {
         case 1: {
             if (!isRange(x1)) {
                 throw new Error("Invalid range");
             }
-            return new Range(x1.x1, x1.y1, x1.x2, x1.y2);
+            range = new Range(x1.x1, x1.y1, x1.x2, x1.y2);
+            break;
         }
         case 2: {
-            return new Range(x1 as number, y1!, x1 as number, y1);
+            range = new Range(x1 as number, y1!, x1 as number, y1);
+            break;
         }
         case 4: {
-            return new Range(x1 as number, y1!, x2 as number, y2);
+            range = new Range(x1 as number, y1!, x2 as number, y2);
+            break;
+        }
+        default: {
+            throw new Error("Was not able to create a range from providede arguments");
         }
     }
-    throw new Error("Was not able to create a range from providede arguments");
+    return Object.freeze(range);
 }
 
 /**
@@ -174,6 +125,6 @@ export function createRange(x1: Range | number, y1?: number, x2 = x1, y2 = y1): 
  *
  * @param value
  */
-export function isRange(value: unknown) {
+export function isRange(value: unknown): value is Range {
     return value instanceof Range;
 }

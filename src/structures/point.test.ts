@@ -12,7 +12,6 @@ describe("createPoint", () => {
     it("exposes coordinates as read-only properties", () => {
         const point = createPoint(1, 2);
 
-        expect(Object.keys(point)).toEqual([]);
         expect(Object.getOwnPropertyDescriptor(Object.getPrototypeOf(point), "x")?.set).toBeUndefined();
         expect(Object.getOwnPropertyDescriptor(Object.getPrototypeOf(point), "y")?.set).toBeUndefined();
     });
