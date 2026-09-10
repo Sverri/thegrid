@@ -274,3 +274,7 @@ export function createSelection(grid: Grid<any>, options?: Options) {
     }
     return instance;
 }
+
+export function isSelection(value: unknown): value is Selection {
+    return value instanceof Selection;
+}

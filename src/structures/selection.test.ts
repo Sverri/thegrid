@@ -3,7 +3,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { createGrid } from "@grid/grid";
 import { createRange } from "./range";
-import { createSelection } from "./selection";
+import { createSelection, isSelection } from "./selection";
 
 describe("Selection", () => {
     function createTestGrid() {
@@ -165,5 +165,15 @@ describe("Selection", () => {
         selection.select(0, 0, 0, 2);
         selection.expandSelectionDown(10);
         expect(selection.range.bottom).toBe(2);
+    });
+
+    it("recognizes selections and rejects unrelated values", () => {
+        const grid = createTestGrid();
+        const selection = createSelection(grid);
+
+        expect(isSelection(selection)).toBe(true);
+        expect(isSelection({})).toBe(false);
+        expect(isSelection(null)).toBe(false);
+        expect(isSelection([])).toBe(false);
     });
 });

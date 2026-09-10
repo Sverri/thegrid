@@ -46,10 +46,7 @@ function calculateRows(
  * @param options The render-area calculation inputs.
  * @returns A range describing the visible and buffered render region.
  */
-export function calculateRenderArea(
-    grid: Pick<Grid<any>, "cellsElement" | "columns" | "data" | "cellSize">,
-    renderAhead: RenderAhead,
-): Range {
+export function calculateRenderArea(grid: Grid<any>, renderAhead: RenderAhead): Range {
     const dimensions = getElementScrollDimensions(grid.cellsElement);
     const { firstColumnIndex, lastColumnIndex } = calculateColumns(grid, dimensions, renderAhead);
     const { firstRowIndex, lastRowIndex } = calculateRows(grid, dimensions, renderAhead);

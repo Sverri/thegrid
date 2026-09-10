@@ -38,5 +38,5 @@
       "@grid/*": ["./src/grid/*"]
     }
   },
-  "include": ["src/**/*.ts", "app.ts", "*.config.ts"]
+  "include": ["src/**/*.ts", "app.ts", "*.config.ts", "e2e/**/*.ts"]
 }

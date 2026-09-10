@@ -1,5 +1,4 @@
 import { createGrid, DataType } from "../src/index";
-import { faker } from "@faker-js/faker";
 import { Headers } from "@shared/enums";
 
 interface User {

@@ -256,7 +256,7 @@ export function createColumn<T extends DataItem>(options: ColumnOptions<T>) {
  *
  * @param value
  */
-export function isColumn(value: unknown) {
+export function isColumn<T extends DataItem>(value: unknown): value is Column<T> {
     return value instanceof Column;
 }
 

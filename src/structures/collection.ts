@@ -36,8 +36,8 @@ class CollectionView<SourceItem, ViewItem = SourceItem> {
     #mapper: Mapper<SourceItem, ViewItem> | undefined;
     #filter: Filter<ViewItem> | undefined;
     #sorter: Sorter<ViewItem> | undefined;
-    #isDirty = true;
     #onChange = createEvent<() => void>();
+    #isDirty = true;
 
     /**
      * Creates a view over a copied set of source items.
@@ -214,6 +214,8 @@ export function createCollectionView<SourceItem, ViewItem = SourceItem>(
  *
  * @param value
  */
-export function isCollectionView(value: unknown) {
+export function isCollectionView<SourceItem, ViewItem = SourceItem>(
+    value: unknown,
+): value is CollectionView<SourceItem, ViewItem> {
     return value instanceof CollectionView;
 }

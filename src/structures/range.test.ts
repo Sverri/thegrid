@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createRange } from "./range";
+import { createRange, isRange } from "./range";
 
 describe("createRange", () => {
     it("rejects an invalid single argument", () => {
@@ -86,5 +86,14 @@ describe("createRange", () => {
             [-1, 3],
             [-1, 4],
         ]);
+    });
+
+    it("recognizes ranges and rejects unrelated values", () => {
+        const range = createRange(1, 2, 3, 4);
+
+        expect(isRange(range)).toBe(true);
+        expect(isRange({})).toBe(false);
+        expect(isRange(null)).toBe(false);
+        expect(isRange([])).toBe(false);
     });
 });
