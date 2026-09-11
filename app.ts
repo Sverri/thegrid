@@ -48,19 +48,12 @@ const grid = createGrid(hostElement!, {
     data: users,
     showHeaders: Headers.Both,
     showHeaderSelection: Headers.Both,
-    locale: "da",
     columns: [
         { binding: "id", dataType: DataType.Text, header: "Id", width: 100 },
         { binding: "subscribed", dataType: DataType.Boolean, header: "Subscribed", width: 115, readonly: true },
         { binding: "name", dataType: DataType.String, header: "Name", width: 200 },
         { binding: "age", dataType: DataType.Integer, header: "Age", width: 100 },
-        {
-            binding: "dob",
-            dataType: DataType.Date,
-            header: "Date of birth",
-            width: 400,
-            dataFormatter: new Intl.DateTimeFormat("da"),
-        },
+        { binding: "dob", dataType: DataType.Date, header: "Date of birth", width: 400 },
         {
             binding: "salary",
             dataType: DataType.Decimal,
@@ -86,22 +79,9 @@ const grid = createGrid(hostElement!, {
     ],
 });
 
-grid.columns.modify(options => {
-    return options.map(option => {
-        if (option.binding === "dob") {
-            // option.visible = false;
-        }
-        return option;
-    });
-});
-
-// Filter out items with odd "id"
-grid.data.filter = item => item.id % 2 === 0;
-
-// Sort by name, natural sort algorithm
 const collator = new Intl.Collator("en", { numeric: true });
+grid.data.filter = item => item.id % 2 === 0;
 grid.data.sorter = (a, b) => collator.compare(a.name!, b.name!);
-
 grid.selection.select(1, 1);
 
 // Cell size slider

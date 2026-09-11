@@ -6,8 +6,6 @@
     "types": ["node", "vite/client"],
     "skipLibCheck": true,
 
-    "strict": true,
-
     /* Bundler mode */
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": false,
@@ -16,6 +14,7 @@
     "noEmit": true,
 
     /* Linting */
+    "strict": true,
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,
     "exactOptionalPropertyTypes": true,
