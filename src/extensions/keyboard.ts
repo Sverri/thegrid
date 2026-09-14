@@ -1,5 +1,6 @@
 import type { Grid } from "@grid/grid";
 import { calculateRenderArea } from "@extension/shared/calculaterenderarea";
+import { createPoint } from "@structure/point";
 
 interface KeyboardEventLike {
     key: string;
@@ -40,14 +41,17 @@ function moveToEdge(grid: Grid<any>, direction: Direction, shiftHeld: boolean): 
     const anchorY = shiftHeld ? y1 : targetY;
 
     grid.selection.select(anchorX, anchorY, targetX, targetY);
-    grid.scrollIntoView(targetX, targetY);
+
+    const scrollPoint = createPoint(targetX, targetY);
+    grid.scrollIntoView(scrollPoint);
 }
 
 function selectAll(grid: Grid<any>): void {
     const lastVisibleIndex = grid.columns.items.length - 1;
     const rowCount = grid.data.size - 1;
     grid.selection.select(0, 0, lastVisibleIndex, rowCount);
-    grid.scrollIntoView(grid.selection.range.x2, grid.selection.range.y2);
+    const scrollPoint = createPoint(grid.selection.range.x2, grid.selection.range.y2);
+    grid.scrollIntoView(scrollPoint);
 }
 
 function moveSelection(grid: Grid<any>, direction: Direction, shiftHeld: boolean, ctrlHeld: boolean): void {
@@ -88,7 +92,8 @@ function moveSelection(grid: Grid<any>, direction: Direction, shiftHeld: boolean
         }
     }
 
-    grid.scrollIntoView(grid.selection.range.x2, grid.selection.range.y2);
+    const scrollPoint = createPoint(grid.selection.range.x2, grid.selection.range.y2);
+    grid.scrollIntoView(scrollPoint);
 }
 
 function page(grid: Grid<any>, direction: "up" | "down", shiftHeld: boolean): void {
@@ -107,7 +112,8 @@ function page(grid: Grid<any>, direction: "up" | "down", shiftHeld: boolean): vo
             grid.selection.moveSelectionDown(rowsPerPage);
         }
     }
-    grid.scrollIntoView(grid.selection.range.x2, grid.selection.range.y2);
+    const scrollPoint = createPoint(grid.selection.range.x2, grid.selection.range.y2);
+    grid.scrollIntoView(scrollPoint);
 }
 
 export function handleKeyDown(grid: Grid<any>, event: KeyboardEventLike): void {

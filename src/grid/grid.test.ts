@@ -119,9 +119,9 @@ describe("Grid", () => {
         grid.setCellData(0, 10, "ignored");
         expect(grid.getCellData(0, 0)).toBe("Elizabeth");
 
-        grid.scrollIntoView(1, 3);
+        grid.scrollIntoView(createPoint(1, 3));
         grid.scrollIntoView(createPoint(0, 0));
-        grid.scrollIntoView(10, 0);
+        grid.scrollIntoView(createPoint(10, 0));
 
         expect(scrollTo).toHaveBeenCalledWith({ left: 0, top: 0, behavior: "instant" });
         expect(scrollTo).toHaveBeenCalledTimes(2);
@@ -138,11 +138,11 @@ describe("Grid", () => {
             clientHeight: { configurable: true, value: 30 },
         });
 
-        grid.scrollIntoView(0, 0);
+        grid.scrollIntoView(createPoint(0, 0));
         expect(scrollTo).toHaveBeenCalledWith({ left: 0, top: 0, behavior: "instant" });
 
         scrollTo.mockClear();
-        grid.scrollIntoView(1, 5);
+        grid.scrollIntoView(createPoint(1, 5));
         expect(scrollTo).toHaveBeenCalledWith({ left: 130, top: 90, behavior: "instant" });
     });
 

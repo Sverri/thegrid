@@ -11,7 +11,7 @@ import { getElementScrollDimensions } from "@helpers/getelementscrolldimensions"
 import { createCollectionView, type CollectionView } from "@structure/collection";
 import { setupDomElements } from "./setup";
 import { createSelection, type Selection } from "@structure/selection";
-import { createPoint, isPoint, type Point } from "@structure/point";
+import { type Point } from "@structure/point";
 import { createRenderer, type Renderer } from "./renderer";
 
 const DEFAULT_CELL_SIZE = 50;
@@ -176,10 +176,7 @@ class Grid<T extends DataItem> {
         }
     }
 
-    scrollIntoView(point: Point): void;
-    scrollIntoView(columnIndex: number, rowIndex: number): void;
-    scrollIntoView(columnIndex: number | Point, rowIndex?: number): void {
-        const point = isPoint(columnIndex) ? columnIndex : createPoint(columnIndex, rowIndex!);
+    scrollIntoView(point: Point): void {
         const { scrollLeft, scrollRight, scrollTop, scrollBottom } = getElementScrollDimensions(this.cellsElement);
         const column = this.columns.items.at(point.x);
         if (!column) {
