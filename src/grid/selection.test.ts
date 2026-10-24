@@ -2,6 +2,7 @@
 
 import { describe, expect, it, vi } from "vitest";
 import { createGrid } from "@grid/grid";
+import { createPoint } from "@structure/point";
 import { createRange } from "@structure/range";
 import { createSelection, isSelection } from "./selection";
 
@@ -22,9 +23,19 @@ describe("Selection", () => {
         const grid = createTestGrid();
         const selection = createSelection(grid);
 
-        selection.select(1, 2, 2, 2);
+        const range = createRange(1, 2, 2, 2);
+        selection.select(range);
 
-        expect(selection.range).toEqual(createRange(1, 2, 2, 2));
+        expect(selection.range).toBe(range);
+    });
+
+    it("selects using a point instance", () => {
+        const grid = createTestGrid();
+        const selection = createSelection(grid);
+
+        selection.select(createPoint(1, 2));
+
+        expect(selection.range).toEqual(createRange(1, 2));
     });
 
     it("selects using coordinate overloads", () => {
