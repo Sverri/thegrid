@@ -45,6 +45,7 @@ describe("Grid", () => {
 
     afterEach(() => {
         vi.unstubAllGlobals();
+        vi.restoreAllMocks();
     });
 
     it("renders cells and both headers", () => {
@@ -113,6 +114,7 @@ describe("Grid", () => {
     it("updates cell data and supports both scrollIntoView overloads", () => {
         const { grid } = createTestGrid({ cellSize: 20 });
         const scrollTo = grid.cellsElement.scrollTo as ReturnType<typeof vi.fn>;
+        const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
 
         grid.setCellData(0, 0, "Elizabeth");
         grid.setCellData(10, 0, "ignored");
@@ -125,6 +127,7 @@ describe("Grid", () => {
 
         expect(scrollTo).toHaveBeenCalledWith({ left: 0, top: 0, behavior: "instant" });
         expect(scrollTo).toHaveBeenCalledTimes(2);
+        expect(warn).toHaveBeenCalledWith("Was unable to scroll into view: [10,0] (column does not exist)");
     });
 
     it("adjusts scrolling when the target is outside the viewport", () => {

@@ -1,6 +1,7 @@
 import type { Grid } from "@grid/grid";
 import { createEvent, type Callback } from "@shared/event";
-import { createRange, isRange, type Range } from "./range";
+import { isPoint, type Point } from "@structure/point";
+import { createRange, isRange, rangeIdenticalTo, type Range } from "@structure/range";
 
 /**
  * Represents the active selection within a grid.
@@ -45,31 +46,6 @@ class Selection {
     }
 
     /**
-     * Selects the provided range.
-     *
-     * @param range The range to become active.
-     */
-    select(range: Range): void;
-
-    /**
-     * Selects a range by absolute coordinates.
-     *
-     * @param x1 The starting x coordinate.
-     * @param y1 The starting y coordinate.
-     */
-    select(x1: number, y1: number): void;
-
-    /**
-     * Selects a range by absolute coordinates.
-     *
-     * @param x1 The starting x coordinate.
-     * @param y1 The starting y coordinate.
-     * @param x2 The ending x coordinate.
-     * @param y2 The ending y coordinate.
-     */
-    select(x1: number, y1: number, x2: number, y2: number): void;
-
-    /**
      * Applies a selection using either a range instance or coordinate values.
      *
      * @param x1 A range to apply or the starting x coordinate.
@@ -77,33 +53,39 @@ class Selection {
      * @param x2 The ending x coordinate when using coordinate values.
      * @param y2 The ending y coordinate when using coordinate values.
      */
-    select(x1: number | Range, y1?: number, x2 = x1, y2 = y1): void {
-        let newRange: Range;
-        switch (arguments.length) {
-            case 1: {
-                if (!isRange(x1)) {
-                    throw new Error("Invalid range");
-                }
-                newRange = createRange(x1.x1, x1.y1, x1.x2, x1.y2);
-                break;
-            }
-            case 2: {
-                newRange = createRange(x1 as number, y1!, x1 as number, y1!);
-                break;
-            }
-            case 4: {
-                newRange = createRange(x1 as number, y1!, x2 as number, y2!);
-                break;
-            }
-            default: {
-                throw new Error("Was not able to create a range from providede arguments");
-            }
+    select(x1: number, y1: number, x2?: number, y2?: number): void;
+
+    /**
+     * Applies a selection using either a range instance or coordinate values.
+     *
+     * @param point
+     */
+    select(point: Point): void;
+
+    /**
+     * Applies a selection using either a range instance or coordinate values.
+     *
+     * @param range
+     */
+    select(range: Range): void;
+
+    select(x1: number | Point | Range, y1?: number, x2?: number, y2?: number): void {
+        let range: Range;
+
+        if (isRange(x1)) {
+            range = x1;
+        } else if (isPoint(x1)) {
+            range = createRange(x1.x, x1.y);
+        } else {
+            range = createRange(x1, y1!, x2, y2);
         }
-        if (this.#range.identicalTo(newRange)) {
+
+        if (rangeIdenticalTo(this.#range, range)) {
             return;
         }
-        this.#range = newRange;
-        this.#onChange.raise(createRange(newRange));
+
+        this.#range = range;
+        this.#onChange.raise(range);
     }
 
     /**
@@ -114,7 +96,7 @@ class Selection {
     moveSelectionLeft(count = 1): void {
         const visibleColumns = this.#grid.columns.items;
         if (visibleColumns.length === 0) {
-            this.select(createRange(0, this.#range.y2));
+            this.select(0, this.#range.y2);
             return;
         }
 
@@ -129,7 +111,7 @@ class Selection {
             newX2 = nextX2;
             count--;
         }
-        this.select(createRange(newX2, y2));
+        this.select(newX2, y2);
     }
 
     /**
@@ -140,7 +122,7 @@ class Selection {
     moveSelectionRight(count = 1): void {
         const visibleColumns = this.#grid.columns.items;
         if (visibleColumns.length === 0) {
-            this.select(createRange(0, this.#range.y2));
+            this.select(0, this.#range.y2);
             return;
         }
 
@@ -155,7 +137,7 @@ class Selection {
             newX2 = nextX2;
             count--;
         }
-        this.select(createRange(newX2, y2));
+        this.select(newX2, y2);
     }
 
     /**
@@ -164,9 +146,9 @@ class Selection {
      * @param count The number of rows to move up.
      */
     moveSelectionUp(count = 1): void {
-        const { x2, y2 } = this.#range;
+        const { y2 } = this.#range;
         const minY2 = 0;
-        this.select(createRange(x2, Math.max(minY2, y2 - count)));
+        this.select(minY2, Math.max(0, y2 - count));
     }
 
     /**
@@ -177,7 +159,7 @@ class Selection {
     moveSelectionDown(count = 1): void {
         const { x2, y2 } = this.#range;
         const maxY2 = this.#grid.data.size - 1;
-        this.select(createRange(x2, Math.min(maxY2, y2 + count)));
+        this.select(x2, Math.min(maxY2, y2 + count));
     }
 
     /**
@@ -188,7 +170,7 @@ class Selection {
     expandSelectionLeft(count = 1): void {
         const visibleColumns = this.#grid.columns.items;
         if (visibleColumns.length === 0) {
-            this.select(createRange(0, 0, 0, this.#range.y2));
+            this.select(0, 0, 0, this.#range.y2);
             return;
         }
 
@@ -203,7 +185,7 @@ class Selection {
             newX2 = nextX2;
             count--;
         }
-        this.select(createRange(x1, y1, newX2, y2));
+        this.select(x1, y1, newX2, y2);
     }
 
     /**
@@ -214,7 +196,7 @@ class Selection {
     expandSelectionRight(count = 1): void {
         const visibleColumns = this.#grid.columns.items;
         if (visibleColumns.length === 0) {
-            this.select(createRange(0, 0, 0, this.#range.y2));
+            this.select(0, 0, 0, this.#range.y2);
             return;
         }
 
@@ -229,7 +211,7 @@ class Selection {
             newX2 = nextX2;
             count--;
         }
-        this.select(createRange(x1, y1, newX2, y2));
+        this.select(x1, y1, newX2, y2);
     }
 
     /**
@@ -240,7 +222,7 @@ class Selection {
     expandSelectionUp(count = 1): void {
         const { x1, y1, x2, y2 } = this.#range;
         const minY2 = 0;
-        this.select(createRange(x1, y1, x2, Math.max(minY2, y2 - count)));
+        this.select(x1, y1, x2, Math.max(minY2, y2 - count));
     }
 
     /**
@@ -251,7 +233,7 @@ class Selection {
     expandSelectionDown(count = 1): void {
         const { x1, y1, x2, y2 } = this.#range;
         const maxY2 = this.#grid.data.size - 1;
-        this.select(createRange(x1, y1, x2, Math.min(maxY2, y2 + count)));
+        this.select(x1, y1, x2, Math.min(maxY2, y2 + count));
     }
 }
 

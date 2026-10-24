@@ -10,7 +10,7 @@ import { debounce } from "throttle-debounce";
 import { getElementScrollDimensions } from "@helpers/getelementscrolldimensions";
 import { createCollectionView, type CollectionView } from "@structure/collection";
 import { setupDomElements } from "./setup";
-import { createSelection, type Selection } from "@structure/selection";
+import { createSelection, type Selection } from "@grid/selection";
 import { type Point } from "@structure/point";
 import { createRenderer, type Renderer } from "./renderer";
 

@@ -1,5 +1,5 @@
 import type { Grid } from "./grid";
-import type { Range } from "@structure/range";
+import { rangeHorizontalIterator, rangeIterator, rangeVerticalIterator, type Range } from "@structure/range";
 import { createCell } from "@extension/shared/createcell";
 import { CellType, Headers } from "@shared/enums";
 import { columnFromLeft } from "@structure/column";
@@ -41,7 +41,7 @@ class Renderer {
 
         this.#removeSelectionFromCells();
 
-        for (const { x, y } of renderArea.iterator()) {
+        for (const { x, y } of rangeIterator(renderArea)) {
             const cell = cellsElement.querySelector<HTMLDivElement>(`[data-column="${x}"][data-row="${y}"]`);
             if (cell) {
                 renderCellSelection(cell, selection.range, columns.items, x, y);
@@ -70,7 +70,7 @@ class Renderer {
         const grid = this.#grid;
         const { cellsElement, cellSize, columns, selection } = grid;
 
-        this.#renderItems(cellsElement, range.iterator(), ({ x, y }) => {
+        this.#renderItems(cellsElement, rangeIterator(range), ({ x, y }) => {
             const column = columns.items.at(x);
             if (!column) {
                 return undefined;
@@ -123,7 +123,7 @@ class Renderer {
 
         const { columnHeadersElement, cellSize, showHeaderSelection, columns, selection } = this.#grid;
 
-        this.#renderItems(columnHeadersElement, range.horizontalIterator(), ({ x }) => {
+        this.#renderItems(columnHeadersElement, rangeHorizontalIterator(range), ({ x }) => {
             const column = columns.items.at(x);
             if (!column) {
                 return undefined;
@@ -165,7 +165,7 @@ class Renderer {
             return;
         }
 
-        this.#renderItems(rowHeadersElement, range.verticalIterator(), ({ y }) => {
+        this.#renderItems(rowHeadersElement, rangeVerticalIterator(range), ({ y }) => {
             const cell = createCell({
                 type: CellType.RowHeader,
                 width: cellSize,

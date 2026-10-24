@@ -2,6 +2,7 @@
 
 import { describe, expect, it, vi } from "vitest";
 import { mouseExtension } from "./mouse";
+import { createRange } from "@structure/range";
 
 function createGrid() {
     return {
@@ -34,7 +35,7 @@ describe("mouseExtension", () => {
 
         dispatchMouseEvent(cell, "mousedown", { button: 0 });
 
-        expect(grid.selection.select).toHaveBeenCalledWith(2, 4);
+        expect(grid.selection.select).toHaveBeenCalledWith(createRange(2, 4));
     });
 
     it("accepts events from descendants of a cell", () => {
@@ -47,7 +48,7 @@ describe("mouseExtension", () => {
 
         dispatchMouseEvent(child, "mousedown", { button: 0 });
 
-        expect(grid.selection.select).toHaveBeenCalledWith(2, 4);
+        expect(grid.selection.select).toHaveBeenCalledWith(createRange(2, 4));
     });
 
     it("ignores non-primary mousedown events", () => {
@@ -157,7 +158,7 @@ describe("mouseExtension", () => {
         dispatchMouseEvent(startCell, "mousedown", { button: 0 });
         grid.selection.select.mockClear();
         dispatchMouseEvent(endCell, "mouseup", { button: 0 });
-        expect(grid.selection.select).toHaveBeenCalledWith(1, 1, 2, 3);
+        expect(grid.selection.select).toHaveBeenCalledWith(createRange(1, 1, 2, 3));
 
         grid.selection.select.mockClear();
         dispatchMouseEvent(endCell, "mousemove", { buttons: 1 });
@@ -236,7 +237,7 @@ describe("mouseExtension", () => {
 
         dispatchMouseEvent(cell, "mouseup", { button: 0 });
 
-        expect(grid.selection.select).toHaveBeenCalledWith(2, 4, 2, 4);
+        expect(grid.selection.select).toHaveBeenCalledWith(createRange(2, 4, 2, 4));
     });
 
     it("ignores non-primary mouseup events", () => {

@@ -1,6 +1,6 @@
 import type { DataItem } from "@shared/types";
 import type { Column } from "@structure/column";
-import { createRange, type Range } from "@structure/range";
+import { createRange, rangeContains, rangeIntersectsColumn, rangeIntersectsRow, type Range } from "@structure/range";
 
 /**
  * Applies the current selection styling to a single cell element.
@@ -24,11 +24,11 @@ export function renderCellSelection<T extends DataItem>(
 ): void {
     const { left, right, top, bottom, x2, y2 } = selection;
 
-    if (selection.contains(createRange(columnIndex, rowIndex))) {
+    if (rangeContains(selection, createRange(columnIndex, rowIndex))) {
         cell.classList.add("selection");
     }
 
-    if (selection.intersectsRow(rowIndex)) {
+    if (rangeIntersectsRow(selection, rowIndex)) {
         const previousVisibleColumnIndex = columns.findLastIndex(c => columns.indexOf(c) < left);
         if (columnIndex === previousVisibleColumnIndex) {
             cell.classList.add("selection-right-border");
@@ -38,7 +38,7 @@ export function renderCellSelection<T extends DataItem>(
         }
     }
 
-    if (selection.intersectsColumn(columnIndex)) {
+    if (rangeIntersectsColumn(selection, columnIndex)) {
         if (rowIndex === top - 1) {
             cell.classList.add("selection-bottom-border");
         }

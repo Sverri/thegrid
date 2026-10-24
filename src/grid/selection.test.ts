@@ -2,7 +2,7 @@
 
 import { describe, expect, it, vi } from "vitest";
 import { createGrid } from "@grid/grid";
-import { createRange } from "./range";
+import { createRange } from "@structure/range";
 import { createSelection, isSelection } from "./selection";
 
 describe("Selection", () => {
@@ -22,23 +22,9 @@ describe("Selection", () => {
         const grid = createTestGrid();
         const selection = createSelection(grid);
 
-        selection.select(createRange(1, 2, 2, 2));
+        selection.select(1, 2, 2, 2);
 
         expect(selection.range).toEqual(createRange(1, 2, 2, 2));
-    });
-
-    it("rejects an invalid single argument", () => {
-        const grid = createTestGrid();
-        const selection = createSelection(grid);
-
-        expect(() => (selection.select as any)("invalid")).toThrow("Invalid range");
-    });
-
-    it("rejects unsupported argument counts", () => {
-        const grid = createTestGrid();
-        const selection = createSelection(grid);
-
-        expect(() => (selection.select as any)(1, 2, 3)).toThrow("Was not able to create a range");
     });
 
     it("selects using coordinate overloads", () => {

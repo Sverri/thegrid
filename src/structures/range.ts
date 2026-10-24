@@ -1,130 +1,118 @@
 import { createPoint, type Point } from "./point";
 
-class Range {
-    readonly x1: number;
-    readonly x2: number;
-    readonly y1: number;
-    readonly y2: number;
-    readonly left: number;
-    readonly right: number;
-    readonly top: number;
-    readonly bottom: number;
+export interface Range {
+    x1: number;
+    x2: number;
+    y1: number;
+    y2: number;
+    left: number;
+    right: number;
+    top: number;
+    bottom: number;
+}
 
-    constructor(x1: number, y1: number, x2 = x1, y2 = y1) {
-        this.x1 = x1;
-        this.x2 = x2;
-        this.y1 = y1;
-        this.y2 = y2;
-        this.left = Math.min(x1, x2);
-        this.right = Math.max(x1, x2);
-        this.top = Math.min(y1, y2);
-        this.bottom = Math.max(y1, y2);
-    }
+export function createRange(x1: number, y1: number, x2 = x1, y2 = y1): Range {
+    return Object.freeze({
+        x1: x1,
+        x2: x2,
+        y1: y1,
+        y2: y2,
+        left: Math.min(x1, x2),
+        right: Math.max(x1, x2),
+        top: Math.min(y1, y2),
+        bottom: Math.max(y1, y2),
+    });
+}
 
-    contains(range: Range): boolean {
-        return (
-            range.left >= this.left && range.right <= this.right && range.top >= this.top && range.bottom <= this.bottom
-        );
-    }
+/**
+ * Is range
+ *
+ * @param range
+ */
+export function isRange(range: unknown): range is Range {
+    return (
+        range != undefined &&
+        typeof range === "object" &&
+        Object.isFrozen(range) &&
+        "x1" in range &&
+        "x2" in range &&
+        "y1" in range &&
+        "y2" in range &&
+        "left" in range &&
+        "right" in range &&
+        "top" in range &&
+        "bottom" in range
+    );
+}
 
-    containsColumn(index: number): boolean {
-        return index >= this.left && index <= this.right;
-    }
+export function rangeContains(range: Range, containsRange: Range): boolean {
+    return (
+        containsRange.left >= range.left &&
+        containsRange.right <= range.right &&
+        containsRange.top >= range.top &&
+        containsRange.bottom <= range.bottom
+    );
+}
 
-    containsRow(index: number): boolean {
-        return index >= this.top && index <= this.bottom;
-    }
+export function rangeContainsColumn(range: Range, index: number): boolean {
+    return index >= range.left && index <= range.right;
+}
 
-    intersects(range: Range): boolean {
-        return (
-            this.left <= range.right && this.right >= range.left && this.top <= range.bottom && this.bottom >= range.top
-        );
-    }
+export function rangeContainsRow(range: Range, index: number): boolean {
+    return index >= range.top && index <= range.bottom;
+}
 
-    intersectsColumn(index: number): boolean {
-        return index >= this.left && index <= this.right;
-    }
+export function rangeIntersects(range: Range, intersectingRange: Range): boolean {
+    return (
+        range.left <= intersectingRange.right &&
+        range.right >= intersectingRange.left &&
+        range.top <= intersectingRange.bottom &&
+        range.bottom >= intersectingRange.top
+    );
+}
 
-    intersectsRow(index: number): boolean {
-        return index >= this.top && index <= this.bottom;
-    }
+export function rangeIntersectsColumn(range: Range, index: number): boolean {
+    return index >= range.left && index <= range.right;
+}
 
-    sameAs(range: Range): boolean {
-        return (
-            range.left === this.left &&
-            range.top === this.top &&
-            range.right === this.right &&
-            range.bottom === this.bottom
-        );
-    }
+export function rangeIntersectsRow(range: Range, index: number): boolean {
+    return index >= range.top && index <= range.bottom;
+}
 
-    identicalTo(range: Range): boolean {
-        return range.x1 === this.x1 && range.y1 === this.y1 && range.x2 === this.x2 && range.y2 === this.y2;
-    }
+export function rangeSameAs(range: Range, sameAsRange: Range): boolean {
+    return (
+        sameAsRange.left === range.left &&
+        sameAsRange.top === range.top &&
+        sameAsRange.right === range.right &&
+        sameAsRange.bottom === range.bottom
+    );
+}
 
-    *iterator(): Generator<Point, void, unknown> {
-        for (let rowIndex = this.top; rowIndex <= this.bottom; rowIndex++) {
-            for (let columnIndex = this.left; columnIndex <= this.right; columnIndex++) {
-                yield createPoint(columnIndex, rowIndex);
-            }
-        }
-    }
+export function rangeIdenticalTo(range: Range, identicalToRange: Range): boolean {
+    return (
+        identicalToRange.x1 === range.x1 &&
+        identicalToRange.y1 === range.y1 &&
+        identicalToRange.x2 === range.x2 &&
+        identicalToRange.y2 === range.y2
+    );
+}
 
-    *horizontalIterator(): Generator<Point, void, unknown> {
-        for (let columnIndex = this.left; columnIndex <= this.right; columnIndex++) {
-            yield createPoint(columnIndex, -1);
-        }
-    }
-
-    *verticalIterator(): Generator<Point, void, unknown> {
-        for (let rowIndex = this.top; rowIndex <= this.bottom; rowIndex++) {
-            yield createPoint(-1, rowIndex);
+export function* rangeIterator(range: Range): Generator<Point, void, unknown> {
+    for (let rowIndex = range.top; rowIndex <= range.bottom; rowIndex++) {
+        for (let columnIndex = range.left; columnIndex <= range.right; columnIndex++) {
+            yield createPoint(columnIndex, rowIndex);
         }
     }
 }
 
-/**
- * Represents a rectangular selection or span in grid coordinates.
- *
- * A range is defined by two corner points (x1,y1) and (x2,y2) and exposes
- * normalized bounds such as left, right, top, and bottom. The implementation is
- * direction-agnostic, so ranges can be created in either orientation.
- */
-export type { Range };
-
-export function createRange(range: Range): Range;
-export function createRange(x1: number, y1: number): Range;
-export function createRange(x1: number, y1: number, x2: number, y2: number): Range;
-export function createRange(x1: Range | number, y1?: number, x2 = x1, y2 = y1): Range {
-    let range: Range;
-    switch (arguments.length) {
-        case 1: {
-            if (!isRange(x1)) {
-                throw new Error("Invalid range");
-            }
-            range = new Range(x1.x1, x1.y1, x1.x2, x1.y2);
-            break;
-        }
-        case 2: {
-            range = new Range(x1 as number, y1!, x1 as number, y1);
-            break;
-        }
-        case 4: {
-            range = new Range(x1 as number, y1!, x2 as number, y2);
-            break;
-        }
-        default: {
-            throw new Error("Was not able to create a range from providede arguments");
-        }
+export function* rangeHorizontalIterator(range: Range): Generator<Point, void, unknown> {
+    for (let columnIndex = range.left; columnIndex <= range.right; columnIndex++) {
+        yield createPoint(columnIndex, -1);
     }
-    return Object.freeze(range);
 }
 
-/**
- * Find out if a value is a Range instance
- *
- * @param value
- */
-export function isRange(value: unknown): value is Range {
-    return value instanceof Range;
+export function* rangeVerticalIterator(range: Range): Generator<Point, void, unknown> {
+    for (let rowIndex = range.top; rowIndex <= range.bottom; rowIndex++) {
+        yield createPoint(-1, rowIndex);
+    }
 }

@@ -1,5 +1,5 @@
 import type { Grid } from "@grid/grid";
-import { createRange } from "@structure/range";
+import { createRange, rangeIdenticalTo } from "@structure/range";
 
 interface CellCoordinates {
     row: number;
@@ -51,7 +51,7 @@ export function mouseExtension(grid: Grid<any>): void {
             startCoords = { row: y1, column: x1 };
         } else {
             startCoords = cellCoordinates;
-            grid.selection.select(cellCoordinates.column, cellCoordinates.row);
+            grid.selection.select(createRange(cellCoordinates.column, cellCoordinates.row));
         }
     });
 
@@ -68,10 +68,9 @@ export function mouseExtension(grid: Grid<any>): void {
         }
 
         const { row: upRowIndex, column: upColumnIndex } = cellCoordinates;
-        const oldRange = grid.selection.range;
-        const newRange = createRange(downColumnIndex, downRowIndex, upColumnIndex, upRowIndex);
-        if (!newRange.identicalTo(oldRange)) {
-            grid.selection.select(newRange);
+        const range = createRange(downColumnIndex, downRowIndex, upColumnIndex, upRowIndex);
+        if (!rangeIdenticalTo(range, grid.selection.range)) {
+            grid.selection.select(range);
         }
     });
 
@@ -96,7 +95,7 @@ export function mouseExtension(grid: Grid<any>): void {
         const { row: upRowIndex, column: upColumnIndex } = cellCoordinates;
         const downColumnIndex = startCoords?.column ?? upColumnIndex;
         const downRowIndex = startCoords?.row ?? upRowIndex;
-        grid.selection.select(downColumnIndex, downRowIndex, upColumnIndex, upRowIndex);
+        grid.selection.select(createRange(downColumnIndex, downRowIndex, upColumnIndex, upRowIndex));
 
         startCoords = undefined;
     });

@@ -2,22 +2,21 @@
 
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { handleKeyDown, keyboardExtension } from "./keyboard";
+import { createPoint } from "@structure/point";
 
 function createGrid() {
     const selection = {
         range: { x1: 1, y1: 1, x2: 1, y2: 1, left: 1, right: 1, top: 1, bottom: 1 },
-        select: vi.fn((x1: number, y1: number, x2?: number, y2?: number) => {
-            const endX = x2 ?? x1;
-            const endY = y2 ?? y1;
+        select: vi.fn((x1: number, y1: number, x2 = x1, y2 = y1) => {
             selection.range = {
                 x1,
                 y1,
-                x2: endX,
-                y2: endY,
-                left: Math.min(x1, endX),
-                right: Math.max(x1, endX),
-                top: Math.min(y1, endY),
-                bottom: Math.max(y1, endY),
+                x2,
+                y2,
+                left: Math.min(x1, x2),
+                right: Math.max(x1, x2),
+                top: Math.min(y1, y2),
+                bottom: Math.max(y1, y2),
             };
         }),
         moveSelectionLeft: vi.fn((count = 1) => {
@@ -109,7 +108,7 @@ describe("handleKeyDown", () => {
 
         expect(event.preventDefault).toHaveBeenCalledTimes(1);
         expect(grid.selection.moveSelectionLeft).toHaveBeenCalledTimes(1);
-        expect(grid.scrollIntoView).toHaveBeenCalledWith(grid.selection.range.x2, grid.selection.range.y2);
+        expect(grid.scrollIntoView).toHaveBeenCalledWith(createPoint(grid.selection.range.x2, grid.selection.range.y2));
     });
 
     it("expands left when Shift + ArrowLeft is pressed", () => {
@@ -159,7 +158,7 @@ describe("handleKeyDown", () => {
         handleKeyDown(grid as any, event);
 
         expect(grid.selection.select).toHaveBeenCalledWith(0, 1, 0, 1);
-        expect(grid.scrollIntoView).toHaveBeenCalledWith(0, 1);
+        expect(grid.scrollIntoView).toHaveBeenCalledWith(createPoint(0, 1));
     });
 
     it("moves right when ArrowRight is pressed", () => {
@@ -222,7 +221,7 @@ describe("handleKeyDown", () => {
         });
 
         expect(grid.selection.select).toHaveBeenCalledWith(2, 1, 2, 1);
-        expect(grid.scrollIntoView).toHaveBeenCalledWith(2, 1);
+        expect(grid.scrollIntoView).toHaveBeenCalledWith(createPoint(2, 1));
     });
 
     it("moves up when ArrowUp is pressed", () => {
@@ -330,7 +329,7 @@ describe("handleKeyDown", () => {
         });
 
         expect(grid.selection.select).toHaveBeenCalledWith(1, 9, 1, 9);
-        expect(grid.scrollIntoView).toHaveBeenCalledWith(1, 9);
+        expect(grid.scrollIntoView).toHaveBeenCalledWith(createPoint(1, 9));
     });
 
     it("moves to the first column with Home", () => {
@@ -615,7 +614,7 @@ describe("handleKeyDown", () => {
         });
 
         expect(grid.selection.select).toHaveBeenCalledWith(0, 0, 2, 9);
-        expect(grid.scrollIntoView).toHaveBeenCalledWith(2, 9);
+        expect(grid.scrollIntoView).toHaveBeenCalledWith(createPoint(2, 9));
     });
 
     it("does nothing for Ctrl + A when other modifiers are active", () => {
