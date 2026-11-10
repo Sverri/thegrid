@@ -19,8 +19,6 @@ describe("createColumn", () => {
         expect(column.maxWidth).toBe(999999);
         expect(column.visible).toBe(true);
         expect(column.readonly).toBe(false);
-        expect(column.cellFormatter).toBeUndefined();
-        expect(column.dataFormatter).toBeUndefined();
     });
 
     it("preserves custom settings and clamps the initial width", () => {

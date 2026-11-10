@@ -97,16 +97,6 @@ class Renderer {
 
             cell.classList.add(y % 2 === 0 ? "row-even" : "row-odd");
 
-            column.cellFormatter?.(
-                Object.freeze({
-                    cell,
-                    columnIndex: x,
-                    rowIndex: y,
-                    get data() {
-                        return grid.getCellData(x, y);
-                    },
-                }),
-            );
             return cell;
         });
     }

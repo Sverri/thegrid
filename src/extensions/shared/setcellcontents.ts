@@ -39,15 +39,12 @@ export function setCellContents({ cell, cellData, column, locale }: Data): void 
 
         case DataType.Decimal: {
             if (typeof cellData === "number") {
-                const formatter =
-                    column.dataFormatter ??
-                    new Intl.NumberFormat(locale, {
-                        maximumFractionDigits: 2,
-                        minimumFractionDigits: 2,
-                    });
+                const formatter = new Intl.NumberFormat(locale, {
+                    maximumFractionDigits: 2,
+                    minimumFractionDigits: 2,
+                });
                 cell.textContent = formatter.format(cellData);
             } else {
-                cell.textContent = String(cellData);
             }
             cell.style.textAlign = "right";
             break;
@@ -55,7 +52,7 @@ export function setCellContents({ cell, cellData, column, locale }: Data): void 
 
         case DataType.Integer: {
             if (typeof cellData === "number") {
-                const formatter = column.dataFormatter ?? new Intl.NumberFormat(locale, { maximumFractionDigits: 0 });
+                const formatter = new Intl.NumberFormat(locale, { maximumFractionDigits: 0 });
                 cell.textContent = formatter.format(cellData);
             } else {
                 cell.textContent = String(cellData);
@@ -66,7 +63,7 @@ export function setCellContents({ cell, cellData, column, locale }: Data): void 
 
         case DataType.Id: {
             if (typeof cellData === "number") {
-                const formatter = column.dataFormatter ?? new Intl.NumberFormat(locale, { maximumFractionDigits: 0 });
+                const formatter = new Intl.NumberFormat(locale, { maximumFractionDigits: 0 });
                 cell.textContent = formatter.format(cellData);
             } else {
                 cell.textContent = String(cellData);
@@ -91,13 +88,11 @@ export function setCellContents({ cell, cellData, column, locale }: Data): void 
         }
 
         case DataType.Date: {
-            const formatter =
-                (column.dataFormatter as Intl.DateTimeFormat) ??
-                new Intl.DateTimeFormat(locale, {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "numeric",
-                });
+            const formatter = new Intl.DateTimeFormat(locale, {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+            });
             if (cellData instanceof Date) {
                 cell.textContent = formatter.format(cellData);
             } else {

@@ -95,17 +95,12 @@ describe("Grid", () => {
     });
 
     it("calls cell formatters and exposes cell data", () => {
-        const formatter = vi.fn((details: { cell: HTMLElement; data?: unknown }) => {
-            details.cell.dataset["formatted"] = String(details.data);
-        });
         const { grid } = createTestGrid({
-            columns: [{ binding: "name", cellFormatter: formatter }],
+            columns: [{ binding: "name" }],
         });
 
         grid.invalidate(true);
 
-        expect(formatter).toHaveBeenCalled();
-        expect(grid.cellsElement.querySelector('[data-formatted="Ada"]')).not.toBeNull();
         expect(grid.getCellData(0, 0)).toBe("Ada");
         expect(grid.getCellData(10, 0)).toBeUndefined();
         expect(grid.getCellData(0, 10)).toBeUndefined();
