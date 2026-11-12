@@ -8,6 +8,30 @@ interface Data {
     locale: Intl.Locale;
 }
 
+interface Formatters {
+    decimal: Intl.NumberFormat;
+    integer: Intl.NumberFormat;
+    date: Intl.DateTimeFormat;
+}
+
+/**
+ * Intl formatters are expensive to construct, so they are created once per locale.
+ */
+const formattersCache = new WeakMap<Intl.Locale, Formatters>();
+
+function getFormatters(locale: Intl.Locale): Formatters {
+    let formatters = formattersCache.get(locale);
+    if (!formatters) {
+        formatters = {
+            decimal: new Intl.NumberFormat(locale, { maximumFractionDigits: 2, minimumFractionDigits: 2 }),
+            integer: new Intl.NumberFormat(locale, { maximumFractionDigits: 0 }),
+            date: new Intl.DateTimeFormat(locale, { day: "2-digit", month: "2-digit", year: "numeric" }),
+        };
+        formattersCache.set(locale, formatters);
+    }
+    return formatters;
+}
+
 function createLink(text: string, href: string): HTMLAnchorElement {
     const link = document.createElement("a");
     link.href = href;
@@ -60,11 +84,7 @@ export function setCellContents({ cell, cellData, column, locale }: Data): void 
         case DataType.Currency: {
             const value = typeof cellData === "number" ? cellData : Number(cellData);
             if (cellData !== "" && Number.isFinite(value)) {
-                const formatter = new Intl.NumberFormat(locale, {
-                    maximumFractionDigits: 2,
-                    minimumFractionDigits: 2,
-                });
-                cell.textContent = formatter.format(value);
+                cell.textContent = getFormatters(locale).decimal.format(value);
             } else {
                 cell.textContent = String(cellData);
             }
@@ -74,8 +94,7 @@ export function setCellContents({ cell, cellData, column, locale }: Data): void 
 
         case DataType.Integer: {
             if (typeof cellData === "number") {
-                const formatter = new Intl.NumberFormat(locale, { maximumFractionDigits: 0 });
-                cell.textContent = formatter.format(cellData);
+                cell.textContent = getFormatters(locale).integer.format(cellData);
             } else {
                 cell.textContent = String(cellData);
             }
@@ -85,8 +104,7 @@ export function setCellContents({ cell, cellData, column, locale }: Data): void 
 
         case DataType.Id: {
             if (typeof cellData === "number") {
-                const formatter = new Intl.NumberFormat(locale, { maximumFractionDigits: 0 });
-                cell.textContent = formatter.format(cellData);
+                cell.textContent = getFormatters(locale).integer.format(cellData);
             } else {
                 cell.textContent = String(cellData);
             }
@@ -120,11 +138,6 @@ export function setCellContents({ cell, cellData, column, locale }: Data): void 
         }
 
         case DataType.Date: {
-            const formatter = new Intl.DateTimeFormat(locale, {
-                day: "2-digit",
-                month: "2-digit",
-                year: "numeric",
-            });
             const date =
                 cellData instanceof Date
                     ? cellData
@@ -132,7 +145,7 @@ export function setCellContents({ cell, cellData, column, locale }: Data): void 
                       ? new Date(cellData)
                       : undefined;
             if (date && !Number.isNaN(date.getTime())) {
-                cell.textContent = formatter.format(date);
+                cell.textContent = getFormatters(locale).date.format(date);
             } else {
                 cell.textContent = String(cellData);
             }
