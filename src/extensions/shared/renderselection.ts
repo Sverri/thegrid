@@ -1,5 +1,3 @@
-import type { DataItem } from "@shared/types";
-import type { Column } from "@structure/column";
 import { createRange, rangeContains, rangeIntersectsColumn, rangeIntersectsRow, type Range } from "@structure/range";
 
 /**
@@ -11,17 +9,10 @@ import { createRange, rangeContains, rangeIntersectsColumn, rangeIntersectsRow, 
  *
  * @param cell The DOM cell element to style.
  * @param selection The current selection range.
- * @param columns The ordered column definitions used to resolve visible borders.
  * @param columnIndex The column index of the cell being rendered.
  * @param rowIndex The row index of the cell being rendered.
  */
-export function renderCellSelection<T extends DataItem>(
-    cell: HTMLElement,
-    selection: Range,
-    columns: ReadonlyArray<Column<T>>,
-    columnIndex: number,
-    rowIndex: number,
-): void {
+export function renderCellSelection(cell: HTMLElement, selection: Range, columnIndex: number, rowIndex: number): void {
     const { left, right, top, bottom, x2, y2 } = selection;
 
     if (rangeContains(selection, createRange(columnIndex, rowIndex))) {
@@ -29,8 +20,8 @@ export function renderCellSelection<T extends DataItem>(
     }
 
     if (rangeIntersectsRow(selection, rowIndex)) {
-        const previousVisibleColumnIndex = columns.findLastIndex(c => columns.indexOf(c) < left);
-        if (columnIndex === previousVisibleColumnIndex) {
+        // The column to the left of the selection draws its left border
+        if (columnIndex === left - 1) {
             cell.classList.add("selection-right-border");
         }
         if (columnIndex === right) {

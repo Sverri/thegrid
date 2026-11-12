@@ -35,7 +35,7 @@ class Renderer {
     }
 
     updateSelection = debounce(16, () => {
-        const { selection, cellsElement, columns } = this.#grid;
+        const { selection, cellsElement } = this.#grid;
         const renderArea = calculateRenderArea(this.#grid, renderAhead);
         const dimensions = getElementScrollDimensions(cellsElement);
 
@@ -44,7 +44,7 @@ class Renderer {
         for (const { x, y } of rangeIterator(renderArea)) {
             const cell = cellsElement.querySelector<HTMLDivElement>(`[data-column="${x}"][data-row="${y}"]`);
             if (cell) {
-                renderCellSelection(cell, selection.range, columns.items, x, y);
+                renderCellSelection(cell, selection.range, x, y);
             }
         }
 
@@ -93,7 +93,7 @@ class Renderer {
                 locale: grid.locale,
             });
 
-            renderCellSelection(cell, selection.range, columns.items, x, y);
+            renderCellSelection(cell, selection.range, x, y);
 
             cell.classList.add(y % 2 === 0 ? "row-even" : "row-odd");
 
