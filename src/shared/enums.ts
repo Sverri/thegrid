@@ -23,6 +23,9 @@ export const CellType = Object.freeze({
     RowHeader: Symbol("CellType.RowHeader"),
 } as const);
 
+/**
+ * One of the {@link CellType} values.
+ */
 export type CellType = (typeof CellType)[keyof typeof CellType];
 
 /**
@@ -40,56 +43,59 @@ export const DataType = Object.freeze({
     Text: "DataType.Text",
 
     /**
-     * Boolean values.
+     * Boolean values, rendered as checkboxes.
      */
     Boolean: "DataType.Boolean",
 
     /**
-     * Number, integer or decimal (exact value).
+     * Any number, rendered exactly as `Number(value).toString()` would, right-aligned.
      */
     Number: "DataType.Number",
 
     /**
-     * Whole-number values.
+     * Whole-number values, rounded and formatted with the grid locale, right-aligned.
      */
     Integer: "DataType.Integer",
 
     /**
-     * Numeric values rendered with decimal precision.
+     * Numbers, including numeric strings, formatted with two decimals in the grid locale, right-aligned.
      */
     Decimal: "DataType.Decimal",
 
     /**
-     * Id
+     * Identifiers. Numbers are formatted like {@link DataType.Integer} but left-aligned.
      */
     Id: "DataType.Id",
 
     /**
-     * Date values.
+     * `Date` objects, date strings or timestamps, formatted as a date in the grid locale.
      */
     Date: "DataType.Date",
 
     /**
-     * URL values.
+     * URLs. Absolute http(s) URLs are rendered as links that open in a new tab.
      */
     URL: "DataType.URL",
 
     /**
-     * Email address values.
+     * Email addresses, rendered as `mailto:` links.
      */
     Email: "DataType.Email",
 
     /**
-     * Currency values.
+     * Currency amounts, currently formatted like {@link DataType.Decimal}, without a currency symbol.
      */
     Currency: "DataType.Currency",
 
     /**
-     * Custom or application-defined data types.
+     * Custom or application-defined data types, currently rendered as plain text.
      */
     Custom: "DataType.Custom",
 } as const);
 
+/**
+ * One of the {@link DataType} values.
+ */
 export type DataType = (typeof DataType)[keyof typeof DataType];
 
 /**
@@ -118,4 +124,7 @@ export const Headers = Object.freeze({
     Both: Symbol("Headers.Both"),
 } as const);
 
+/**
+ * One of the {@link Headers} values.
+ */
 export type Headers = (typeof Headers)[keyof typeof Headers];

@@ -3,12 +3,39 @@ import type { Disposer } from "@shared/types";
 import { calculateRenderArea } from "@extension/shared/calculaterenderarea";
 import { createPoint } from "@structure/point";
 
+/**
+ * The parts of a `KeyboardEvent` that {@link handleKeyDown} uses, so it can be
+ * called with a plain object.
+ */
 interface KeyboardEventLike {
+    /**
+     * The key value, as in `KeyboardEvent.key`.
+     */
     key: string;
+
+    /**
+     * Whether Shift was held.
+     */
     shiftKey: boolean;
+
+    /**
+     * Whether Ctrl was held.
+     */
     ctrlKey: boolean;
+
+    /**
+     * Whether Alt was held.
+     */
     altKey: boolean;
+
+    /**
+     * Whether Meta (Command or Windows) was held.
+     */
     metaKey: boolean;
+
+    /**
+     * Called when the grid handles the key.
+     */
     preventDefault(): void;
 }
 
@@ -118,6 +145,20 @@ function page(grid: Grid<any>, direction: "up" | "down", shiftHeld: boolean): vo
     grid.scrollIntoView(scrollPoint);
 }
 
+/**
+ * Applies a key press to the grid's selection and scrolls the active cell into view.
+ *
+ * - Arrow keys move the selection. Shift extends it, and Ctrl jumps to the edge of the grid.
+ * - Home and End jump to the first or last column. With Ctrl, the first or last row.
+ * - PageUp and PageDown move by a page of rows. Shift extends the selection.
+ * - Ctrl+A selects every cell.
+ *
+ * Handled keys call `event.preventDefault()`. Other keys, and most combinations
+ * with Alt or Meta, are ignored.
+ *
+ * @param grid The grid to control.
+ * @param event The key press.
+ */
 export function handleKeyDown(grid: Grid<any>, event: KeyboardEventLike): void {
     switch (event.key) {
         case "a": {

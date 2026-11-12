@@ -17,6 +17,9 @@ const renderAhead = {
 
 /**
  * Class that handles everything having to do with rendering of the grid.
+ *
+ * Only the cells in view, plus a small render-ahead margin, exist in the DOM.
+ * Create one with {@link createRenderer}.
  */
 class Renderer {
     #grid: Grid<any>;
@@ -25,6 +28,9 @@ class Renderer {
         this.#grid = grid;
     }
 
+    /**
+     * Re-creates the visible cells and headers now, from the current scroll position.
+     */
     render() {
         const { cellsElement } = this.#grid;
         const dimensions = getElementScrollDimensions(cellsElement);
@@ -210,6 +216,12 @@ class Renderer {
 
 export type { Renderer };
 
+/**
+ * Creates the renderer for a grid.
+ *
+ * @param grid The grid to render.
+ * @returns A renderer bound to the grid.
+ */
 export function createRenderer(grid: Grid<any>) {
     return new Renderer(grid);
 }

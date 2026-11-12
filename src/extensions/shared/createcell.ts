@@ -1,12 +1,42 @@
 import { CellType } from "@shared/enums";
 
+/**
+ * Describes a cell for {@link createCell}.
+ */
 interface CellSpecs {
+    /**
+     * The kind of cell, which sets its CSS class.
+     */
     type: CellType;
+
+    /**
+     * The width in pixels.
+     */
     width: number;
+
+    /**
+     * The height in pixels.
+     */
     height: number;
+
+    /**
+     * The column index, stored in `data-column`.
+     */
     columnIndex: number;
+
+    /**
+     * The row index, stored in `data-row`.
+     */
     rowIndex: number;
+
+    /**
+     * The vertical offset in pixels within the parent region.
+     */
     top: number;
+
+    /**
+     * The horizontal offset in pixels within the parent region.
+     */
     left: number;
 }
 

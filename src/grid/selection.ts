@@ -47,26 +47,35 @@ class Selection {
     }
 
     /**
-     * Applies a selection using either a range instance or coordinate values.
+     * Selects the range between two cells.
      *
-     * @param x1 A range to apply or the starting x coordinate.
-     * @param y1 The starting y coordinate when using coordinate values.
-     * @param x2 The ending x coordinate when using coordinate values.
-     * @param y2 The ending y coordinate when using coordinate values.
+     * Negative coordinates are clamped to 0. Raises {@link onChange} unless
+     * the selection is unchanged.
+     *
+     * @param x1 The anchor column.
+     * @param y1 The anchor row.
+     * @param x2 The active column. Defaults to `x1`.
+     * @param y2 The active row. Defaults to `y1`.
      */
     select(x1: number, y1: number, x2?: number, y2?: number): void;
 
     /**
-     * Applies a selection using either a range instance or coordinate values.
+     * Selects a single cell.
      *
-     * @param point
+     * Negative coordinates are clamped to 0. Raises {@link onChange} unless
+     * the selection is unchanged.
+     *
+     * @param point The cell to select.
      */
     select(point: Point): void;
 
     /**
-     * Applies a selection using either a range instance or coordinate values.
+     * Selects a range.
      *
-     * @param range
+     * Negative coordinates are clamped to 0. Raises {@link onChange} unless
+     * the selection is unchanged.
+     *
+     * @param range The range to select.
      */
     select(range: Range): void;
 
@@ -197,7 +206,13 @@ class Selection {
 
 export type { Selection };
 
+/**
+ * Options accepted by {@link createSelection}.
+ */
 interface Options {
+    /**
+     * Subscribed to {@link Selection.onChange}.
+     */
     onChange?: Callback;
 }
 
@@ -205,6 +220,7 @@ interface Options {
  * Creates a new selection instance for the supplied grid.
  *
  * @param grid The grid the selection should be associated with.
+ * @param options Optional change handler.
  * @returns A new selection bound to the given grid.
  */
 export function createSelection(grid: Grid<any>, options?: Options) {
@@ -215,6 +231,12 @@ export function createSelection(grid: Grid<any>, options?: Options) {
     return instance;
 }
 
+/**
+ * Checks whether a value is a selection.
+ *
+ * @param value The value to check.
+ * @returns `true` if the value was created by {@link createSelection}.
+ */
 export function isSelection(value: unknown): value is Selection {
     return value instanceof Selection;
 }

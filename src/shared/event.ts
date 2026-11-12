@@ -4,7 +4,12 @@
 export type Callback = (...args: any[]) => void;
 
 /**
- * Barebones observable and raiseable event
+ * Barebones observable and raiseable event.
+ *
+ * Create one with {@link createEvent}. Hand out {@link Event.unraisable}
+ * to code that may listen but must not raise.
+ *
+ * @typeParam T The callback signature of the event's listeners.
  */
 class Event<T extends Callback> {
     #subscriptions: T[] = [];
@@ -47,7 +52,10 @@ class Event<T extends Callback> {
 }
 
 /**
- * Barebones observable event
+ * Barebones observable event: a view of an {@link Event} that can be
+ * subscribed to but not raised.
+ *
+ * @typeParam T The callback signature of the event's listeners.
  */
 class UnraiseableEvent<T extends Callback> {
     #event: Event<T>;
@@ -80,8 +88,8 @@ export type { Event, UnraiseableEvent };
 /**
  * Creates a raiseable event with subscribe, unsubscribe, and raise capabilities.
  *
- * @template T The callback signature used by the event.
- * @returns A frozen event instance with both raiseable and unraiseable APIs.
+ * @typeParam T The callback signature used by the event.
+ * @returns A new event. Its {@link Event.unraisable} view can be handed out for listening only.
  */
 export function createEvent<T extends Callback>() {
     return new Event<T>();

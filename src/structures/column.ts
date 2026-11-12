@@ -3,6 +3,12 @@ import { DataType } from "@shared/enums";
 import { clampNumber } from "@helpers/numbers";
 import { createEvent } from "@shared/event";
 
+/**
+ * Options that describe a column. Pass them to {@link createColumn}, or in
+ * the `columns` option of `createGrid`.
+ *
+ * @typeParam T The shape of a data row.
+ */
 export interface ColumnOptions<T extends DataItem> {
     /**
      * The property name or key to bind this column to in the data objects.
@@ -12,7 +18,9 @@ export interface ColumnOptions<T extends DataItem> {
     binding: keyof T;
 
     /**
-     * Data type
+     * How values in this column are formatted and aligned.
+     *
+     * Defaults to {@link DataType.String} if not provided.
      */
     dataType?: DataType;
 
@@ -34,6 +42,8 @@ export interface ColumnOptions<T extends DataItem> {
      * The minimum width of the column in pixels.
      *
      * Constrains the column from being resized smaller than this value.
+     *
+     * Defaults to 1 pixel if not provided.
      */
     minWidth?: number;
 
@@ -41,6 +51,8 @@ export interface ColumnOptions<T extends DataItem> {
      * The maximum width of the column in pixels.
      *
      * Constrains the column from being resized larger than this value.
+     *
+     * Defaults to 999999 pixels if not provided.
      */
     maxWidth?: number;
 
@@ -52,13 +64,22 @@ export interface ColumnOptions<T extends DataItem> {
     visible?: boolean;
 
     /**
-     * Whether the column is readonly.
+     * Whether the column is readonly. Readonly columns cannot be changed
+     * through `Grid.setCellData`, and their checkboxes are disabled.
      *
      * Defaults to false if not provided.
      */
     readonly?: boolean;
 }
 
+/**
+ * A grid column. Every property can be changed after creation, and each
+ * change raises {@link Column.onChange}.
+ *
+ * Create one with {@link createColumn}.
+ *
+ * @typeParam T The shape of a data row.
+ */
 class Column<T extends DataItem> {
     #binding: keyof T;
     #header: string;
@@ -92,6 +113,8 @@ class Column<T extends DataItem> {
      * The property name or key to bind this column to in the data objects.
      *
      * This is required and determines which field from the data is displayed in this column.
+     *
+     * @throws {Error} When set to anything other than a non-empty string.
      */
     get binding() {
         return this.#binding;
@@ -120,7 +143,7 @@ class Column<T extends DataItem> {
     /**
      * The data type of the column, used for sorting and rendering.
      *
-     * Defaults to ColumnType.String if not provided.
+     * Defaults to {@link DataType.String} if not provided.
      */
     get dataType() {
         return this.#dataType;
@@ -147,6 +170,9 @@ class Column<T extends DataItem> {
      * The minimum width of the column in pixels.
      *
      * Constrains the column from being resized smaller than this value.
+     * Setting it widens the column if needed.
+     *
+     * @throws {Error} When set to a value greater than {@link maxWidth}.
      */
     get minWidth() {
         return this.#minWidth;
@@ -164,6 +190,9 @@ class Column<T extends DataItem> {
      * The maximum width of the column in pixels.
      *
      * Constrains the column from being resized larger than this value.
+     * Setting it narrows the column if needed.
+     *
+     * @throws {Error} When set to a value less than {@link minWidth}.
      */
     get maxWidth() {
         return this.#maxWidth;
@@ -216,17 +245,20 @@ export type { Column };
 /**
  * Creates a column from its configuration.
  *
+ * @typeParam T The shape of a data row.
  * @param options The column configuration.
  * @returns A mutable column instance.
+ * @throws {Error} If `binding` is not a non-empty string, or `minWidth` is greater than `maxWidth`.
  */
 export function createColumn<T extends DataItem>(options: ColumnOptions<T>) {
     return new Column<T>(options);
 }
 
 /**
- * Find out if a value is a Column instance
+ * Checks whether a value is a column.
  *
- * @param value
+ * @param value The value to check.
+ * @returns `true` if the value was created by {@link createColumn}.
  */
 export function isColumn<T extends DataItem>(value: unknown): value is Column<T> {
     return value instanceof Column;

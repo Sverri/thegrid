@@ -1,13 +1,34 @@
 import type { Callback } from "@shared/event";
 import { createEvent } from "@shared/event";
 
+/**
+ * Decides whether an item is included in the view.
+ *
+ * @returns `true` to keep the item.
+ */
 type Filter<T> = (item: T) => boolean;
+
+/**
+ * Orders two items, like the comparator of `Array.prototype.sort`.
+ *
+ * @returns A negative number if `a` comes first, a positive number if `b` comes first, or `0` to keep their order.
+ */
 type Sorter<T> = (a: T, b: T) => number;
+
+/**
+ * Converts a source item into a view item.
+ */
 type Mapper<T, K> = (item: T) => K;
 
+/**
+ * Options accepted by {@link createCollectionView}.
+ *
+ * @typeParam SourceItem The type of the source items.
+ * @typeParam ViewItem The type of the items in the view, after mapping.
+ */
 export interface CollectionViewOptions<SourceItem, ViewItem = SourceItem> {
     /**
-     * Mapper
+     * Converts each source item into a view item. It runs before the filter and the sorter.
      */
     mapper?: Mapper<SourceItem, ViewItem>;
 
@@ -22,13 +43,21 @@ export interface CollectionViewOptions<SourceItem, ViewItem = SourceItem> {
     sorter?: Sorter<ViewItem>;
 
     /**
-     * OnChange event handler
+     * Subscribed to {@link CollectionView.onChange}.
      */
     onChange?: Callback;
 }
 
 /**
  * Maintains source items and a filtered and sorted active view of them.
+ *
+ * The view is rebuilt lazily: changes only mark it as dirty, and the work
+ * happens the next time `items` or `size` is read.
+ *
+ * Create one with {@link createCollectionView}.
+ *
+ * @typeParam SourceItem The type of the source items.
+ * @typeParam ViewItem The type of the items in the view, after mapping.
  */
 class CollectionView<SourceItem, ViewItem = SourceItem> {
     // Both arrays are frozen, so they can be handed out without copying
@@ -118,7 +147,9 @@ class CollectionView<SourceItem, ViewItem = SourceItem> {
     }
 
     /**
-     * Modify source items (alternative to setting {@link source} property directly)
+     * Replaces the source items with the result of a callback.
+     *
+     * This is an alternative to setting {@link source} directly.
      *
      * @example
      * ```ts
@@ -131,7 +162,7 @@ class CollectionView<SourceItem, ViewItem = SourceItem> {
      *    });
      * });
      * ```
-     * @param callback
+     * @param callback Receives a mutable copy of the source items and returns the new source items.
      */
     modify(callback: (values: SourceItem[]) => SourceItem[]) {
         this.source = callback([...this.#source]);
@@ -166,7 +197,10 @@ class CollectionView<SourceItem, ViewItem = SourceItem> {
     }
 
     /**
-     * onChange event
+     * Event raised when the view goes from up to date to dirty.
+     *
+     * It fires once per change set: further changes before `items` or `size`
+     * is read again do not raise it again.
      */
     get onChange() {
         return this.#onChange.unraisable;
@@ -190,6 +224,8 @@ class CollectionView<SourceItem, ViewItem = SourceItem> {
 
 /**
  * Read-only live facade for observing a collection view.
+ *
+ * Get one from {@link CollectionView.observableView}.
  */
 class ObservableCollectionView<SourceItem, ViewItem = SourceItem> {
     #view: CollectionView<SourceItem, ViewItem>;
@@ -217,6 +253,12 @@ export type { CollectionView, ObservableCollectionView };
 
 /**
  * Creates a collection view from optional source items and view options.
+ *
+ * @typeParam SourceItem The type of the source items.
+ * @typeParam ViewItem The type of the items in the view, after mapping.
+ * @param items The source items. The array is copied. Defaults to an empty array.
+ * @param options The mapper, filter, sorter and change handler.
+ * @returns The new collection view.
  */
 export function createCollectionView<SourceItem, ViewItem = SourceItem>(
     items: SourceItem[] | undefined,
@@ -226,9 +268,10 @@ export function createCollectionView<SourceItem, ViewItem = SourceItem>(
 }
 
 /**
- * Find out if a value is a Column instance
+ * Checks whether a value is a collection view.
  *
- * @param value
+ * @param value The value to check.
+ * @returns `true` if the value was created by {@link createCollectionView}.
  */
 export function isCollectionView<SourceItem, ViewItem = SourceItem>(
     value: unknown,

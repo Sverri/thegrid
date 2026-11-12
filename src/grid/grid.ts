@@ -16,37 +16,44 @@ import { createRenderer, type Renderer } from "./renderer";
 
 const DEFAULT_CELL_SIZE = 50;
 
+/**
+ * Options accepted by {@link createGrid}.
+ *
+ * @typeParam T The shape of a data row.
+ */
 export interface GridOptions<T extends DataItem> {
     /**
-     * Source
+     * The rows to display. The array is copied, but the row objects are not.
      *
      * **Default:** `[]`
      */
     data?: T[];
 
     /**
-     * Columns
+     * The columns to display, in order.
      *
      * **Default:** `[]`
      */
     columns?: ColumnOptions<T>[];
 
     /**
-     * Which headers to show
+     * Which headers to show.
      *
      * **Default:** {@link Headers.Both}
      */
     showHeaders?: Headers;
 
     /**
-     * Header selection indicator
+     * Which headers highlight the rows and columns that contain the selection.
      *
      * **Default:** {@link Headers.Both}
      */
     showHeaderSelection?: Headers;
 
     /**
-     * Cell size
+     * The height of every row, and the width of the row headers, in pixels.
+     *
+     * **Default:** `50`
      */
     cellSize?: number;
 
@@ -62,17 +69,52 @@ export interface GridOptions<T extends DataItem> {
     locale?: string | Intl.Locale;
 }
 
+/**
+ * A virtualized data grid rendered into a host element.
+ *
+ * Create one with {@link createGrid}.
+ *
+ * @typeParam T The shape of a data row.
+ */
 class Grid<T extends DataItem> {
-    // DOM elements
+    /**
+     * The element the grid was created in.
+     */
     readonly hostElement: HTMLElement;
+
+    /**
+     * The scrollable, focusable element that contains the data cells.
+     */
     readonly cellsElement: HTMLDivElement;
+
+    /**
+     * The element that contains the column header cells.
+     */
     readonly columnHeadersElement: HTMLDivElement;
+
+    /**
+     * The element that contains the row header cells.
+     */
     readonly rowHeadersElement: HTMLDivElement;
 
-    // Data, columns and selection
+    /**
+     * The rows. Set its `filter` and `sorter` to change which rows are shown, and in what order.
+     */
     readonly data: CollectionView<T>;
+
+    /**
+     * The columns. `columns.source` holds the options, and `columns.items` holds the visible columns.
+     */
     readonly columns: CollectionView<ColumnOptions<T>, Column<T>>;
+
+    /**
+     * The selected range of cells.
+     */
     readonly selection: Selection;
+
+    /**
+     * The locale used to format numbers and dates.
+     */
     readonly locale: Intl.Locale;
 
     // Misc.
@@ -156,6 +198,9 @@ class Grid<T extends DataItem> {
         this.invalidate();
     }
 
+    /**
+     * Which headers are shown. Changing it re-renders the grid.
+     */
     get showHeaders() {
         return this.#showHeaders;
     }
@@ -164,6 +209,10 @@ class Grid<T extends DataItem> {
         this.invalidate();
     }
 
+    /**
+     * Which headers highlight the rows and columns that contain the selection.
+     * Changing it re-renders the grid.
+     */
     get showHeaderSelection() {
         return this.#showHeaderSelection;
     }
@@ -172,6 +221,10 @@ class Grid<T extends DataItem> {
         this.invalidate();
     }
 
+    /**
+     * The height of every row, and the width of the row headers, in pixels.
+     * Changing it re-renders the grid.
+     */
     get cellSize() {
         return this.#cellSize;
     }
@@ -181,6 +234,9 @@ class Grid<T extends DataItem> {
         this.invalidate();
     }
 
+    /**
+     * Event raised when the grid re-renders, after {@link invalidate}.
+     */
     get onInvalidate() {
         return this.#onInvalidate.unraisable;
     }
@@ -190,11 +246,12 @@ class Grid<T extends DataItem> {
     });
 
     /**
-     * Invalidate the grid
+     * Schedules a full re-render of the grid.
      *
-     * Invalidating the grid causes everything to be re-rendered.
+     * Calls within 32 milliseconds of each other are combined into one render.
+     * Does nothing after {@link destroy}.
      *
-     * @param immediate
+     * @param immediate Render now, without waiting.
      */
     invalidate(immediate = false) {
         if (this.#destroyed) {
@@ -232,6 +289,13 @@ class Grid<T extends DataItem> {
         teardownDomElements(this.hostElement);
     }
 
+    /**
+     * Scrolls the cells element by the smallest amount that brings a cell fully into view.
+     *
+     * Logs a warning, and does not scroll, if the column does not exist.
+     *
+     * @param point The cell's view coordinates (`x` is the column, `y` is the row).
+     */
     scrollIntoView(point: Point): void {
         const { scrollLeft, scrollRight, scrollTop, scrollBottom } = getElementScrollDimensions(this.cellsElement);
         const column = this.columns.items.at(point.x);
@@ -300,6 +364,27 @@ class Grid<T extends DataItem> {
 
 export type { Grid };
 
+/**
+ * Creates a grid inside a host element.
+ *
+ * Any existing content of the host element is replaced.
+ *
+ * @example
+ * ```ts
+ * const grid = createGrid(document.querySelector(".grid")!, {
+ *     data: users,
+ *     columns: [
+ *         { binding: "name", header: "Name", width: 200 },
+ *         { binding: "age", header: "Age", dataType: DataType.Integer },
+ *     ],
+ * });
+ * ```
+ *
+ * @typeParam T The shape of a data row.
+ * @param hostElement The element to render the grid in.
+ * @param options The grid's data, columns and settings.
+ * @returns The new grid.
+ */
 export function createGrid<T extends DataItem>(hostElement: HTMLElement, options?: GridOptions<T>) {
     return new Grid(hostElement, options);
 }

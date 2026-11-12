@@ -1,10 +1,28 @@
 import { DataType } from "@shared/enums";
 import type { Column } from "@structure/column";
 
+/**
+ * The input to {@link setCellContents}.
+ */
 interface Data {
+    /**
+     * The cell element to fill.
+     */
     cell: HTMLElement;
+
+    /**
+     * The raw value to render. `null` and `undefined` render as an empty cell.
+     */
     cellData: unknown;
+
+    /**
+     * The cell's column, whose data type and readonly setting determine how the value is displayed.
+     */
     column: Column<any>;
+
+    /**
+     * The locale used to format numbers and dates.
+     */
     locale: Intl.Locale;
 }
 
