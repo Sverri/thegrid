@@ -157,6 +157,16 @@ describe("Selection", () => {
         expect(selection.range).toEqual(createRange(0, 0));
     });
 
+    it("brings a selection outside the columns back inside when moving", () => {
+        const grid = createTestGrid();
+        const selection = createSelection(grid);
+
+        selection.select(5, 0);
+        selection.moveSelectionLeft();
+
+        expect(selection.range).toEqual(createRange(2, 0));
+    });
+
     it("keeps the current column when moving up", () => {
         const grid = createTestGrid();
         const selection = createSelection(grid);

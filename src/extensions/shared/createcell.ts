@@ -35,7 +35,6 @@ export function createCell({ type, width, height, columnIndex, rowIndex, left, t
     cell.style.transform = `translate(${left}px, ${top}px)`;
     cell.style.width = `${width}px`;
     cell.style.height = `${height}px`;
-    cell.classList.add("thegrid-cell");
     cell.classList.toggle("thegrid-cell-column-header", type === CellType.ColumnHeader);
     cell.classList.toggle("thegrid-cell-row-header", type === CellType.RowHeader);
     cell.classList.toggle("thegrid-cell-top-left", type === CellType.TopLeft);

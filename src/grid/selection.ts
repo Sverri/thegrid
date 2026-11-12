@@ -1,6 +1,7 @@
 import type { Grid } from "@grid/grid";
 import { createEvent, type Callback } from "@shared/event";
 import { isPoint, type Point } from "@structure/point";
+import { clampNumber } from "@helpers/numbers";
 import { createRange, isRange, rangeIdenticalTo, type Range } from "@structure/range";
 
 /**
@@ -105,24 +106,8 @@ class Selection {
      * @param count The number of columns to move left.
      */
     moveSelectionLeft(count = 1): void {
-        const visibleColumns = this.#grid.columns.items;
-        if (visibleColumns.length === 0) {
-            this.select(0, this.#range.y2);
-            return;
-        }
-
         const { x2, y2 } = this.#range;
-        const minX2 = 0;
-        let newX2 = x2;
-        while (count > 0) {
-            const nextX2 = newX2 - 1;
-            if (nextX2 < minX2 || !visibleColumns.at(nextX2)) {
-                break;
-            }
-            newX2 = nextX2;
-            count--;
-        }
-        this.select(newX2, y2);
+        this.select(this.#clampColumn(x2 - count), y2);
     }
 
     /**
@@ -131,24 +116,8 @@ class Selection {
      * @param count The number of columns to move right.
      */
     moveSelectionRight(count = 1): void {
-        const visibleColumns = this.#grid.columns.items;
-        if (visibleColumns.length === 0) {
-            this.select(0, this.#range.y2);
-            return;
-        }
-
         const { x2, y2 } = this.#range;
-        const maxX2 = visibleColumns.length - 1;
-        let newX2 = x2;
-        while (count > 0) {
-            const nextX2 = newX2 + 1;
-            if (nextX2 > maxX2 || !visibleColumns.at(nextX2)) {
-                break;
-            }
-            newX2 = nextX2;
-            count--;
-        }
-        this.select(newX2, y2);
+        this.select(this.#clampColumn(x2 + count), y2);
     }
 
     /**
@@ -158,7 +127,7 @@ class Selection {
      */
     moveSelectionUp(count = 1): void {
         const { x2, y2 } = this.#range;
-        this.select(x2, Math.max(0, y2 - count));
+        this.select(x2, this.#clampRow(y2 - count));
     }
 
     /**
@@ -168,8 +137,7 @@ class Selection {
      */
     moveSelectionDown(count = 1): void {
         const { x2, y2 } = this.#range;
-        const maxY2 = this.#grid.data.size - 1;
-        this.select(x2, Math.min(maxY2, y2 + count));
+        this.select(x2, this.#clampRow(y2 + count));
     }
 
     /**
@@ -178,24 +146,8 @@ class Selection {
      * @param count The number of columns to extend left.
      */
     expandSelectionLeft(count = 1): void {
-        const visibleColumns = this.#grid.columns.items;
-        if (visibleColumns.length === 0) {
-            this.select(0, 0, 0, this.#range.y2);
-            return;
-        }
-
         const { x1, y1, x2, y2 } = this.#range;
-        const minX2 = 0;
-        let newX2 = x2;
-        while (count > 0) {
-            const nextX2 = newX2 - 1;
-            if (nextX2 < minX2 || !visibleColumns.at(nextX2)) {
-                break;
-            }
-            newX2 = nextX2;
-            count--;
-        }
-        this.select(x1, y1, newX2, y2);
+        this.select(x1, y1, this.#clampColumn(x2 - count), y2);
     }
 
     /**
@@ -204,24 +156,8 @@ class Selection {
      * @param count The number of columns to extend right.
      */
     expandSelectionRight(count = 1): void {
-        const visibleColumns = this.#grid.columns.items;
-        if (visibleColumns.length === 0) {
-            this.select(0, 0, 0, this.#range.y2);
-            return;
-        }
-
         const { x1, y1, x2, y2 } = this.#range;
-        const maxX2 = visibleColumns.length - 1;
-        let newX2 = x2;
-        while (count > 0) {
-            const nextX2 = newX2 + 1;
-            if (nextX2 > maxX2 || !visibleColumns.at(nextX2)) {
-                break;
-            }
-            newX2 = nextX2;
-            count--;
-        }
-        this.select(x1, y1, newX2, y2);
+        this.select(x1, y1, this.#clampColumn(x2 + count), y2);
     }
 
     /**
@@ -231,8 +167,7 @@ class Selection {
      */
     expandSelectionUp(count = 1): void {
         const { x1, y1, x2, y2 } = this.#range;
-        const minY2 = 0;
-        this.select(x1, y1, x2, Math.max(minY2, y2 - count));
+        this.select(x1, y1, x2, this.#clampRow(y2 - count));
     }
 
     /**
@@ -242,8 +177,21 @@ class Selection {
      */
     expandSelectionDown(count = 1): void {
         const { x1, y1, x2, y2 } = this.#range;
-        const maxY2 = this.#grid.data.size - 1;
-        this.select(x1, y1, x2, Math.min(maxY2, y2 + count));
+        this.select(x1, y1, x2, this.#clampRow(y2 + count));
+    }
+
+    /**
+     * Restricts a column index to the visible columns (0 when there are none).
+     */
+    #clampColumn(x: number): number {
+        return clampNumber(0, x, this.#grid.columns.size - 1);
+    }
+
+    /**
+     * Restricts a row index to the rows in the data view (0 when there are none).
+     */
+    #clampRow(y: number): number {
+        return clampNumber(0, y, this.#grid.data.size - 1);
     }
 }
 
