@@ -31,8 +31,9 @@ export interface CollectionViewOptions<SourceItem, ViewItem = SourceItem> {
  * Maintains source items and a filtered and sorted active view of them.
  */
 class CollectionView<SourceItem, ViewItem = SourceItem> {
-    #source: SourceItem[];
-    #items: ViewItem[];
+    // Both arrays are frozen, so they can be handed out without copying
+    #source: readonly SourceItem[];
+    #items: readonly ViewItem[];
     #mapper: Mapper<SourceItem, ViewItem> | undefined;
     #filter: Filter<ViewItem> | undefined;
     #sorter: Sorter<ViewItem> | undefined;
@@ -43,8 +44,8 @@ class CollectionView<SourceItem, ViewItem = SourceItem> {
      * Creates a view over a copied set of source items.
      */
     constructor(items: SourceItem[], options?: CollectionViewOptions<SourceItem, ViewItem>) {
-        this.#source = [...items];
-        this.#items = [];
+        this.#source = Object.freeze([...items]);
+        this.#items = Object.freeze([]);
 
         if (options?.mapper) {
             this.#mapper = options.mapper;
@@ -93,23 +94,26 @@ class CollectionView<SourceItem, ViewItem = SourceItem> {
     }
 
     /**
-     * Returns a snapshot of the filtered and sorted items.
+     * Returns the filtered and sorted items.
+     *
+     * The array is frozen and is replaced (not mutated) when the view changes,
+     * so it is safe to keep a reference as a snapshot.
      */
     get items(): readonly ViewItem[] {
         if (this.#dirty) {
             this.#updateItems();
         }
-        return [...this.#items];
+        return this.#items;
     }
 
     /**
-     * Returns a snapshot of the unfiltered source items.
+     * Returns the unfiltered source items as a frozen array.
      */
     get source(): readonly SourceItem[] {
-        return [...this.#source];
+        return this.#source;
     }
     set source(values: readonly SourceItem[]) {
-        this.#source = [...values];
+        this.#source = Object.freeze([...values]);
         this.#dirty = true;
     }
 
@@ -130,7 +134,7 @@ class CollectionView<SourceItem, ViewItem = SourceItem> {
      * @param callback
      */
     modify(callback: (values: SourceItem[]) => SourceItem[]) {
-        this.source = callback(this.#source);
+        this.source = callback([...this.#source]);
     }
 
     /**
@@ -169,15 +173,17 @@ class CollectionView<SourceItem, ViewItem = SourceItem> {
     }
 
     #updateItems() {
-        let source = [...this.#source];
-        let items: ViewItem[] = this.#mapper ? source.map(this.#mapper) : ([...this.#source] as never as ViewItem[]);
+        let items = this.#mapper
+            ? this.#source.map(this.#mapper)
+            : (this.#source as readonly unknown[] as readonly ViewItem[]);
         if (this.#filter) {
             items = items.filter(this.#filter);
         }
         if (this.#sorter) {
             items = items.toSorted(this.#sorter);
         }
-        this.#items = items;
+        // Without a mapper, filter or sorter this is the (already frozen) source array itself
+        this.#items = Object.freeze(items);
         this.#dirty = false;
     }
 }

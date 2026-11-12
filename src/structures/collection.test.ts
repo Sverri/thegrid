@@ -16,6 +16,17 @@ describe("createCollectionView", () => {
         expect(view.size).toBe(2);
     });
 
+    it("returns the same items array until the view changes", () => {
+        const view = createCollectionView([3, 1, 2], { sorter: (a, b) => a - b });
+        const items = view.items;
+
+        expect(view.items).toBe(items);
+
+        view.refresh();
+        expect(view.items).not.toBe(items);
+        expect(items).toEqual([1, 2, 3]);
+    });
+
     it("starts empty when no source items are supplied", () => {
         const view = createCollectionView<number>(undefined);
 
@@ -95,7 +106,8 @@ describe("createCollectionView", () => {
         const items = view.items;
 
         source.push(3);
-        (items as number[]).push(4);
+        expect(() => (items as number[]).push(4)).toThrow(TypeError);
+        expect(() => (view.source as number[]).push(4)).toThrow(TypeError);
 
         expect(view.source).toEqual([1, 2]);
         expect(view.items).toEqual([1, 2]);
