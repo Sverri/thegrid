@@ -1,4 +1,5 @@
 import type { Grid } from "@grid/grid";
+import type { Disposer } from "@shared/types";
 import { calculateRenderArea } from "@extension/shared/calculaterenderarea";
 import { createPoint } from "@structure/point";
 
@@ -204,9 +205,10 @@ export function handleKeyDown(grid: Grid<any>, event: KeyboardEventLike): void {
  * selection movement, expansion, paging, and grid-wide shortcuts.
  *
  * @param grid The grid whose selection and cells element should be controlled.
+ * @returns A function that removes the listener.
  */
-export function keyboardExtension(grid: Grid<any>): void {
-    grid.cellsElement.addEventListener("keydown", event => {
-        handleKeyDown(grid, event as KeyboardEventLike);
-    });
+export function keyboardExtension(grid: Grid<any>): Disposer {
+    const onKeyDown = (event: KeyboardEvent) => handleKeyDown(grid, event);
+    grid.cellsElement.addEventListener("keydown", onKeyDown);
+    return () => grid.cellsElement.removeEventListener("keydown", onKeyDown);
 }

@@ -28,3 +28,16 @@ export function setupDomElements(hostElement: HTMLElement, cellSize: number) {
 
     return { cellsElement, columnHeadersElement, rowHeadersElement };
 }
+
+/**
+ * Reverts {@link setupDomElements}, leaving the host element empty.
+ *
+ * @param hostElement The element that contained the grid.
+ */
+export function teardownDomElements(hostElement: HTMLElement) {
+    hostElement.replaceChildren();
+    hostElement.classList.remove("thegrid", "thegrid-hide-column-headers", "thegrid-hide-row-headers");
+    hostElement.style.removeProperty("width");
+    hostElement.style.removeProperty("height");
+    hostElement.style.removeProperty("--cell-size");
+}

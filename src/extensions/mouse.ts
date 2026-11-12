@@ -1,4 +1,5 @@
 import type { Grid } from "@grid/grid";
+import type { Disposer } from "@shared/types";
 import { createRange, rangeIdenticalTo } from "@structure/range";
 
 interface CellCoordinates {
@@ -32,71 +33,96 @@ function getCellCoordinates(target: EventTarget | null): CellCoordinates | undef
  * preserve the current selection anchor when Shift is held.
  *
  * @param grid The grid whose cells element and selection should be controlled.
+ * @returns A function that removes the listeners.
  */
-export function mouseExtension(grid: Grid<any>): void {
+export function mouseExtension(grid: Grid<any>): Disposer {
     let startCoords: CellCoordinates | undefined;
+    const controller = new AbortController();
+    const { signal } = controller;
 
-    grid.cellsElement.addEventListener("mousedown", event => {
-        if (event.button !== 0) {
-            return;
-        }
+    grid.cellsElement.addEventListener(
+        "mousedown",
+        event => {
+            if (event.button !== 0) {
+                return;
+            }
 
-        const cellCoordinates = getCellCoordinates(event.target);
-        if (!cellCoordinates) {
-            return;
-        }
+            const cellCoordinates = getCellCoordinates(event.target);
+            if (!cellCoordinates) {
+                return;
+            }
 
-        if (event.shiftKey) {
-            const { x1, y1 } = grid.selection.range;
-            startCoords = { row: y1, column: x1 };
-        } else {
-            startCoords = cellCoordinates;
-            grid.selection.select(createRange(cellCoordinates.column, cellCoordinates.row));
-        }
-    });
+            if (event.shiftKey) {
+                const { x1, y1 } = grid.selection.range;
+                startCoords = { row: y1, column: x1 };
+            } else {
+                startCoords = cellCoordinates;
+                grid.selection.select(createRange(cellCoordinates.column, cellCoordinates.row));
+            }
+        },
+        { signal },
+    );
 
-    grid.cellsElement.addEventListener("mousemove", event => {
-        if ((event.buttons & 1) === 0 || !startCoords) {
-            return;
-        }
+    grid.cellsElement.addEventListener(
+        "mousemove",
+        event => {
+            if ((event.buttons & 1) === 0 || !startCoords) {
+                return;
+            }
 
-        const downRowIndex = startCoords.row;
-        const downColumnIndex = startCoords.column;
-        const cellCoordinates = getCellCoordinates(event.target);
-        if (!cellCoordinates) {
-            return;
-        }
+            const downRowIndex = startCoords.row;
+            const downColumnIndex = startCoords.column;
+            const cellCoordinates = getCellCoordinates(event.target);
+            if (!cellCoordinates) {
+                return;
+            }
 
-        const { row: upRowIndex, column: upColumnIndex } = cellCoordinates;
-        const range = createRange(downColumnIndex, downRowIndex, upColumnIndex, upRowIndex);
-        if (!rangeIdenticalTo(range, grid.selection.range)) {
-            grid.selection.select(range);
-        }
-    });
+            const { row: upRowIndex, column: upColumnIndex } = cellCoordinates;
+            const range = createRange(downColumnIndex, downRowIndex, upColumnIndex, upRowIndex);
+            if (!rangeIdenticalTo(range, grid.selection.range)) {
+                grid.selection.select(range);
+            }
+        },
+        { signal },
+    );
 
-    grid.cellsElement.addEventListener("mouseenter", () => {
-        startCoords = undefined;
-    });
+    grid.cellsElement.addEventListener(
+        "mouseenter",
+        () => {
+            startCoords = undefined;
+        },
+        { signal },
+    );
 
-    grid.cellsElement.addEventListener("mouseleave", () => {
-        startCoords = undefined;
-    });
+    grid.cellsElement.addEventListener(
+        "mouseleave",
+        () => {
+            startCoords = undefined;
+        },
+        { signal },
+    );
 
-    grid.cellsElement.addEventListener("mouseup", event => {
-        if (event.button !== 0) {
-            return;
-        }
+    grid.cellsElement.addEventListener(
+        "mouseup",
+        event => {
+            if (event.button !== 0) {
+                return;
+            }
 
-        const cellCoordinates = getCellCoordinates(event.target);
-        if (!cellCoordinates) {
-            return;
-        }
+            const cellCoordinates = getCellCoordinates(event.target);
+            if (!cellCoordinates) {
+                return;
+            }
 
-        const { row: upRowIndex, column: upColumnIndex } = cellCoordinates;
-        const downColumnIndex = startCoords?.column ?? upColumnIndex;
-        const downRowIndex = startCoords?.row ?? upRowIndex;
-        grid.selection.select(createRange(downColumnIndex, downRowIndex, upColumnIndex, upRowIndex));
+            const { row: upRowIndex, column: upColumnIndex } = cellCoordinates;
+            const downColumnIndex = startCoords?.column ?? upColumnIndex;
+            const downRowIndex = startCoords?.row ?? upRowIndex;
+            grid.selection.select(createRange(downColumnIndex, downRowIndex, upColumnIndex, upRowIndex));
 
-        startCoords = undefined;
-    });
+            startCoords = undefined;
+        },
+        { signal },
+    );
+
+    return () => controller.abort();
 }

@@ -6,9 +6,14 @@ import { createPoint } from "@structure/point";
 import { createGrid, type GridOptions } from "./grid";
 
 class MockResizeObserver {
-    observe = vi.fn();
+    static instances: MockResizeObserver[] = [];
 
-    constructor(_callback: ResizeObserverCallback) {}
+    observe = vi.fn();
+    disconnect = vi.fn();
+
+    constructor(_callback: ResizeObserverCallback) {
+        MockResizeObserver.instances.push(this);
+    }
 }
 
 type Row = {
@@ -128,6 +133,32 @@ describe("Grid", () => {
 
         expect(grid.columns.items[1]).toBe(column);
         expect(grid.columns.items[1]!.width).toBe(150);
+    });
+
+    it("restores the host and stops reacting to events when destroyed", () => {
+        vi.useFakeTimers();
+        const { host, grid } = createTestGrid();
+        grid.invalidate(true);
+        const onInvalidate = vi.fn();
+        grid.onInvalidate.subscribe(onInvalidate);
+        grid.data.items;
+
+        grid.data.source = [{ name: "Katherine", amount: 3 }];
+        grid.destroy();
+        vi.advanceTimersByTime(1000);
+
+        expect(grid.destroyed).toBe(true);
+        expect(onInvalidate).not.toHaveBeenCalled();
+        expect(MockResizeObserver.instances.at(-1)!.disconnect).toHaveBeenCalled();
+        expect(host.children).toHaveLength(0);
+        expect(host.classList.contains("thegrid")).toBe(false);
+        expect(host.style.getPropertyValue("--cell-size")).toBe("");
+
+        grid.cellsElement.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown" }));
+        expect(grid.selection.range.y2).toBe(0);
+
+        expect(() => grid.destroy()).not.toThrow();
+        vi.useRealTimers();
     });
 
     it("does not write to readonly columns", () => {

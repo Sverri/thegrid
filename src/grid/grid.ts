@@ -1,4 +1,4 @@
-import type { DataItem } from "@shared/types";
+import type { DataItem, Disposer } from "@shared/types";
 import { keyboardExtension } from "@extension/keyboard";
 import { mouseExtension } from "@extension/mouse";
 import { resizeObserverExtension } from "@extension/resizeobserver";
@@ -9,7 +9,7 @@ import { createEvent } from "@shared/event";
 import { debounce } from "throttle-debounce";
 import { getElementScrollDimensions } from "@helpers/getelementscrolldimensions";
 import { createCollectionView, type CollectionView } from "@structure/collection";
-import { setupDomElements } from "./setup";
+import { setupDomElements, teardownDomElements } from "./setup";
 import { createSelection, type Selection } from "@grid/selection";
 import { type Point } from "@structure/point";
 import { createRenderer, type Renderer } from "./renderer";
@@ -76,6 +76,8 @@ class Grid<T extends DataItem> {
     readonly locale: Intl.Locale;
 
     // Misc.
+    #destroyed = false;
+    #disposers: Disposer[] = [];
     #cellSize: number;
     #showHeaderSelection: Headers;
     #showHeaders: Headers;
@@ -123,19 +125,32 @@ class Grid<T extends DataItem> {
 
         // Selection
         this.selection = createSelection(this, {
-            onChange: () => this.#renderer.updateSelection(),
+            onChange: () => {
+                if (!this.#destroyed) {
+                    this.#renderer.updateSelection();
+                }
+            },
         });
 
         // Renderer
         this.#renderer = createRenderer(this);
-        this.cellsElement.addEventListener("scroll", () => this.#renderer.requestRender(), { passive: true });
-        this.#onInvalidate.subscribe(() => this.#renderer.render());
+        const onScroll = () => this.#renderer.requestRender();
+        const render = () => this.#renderer.render();
+        this.cellsElement.addEventListener("scroll", onScroll, { passive: true });
+        this.#onInvalidate.subscribe(render);
+        this.#disposers.push(() => {
+            this.cellsElement.removeEventListener("scroll", onScroll);
+            this.#onInvalidate.unsubscribe(render);
+            this.#renderer.cancel();
+        });
 
         // Extensions
-        expanderExtension(this);
-        mouseExtension(this);
-        keyboardExtension(this);
-        resizeObserverExtension(this);
+        this.#disposers.push(
+            expanderExtension(this),
+            mouseExtension(this),
+            keyboardExtension(this),
+            resizeObserverExtension(this),
+        );
 
         // Get the show on the road!
         this.invalidate();
@@ -182,11 +197,39 @@ class Grid<T extends DataItem> {
      * @param immediate
      */
     invalidate(immediate = false) {
+        if (this.#destroyed) {
+            return;
+        }
         if (immediate) {
             this.#onInvalidate.raise();
         } else {
             this.#debouncedInvalidate();
         }
+    }
+
+    /**
+     * Whether {@link destroy} has been called.
+     */
+    get destroyed() {
+        return this.#destroyed;
+    }
+
+    /**
+     * Removes the grid from its host element.
+     *
+     * Removes all event listeners and observers, cancels scheduled renders,
+     * and restores the host element. The grid cannot be used afterwards.
+     */
+    destroy(): void {
+        if (this.#destroyed) {
+            return;
+        }
+        this.#destroyed = true;
+        this.#debouncedInvalidate.cancel();
+        for (const dispose of this.#disposers.splice(0)) {
+            dispose();
+        }
+        teardownDomElements(this.hostElement);
     }
 
     scrollIntoView(point: Point): void {
