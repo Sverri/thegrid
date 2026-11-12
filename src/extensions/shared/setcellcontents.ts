@@ -54,9 +54,11 @@ function safeHttpUrl(value: string): string | undefined {
 /**
  * Populates a cell element with formatted content based on the column data type.
  *
- * @param cell The DOM element representing the grid cell.
- * @param columnType The data type that determines how the value should be displayed.
- * @param cellData The raw value to render inside the cell.
+ * @param data The cell contents to render.
+ * @param data.cell The DOM element representing the grid cell.
+ * @param data.cellData The raw value to render inside the cell.
+ * @param data.column The column, whose data type determines how the value is displayed.
+ * @param data.locale The locale used to format numbers and dates.
  */
 export function setCellContents({ cell, cellData, column, locale }: Data): void {
     if (cellData == undefined) {

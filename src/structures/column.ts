@@ -84,7 +84,7 @@ class Column<T extends DataItem> {
             throw new Error("The binding must be a non-empty string");
         }
         if (this.#minWidth > this.#maxWidth) {
-            throw new Error("The minWidth and maxWidth options");
+            throw new Error("minWidth cannot be greater than maxWidth");
         }
     }
 

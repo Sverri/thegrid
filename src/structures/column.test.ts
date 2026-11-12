@@ -103,7 +103,7 @@ describe("createColumn", () => {
     it("rejects invalid bindings and incompatible width bounds", () => {
         expect(() => createColumn<Row>({ binding: "" as "name" })).toThrow("The binding must be a non-empty string");
         expect(() => createColumn<Row>({ binding: "name", minWidth: 20, maxWidth: 10 })).toThrow(
-            "The minWidth and maxWidth options",
+            "minWidth cannot be greater than maxWidth",
         );
 
         const column = createColumn<Row>({ binding: "name" });

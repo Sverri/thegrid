@@ -93,28 +93,29 @@ export const DataType = Object.freeze({
 export type DataType = (typeof DataType)[keyof typeof DataType];
 
 /**
- * Identifies the different kinds of cells that can exist in the grid.
+ * Selects which headers a setting applies to, such as which headers are shown
+ * or which headers highlight the selection.
  */
 export const Headers = Object.freeze({
     /**
-     * A regular data cell.
+     * Neither row nor column headers.
      */
-    None: Symbol("HeaderSelection.None"),
+    None: Symbol("Headers.None"),
 
     /**
-     * The top-left corner cell that acts as the grid origin.
+     * Row headers only.
      */
-    Rows: Symbol("HeaderSelection.RowHeaders"),
+    Rows: Symbol("Headers.Rows"),
 
     /**
-     * A header cell for a column.
+     * Column headers only.
      */
-    Columns: Symbol("HeaderSelection.ColumnHeaders"),
+    Columns: Symbol("Headers.Columns"),
 
     /**
-     * A header cell for a row.
+     * Both row and column headers.
      */
-    Both: Symbol("HeaderSelection.Both"),
+    Both: Symbol("Headers.Both"),
 } as const);
 
 export type Headers = (typeof Headers)[keyof typeof Headers];

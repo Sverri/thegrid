@@ -43,7 +43,8 @@ function calculateRows(
  * The result is derived from the current scroll position and the configured
  * render-ahead margin so the grid can render just enough content to stay smooth.
  *
- * @param options The render-area calculation inputs.
+ * @param grid The grid whose scroll position, columns and rows are measured.
+ * @param renderAhead The number of extra columns and rows to render beyond each edge of the viewport.
  * @returns A range describing the visible and buffered render region.
  */
 export function calculateRenderArea(grid: Grid<any>, renderAhead: RenderAhead): Range {
