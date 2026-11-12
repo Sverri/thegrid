@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { DataType } from "@shared/enums";
 import { columnFromLeft, createColumn, isColumn } from "./column";
 
@@ -70,6 +70,23 @@ describe("createColumn", () => {
         expect(column.header).toBe("Amount");
         expect(column.dataType).toBe(DataType.Currency);
         expect(column.visible).toBe(false);
+    });
+
+    it("raises onChange when a property is set", () => {
+        const column = createColumn<Row>({ binding: "name" });
+        const listener = vi.fn();
+        column.onChange.subscribe(listener);
+
+        column.binding = "amount";
+        column.header = "Amount";
+        column.dataType = DataType.Decimal;
+        column.width = 120;
+        column.minWidth = 10;
+        column.maxWidth = 500;
+        column.visible = false;
+        column.readonly = true;
+
+        expect(listener).toHaveBeenCalledTimes(8);
     });
 
     it("keeps width valid when minimum or maximum changes", () => {

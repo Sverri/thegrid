@@ -1,6 +1,7 @@
 import type { DataItem } from "@shared/types";
 import { DataType } from "@shared/enums";
 import { clampNumber } from "@helpers/numbers";
+import { createEvent } from "@shared/event";
 
 export interface ColumnOptions<T extends DataItem> {
     /**
@@ -67,6 +68,7 @@ class Column<T extends DataItem> {
     #maxWidth: number;
     #visible: boolean;
     #readonly: boolean;
+    #onChange = createEvent<() => void>();
 
     constructor(options: ColumnOptions<T>) {
         this.#binding = options.binding;
@@ -99,6 +101,7 @@ class Column<T extends DataItem> {
             throw new Error("Invalid binding");
         }
         this.#binding = value;
+        this.#onChange.raise();
     }
 
     /**
@@ -111,6 +114,7 @@ class Column<T extends DataItem> {
     }
     set header(value: string) {
         this.#header = value;
+        this.#onChange.raise();
     }
 
     /**
@@ -123,6 +127,7 @@ class Column<T extends DataItem> {
     }
     set dataType(value: DataType) {
         this.#dataType = value;
+        this.#onChange.raise();
     }
 
     /**
@@ -135,6 +140,7 @@ class Column<T extends DataItem> {
     }
     set width(value: number) {
         this.#width = clampNumber(this.#minWidth, value, this.#maxWidth);
+        this.#onChange.raise();
     }
 
     /**
@@ -151,6 +157,7 @@ class Column<T extends DataItem> {
         }
         this.#minWidth = value;
         this.#width = clampNumber(this.#minWidth, this.#width, this.#maxWidth);
+        this.#onChange.raise();
     }
 
     /**
@@ -167,6 +174,7 @@ class Column<T extends DataItem> {
         }
         this.#maxWidth = value;
         this.#width = clampNumber(this.#minWidth, this.#width, this.#maxWidth);
+        this.#onChange.raise();
     }
 
     /**
@@ -179,13 +187,27 @@ class Column<T extends DataItem> {
     }
     set visible(value: boolean) {
         this.#visible = value;
+        this.#onChange.raise();
     }
 
+    /**
+     * Whether the column is readonly.
+     *
+     * Defaults to false if not provided.
+     */
     get readonly() {
         return this.#readonly;
     }
     set readonly(value: boolean) {
         this.#readonly = value;
+        this.#onChange.raise();
+    }
+
+    /**
+     * Event raised whenever a column property changes.
+     */
+    get onChange() {
+        return this.#onChange.unraisable;
     }
 }
 

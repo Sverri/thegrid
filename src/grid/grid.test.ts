@@ -106,6 +106,30 @@ describe("Grid", () => {
         expect(grid.getCellData(0, 10)).toBeUndefined();
     });
 
+    it("re-applies visibility and re-renders when a column changes", async () => {
+        const { grid } = createTestGrid();
+        grid.invalidate(true);
+        const onInvalidate = vi.fn();
+        grid.onInvalidate.subscribe(onInvalidate);
+
+        grid.columns.items[0]!.visible = false;
+        await vi.waitFor(() => expect(onInvalidate).toHaveBeenCalled());
+
+        expect(grid.columns.items.map(c => c.binding)).toEqual(["amount"]);
+        expect(grid.columnHeadersElement.textContent).not.toContain("Name");
+    });
+
+    it("keeps the same Column instance when the column view is rebuilt", () => {
+        const { grid } = createTestGrid();
+        const column = grid.columns.items[1]!;
+        column.width = 150;
+
+        grid.columns.refresh();
+
+        expect(grid.columns.items[1]).toBe(column);
+        expect(grid.columns.items[1]!.width).toBe(150);
+    });
+
     it("does not write to readonly columns", () => {
         const { grid } = createTestGrid({
             columns: [{ binding: "name", readonly: true }],

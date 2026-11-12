@@ -102,9 +102,22 @@ class Grid<T extends DataItem> {
         });
 
         // Columns
+        //
+        // Each options object maps to one Column instance for its lifetime, so
+        // changes made to a Column survive the view being rebuilt. Changing a
+        // column refreshes the view (to re-apply `visible`) and re-renders.
+        const columnCache = new WeakMap<ColumnOptions<T>, Column<T>>();
         this.columns = createCollectionView<ColumnOptions<T>, Column<T>>(options?.columns, {
             filter: column => column.visible,
-            mapper: column => createColumn(column),
+            mapper: options => {
+                let column = columnCache.get(options);
+                if (!column) {
+                    column = createColumn(options);
+                    column.onChange.subscribe(() => this.columns.refresh());
+                    columnCache.set(options, column);
+                }
+                return column;
+            },
             onChange: () => this.invalidate(),
         });
 
