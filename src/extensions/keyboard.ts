@@ -98,7 +98,8 @@ function moveSelection(grid: Grid<any>, direction: Direction, shiftHeld: boolean
 
 function page(grid: Grid<any>, direction: "up" | "down", shiftHeld: boolean): void {
     const renderArea = calculateRenderArea(grid, { columns: 0, rows: 0 });
-    const rowsPerPage = renderArea.bottom - renderArea.top - 1;
+    // Always move at least one row, even when the viewport is shorter than two rows
+    const rowsPerPage = Math.max(1, renderArea.bottom - renderArea.top - 1);
     if (shiftHeld) {
         if (direction === "up") {
             grid.selection.expandSelectionUp(rowsPerPage);

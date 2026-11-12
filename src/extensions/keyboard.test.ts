@@ -499,6 +499,23 @@ describe("handleKeyDown", () => {
         expect(grid.selection.moveSelectionDown).toHaveBeenCalledTimes(1);
     });
 
+    it("pages by at least one row when the viewport is shorter than two rows", () => {
+        const grid = { ...createGrid(), cellSize: 50 };
+        const event = {
+            shiftKey: false,
+            ctrlKey: false,
+            altKey: false,
+            metaKey: false,
+            preventDefault: vi.fn(),
+        };
+
+        handleKeyDown(grid as any, { ...event, key: "PageDown" });
+        handleKeyDown(grid as any, { ...event, key: "PageUp" });
+
+        expect(grid.selection.moveSelectionDown).toHaveBeenCalledWith(1);
+        expect(grid.selection.moveSelectionUp).toHaveBeenCalledWith(1);
+    });
+
     it("pages up by the rendered row count", () => {
         const grid = createGrid();
 
