@@ -1,7 +1,6 @@
 import "normalize.css";
 import { faker } from "@faker-js/faker";
-import { createGrid, DataType } from "./src/index";
-import { Headers } from "@shared/enums";
+import { createGrid, DataType, Headers } from "./src/index";
 
 const hostElement = document.querySelector<HTMLDivElement>(".grid");
 

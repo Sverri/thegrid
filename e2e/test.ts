@@ -1,5 +1,4 @@
-import { createGrid, DataType } from "../src/index";
-import { Headers } from "@shared/enums";
+import { createGrid, DataType, Headers } from "../src/index";
 
 interface User {
     id: number;
