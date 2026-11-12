@@ -132,6 +132,18 @@ describe("columnFromLeft", () => {
         expect(columnFromLeft(columns, 2)).toBe(100);
     });
 
+    it("recalculates offsets for mutable arrays and for new frozen arrays", () => {
+        const first = createColumn<Row>({ binding: "name", width: 100 });
+        const second = createColumn<Row>({ binding: "amount", width: 50 });
+        const mutable = [first, second];
+        const frozen = Object.freeze([first, second]);
+
+        expect(columnFromLeft(frozen, 1)).toBe(100);
+        first.width = 30;
+        expect(columnFromLeft(mutable, 1)).toBe(30);
+        expect(columnFromLeft(Object.freeze([first, second]), 1)).toBe(30);
+    });
+
     it("rejects indexes outside the collection", () => {
         const columns = [createColumn<Row>({ binding: "name" })];
 

@@ -247,12 +247,37 @@ export function columnFromLeft<T extends DataItem>(columns: readonly Column<T>[]
     if (index < 0 || index > columns.length - 1) {
         throw new Error("Invalid column index");
     }
+    return columnOffsets(columns)[index]!;
+}
+
+/**
+ * Offsets are cached per frozen array (such as `CollectionView.items`, which is
+ * replaced whenever a column changes). Mutable arrays are never cached, because
+ * they could change without the cache knowing.
+ */
+const offsetsCache = new WeakMap<readonly Column<any>[], readonly number[]>();
+
+/**
+ * Calculates the left offset of every column in a single pass.
+ *
+ * @param columns The columns in collection order.
+ * @returns The offset of each column, indexed like `columns`.
+ */
+function columnOffsets<T extends DataItem>(columns: readonly Column<T>[]): readonly number[] {
+    const cached = offsetsCache.get(columns);
+    if (cached) {
+        return cached;
+    }
+    const offsets: number[] = [];
     let left = 0;
-    for (let i = 0; i < index; i++) {
-        const column = columns.at(i);
-        if (column?.visible) {
+    for (const column of columns) {
+        offsets.push(left);
+        if (column.visible) {
             left += column.width;
         }
     }
-    return left;
+    if (Object.isFrozen(columns)) {
+        offsetsCache.set(columns, offsets);
+    }
+    return offsets;
 }
