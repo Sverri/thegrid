@@ -3,7 +3,7 @@ import { keyboardExtension } from "@extension/keyboard";
 import { mouseExtension } from "@extension/mouse";
 import { resizeObserverExtension } from "@extension/resizeobserver";
 import { expanderExtension } from "@extension/expander";
-import { DataType, Headers } from "@shared/enums";
+import { Headers } from "@shared/enums";
 import { columnFromLeft, createColumn, type Column, type ColumnOptions } from "@structure/column";
 import { createEvent } from "@shared/event";
 import { debounce } from "throttle-debounce";
@@ -261,7 +261,12 @@ class Grid<T extends DataItem> {
         this.cellsElement.scrollTo({ left, top, behavior: "instant" });
     }
 
-    getCellData<DT extends DataType>(columnIndex: number, rowIndex: number): DT | undefined {
+    /**
+     * Reads the value of the cell at the given view coordinates.
+     *
+     * @returns The value, or `undefined` for cells outside the grid.
+     */
+    getCellData(columnIndex: number, rowIndex: number): T[keyof T] | undefined {
         const column = this.columns.items.at(columnIndex);
         if (!column) {
             return undefined;
