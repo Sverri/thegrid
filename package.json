@@ -6,11 +6,13 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "typecheck": "tsc",
     "preview": "vite preview",
     "test": "vitest run",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "format": "prettier ./src ./index.html --write"
+    "format": "prettier ./src ./e2e ./index.html ./app.ts ./style.css ./*.config.ts --write",
+    "format:check": "prettier ./src ./e2e ./index.html ./app.ts ./style.css ./*.config.ts --check"
   },
   "devDependencies": {
     "@faker-js/faker": "10.6.0",
