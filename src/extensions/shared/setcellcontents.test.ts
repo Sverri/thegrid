@@ -162,6 +162,37 @@ describe("setCellContents", () => {
         expect(emailCell.textContent).toBe("user@example.com");
     });
 
+    it("renders URL and email values as links without interpreting HTML", () => {
+        const urlCell = document.createElement("div");
+        const emailCell = document.createElement("div");
+        const payload = '<img src=x onerror="alert(1)">';
+
+        setCellContents({
+            cell: urlCell,
+            cellData: `https://example.com/${payload}`,
+            column: createTestColumn(DataType.URL),
+            locale,
+        });
+        const link = urlCell.querySelector("a")!;
+        expect(urlCell.querySelector("img")).toBeNull();
+        expect(link.textContent).toBe(`https://example.com/${payload}`);
+        expect(link.target).toBe("_blank");
+        expect(link.rel).toBe("noopener noreferrer");
+
+        setCellContents({ cell: emailCell, cellData: payload, column: createTestColumn(DataType.Email), locale });
+        expect(emailCell.querySelector("img")).toBeNull();
+        expect(emailCell.querySelector("a")!.textContent).toBe(payload);
+    });
+
+    it("does not link URLs with unsafe protocols", () => {
+        const cell = document.createElement("div");
+
+        setCellContents({ cell, cellData: "javascript:alert(1)", column: createTestColumn(DataType.URL), locale });
+
+        expect(cell.querySelector("a")).toBeNull();
+        expect(cell.textContent).toBe("javascript:alert(1)");
+    });
+
     it("formats dates as date strings", () => {
         const cell = document.createElement("div");
         const date = new Date("2025-02-03T00:00:00Z");

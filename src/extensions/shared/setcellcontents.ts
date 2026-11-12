@@ -8,6 +8,25 @@ interface Data {
     locale: Intl.Locale;
 }
 
+function createLink(text: string, href: string): HTMLAnchorElement {
+    const link = document.createElement("a");
+    link.href = href;
+    link.textContent = text;
+    return link;
+}
+
+/**
+ * Returns the value as a URL string if it is an absolute http(s) URL, otherwise `undefined`.
+ */
+function safeHttpUrl(value: string): string | undefined {
+    try {
+        const url = new URL(value);
+        return url.protocol === "http:" || url.protocol === "https:" ? url.href : undefined;
+    } catch {
+        return undefined;
+    }
+}
+
 /**
  * Populates a cell element with formatted content based on the column data type.
  *
@@ -73,12 +92,22 @@ export function setCellContents({ cell, cellData, column, locale }: Data): void 
         }
 
         case DataType.URL: {
-            cell.innerHTML = `<a href="${cellData}" target="_blank" rel="noopener noreferrer">${cellData}</a>`;
+            const text = String(cellData);
+            const href = safeHttpUrl(text);
+            if (href) {
+                const link = createLink(text, href);
+                link.target = "_blank";
+                link.rel = "noopener noreferrer";
+                cell.replaceChildren(link);
+            } else {
+                cell.textContent = text;
+            }
             break;
         }
 
         case DataType.Email: {
-            cell.innerHTML = `<a href="mailto:${cellData}">${cellData}</a>`;
+            const text = String(cellData);
+            cell.replaceChildren(createLink(text, `mailto:${text}`));
             break;
         }
         case DataType.String:
