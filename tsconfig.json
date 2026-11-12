@@ -33,7 +33,6 @@
       "@helpers/*": ["./src/helpers/*"],
       "@extension/*": ["./src/extensions/*"],
       "@shared/*": ["./src/shared/*"],
-      "@shard/*": ["./src/shards/*"],
       "@grid/*": ["./src/grid/*"]
     }
   },
