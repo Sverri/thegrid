@@ -80,6 +80,17 @@ class Selection {
             range = createRange(x1, y1!, x2, y2);
         }
 
+        // Coordinates can go negative when the grid has no rows or columns
+        // (e.g. "last row" is -1), so clamp them to the first cell.
+        if (range.left < 0 || range.top < 0) {
+            range = createRange(
+                Math.max(0, range.x1),
+                Math.max(0, range.y1),
+                Math.max(0, range.x2),
+                Math.max(0, range.y2),
+            );
+        }
+
         if (rangeIdenticalTo(this.#range, range)) {
             return;
         }

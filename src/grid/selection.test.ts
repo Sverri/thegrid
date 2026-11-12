@@ -143,6 +143,20 @@ describe("Selection", () => {
         expect(listener).toHaveBeenCalledTimes(2);
     });
 
+    it("never selects negative coordinates when the grid has no rows", () => {
+        const grid = createGrid(document.createElement("div"), { columns: [{ binding: "id" }] });
+        const selection = createSelection(grid);
+
+        selection.moveSelectionDown();
+        expect(selection.range).toEqual(createRange(0, 0));
+
+        selection.expandSelectionDown();
+        expect(selection.range).toEqual(createRange(0, 0));
+
+        selection.select(0, 0, 0, grid.data.size - 1);
+        expect(selection.range).toEqual(createRange(0, 0));
+    });
+
     it("keeps the current column when moving up", () => {
         const grid = createTestGrid();
         const selection = createSelection(grid);
