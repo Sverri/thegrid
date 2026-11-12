@@ -8,7 +8,7 @@ import { setCellContents } from "@extension/shared/setcellcontents";
 import { getElementScrollDimensions, type ElementScrollDimensions } from "@helpers/getelementscrolldimensions";
 import { calculateRenderArea } from "@extension/shared/calculaterenderarea";
 import type { Point } from "@structure/point";
-import { debounce } from "throttle-debounce";
+import { onNextFrame } from "@helpers/frame";
 
 const renderAhead = {
     columns: 1,
@@ -34,16 +34,27 @@ class Renderer {
         this.#renderRowHeaders(renderArea, dimensions);
     }
 
-    updateSelection = debounce(16, () => {
+    /**
+     * Render on the next animation frame. Repeated calls within a frame (such
+     * as a burst of scroll events) result in a single render.
+     */
+    requestRender = onNextFrame(() => this.render());
+
+    /**
+     * Update selection styling on the next animation frame, without
+     * re-creating the cells.
+     */
+    updateSelection = onNextFrame(() => {
         const { selection, cellsElement } = this.#grid;
         const renderArea = calculateRenderArea(this.#grid, renderAhead);
         const dimensions = getElementScrollDimensions(cellsElement);
 
         this.#removeSelectionFromCells();
 
-        for (const { x, y } of rangeIterator(renderArea)) {
-            const cell = cellsElement.querySelector<HTMLDivElement>(`[data-column="${x}"][data-row="${y}"]`);
-            if (cell) {
+        for (const cell of cellsElement.children) {
+            if (cell instanceof HTMLElement) {
+                const x = Number(cell.dataset["column"]);
+                const y = Number(cell.dataset["row"]);
                 renderCellSelection(cell, selection.range, x, y);
             }
         }
@@ -51,6 +62,14 @@ class Renderer {
         this.#renderColumnHeaders(renderArea, dimensions);
         this.#renderRowHeaders(renderArea, dimensions);
     });
+
+    /**
+     * Cancel any scheduled work.
+     */
+    cancel() {
+        this.requestRender.cancel();
+        this.updateSelection.cancel();
+    }
 
     #renderItems(
         element: HTMLElement,

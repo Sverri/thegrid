@@ -128,7 +128,7 @@ class Grid<T extends DataItem> {
 
         // Renderer
         this.#renderer = createRenderer(this);
-        this.cellsElement.addEventListener("scroll", () => this.#renderer.render(), { passive: true });
+        this.cellsElement.addEventListener("scroll", () => this.#renderer.requestRender(), { passive: true });
         this.#onInvalidate.subscribe(() => this.#renderer.render());
 
         // Extensions
