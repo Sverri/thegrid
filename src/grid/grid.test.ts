@@ -106,6 +106,26 @@ describe("Grid", () => {
         expect(grid.getCellData(0, 10)).toBeUndefined();
     });
 
+    it("does not write to readonly columns", () => {
+        const { grid } = createTestGrid({
+            columns: [{ binding: "name", readonly: true }],
+        });
+
+        expect(grid.setCellData(0, 0, "Elizabeth")).toBe(false);
+        expect(grid.getCellData(0, 0)).toBe("Ada");
+    });
+
+    it("re-sorts the data after a cell is written", () => {
+        const { grid } = createTestGrid({ columns: [{ binding: "name" }] });
+        grid.data.sorter = (a, b) => a.name.localeCompare(b.name);
+        expect(grid.getCellData(0, 0)).toBe("Ada");
+
+        expect(grid.setCellData(0, 0, "Zelda")).toBe(true);
+
+        expect(grid.getCellData(0, 0)).toBe("Grace");
+        expect(grid.getCellData(0, 1)).toBe("Zelda");
+    });
+
     it("updates cell data and supports both scrollIntoView overloads", () => {
         const { grid } = createTestGrid({ cellSize: 20 });
         const scrollTo = grid.cellsElement.scrollTo as ReturnType<typeof vi.fn>;

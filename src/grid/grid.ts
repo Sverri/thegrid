@@ -217,18 +217,23 @@ class Grid<T extends DataItem> {
         return row[column.binding];
     }
 
-    setCellData(columnIndex: number, rowIndex: number, value: T[keyof T]): void {
+    /**
+     * Writes a value to the cell at the given view coordinates.
+     *
+     * Writes to readonly columns and to cells outside the grid are ignored.
+     * The data view is refreshed afterwards, so sorting and filtering reflect the new value.
+     *
+     * @returns `true` if the value was written.
+     */
+    setCellData(columnIndex: number, rowIndex: number, value: T[keyof T]): boolean {
         const row = this.data.items.at(rowIndex);
-        if (!row) {
-            return undefined;
-        }
         const column = this.columns.items.at(columnIndex);
-        if (!column) {
-            return undefined;
+        if (!row || !column || column.readonly) {
+            return false;
         }
         row[column.binding] = value;
-
-        this.invalidate();
+        this.data.refresh();
+        return true;
     }
 }
 

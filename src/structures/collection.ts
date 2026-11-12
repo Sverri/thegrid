@@ -133,6 +133,16 @@ class CollectionView<SourceItem, ViewItem = SourceItem> {
         this.source = callback(this.#source);
     }
 
+    /**
+     * Re-applies the mapper, filter and sorter on next access.
+     *
+     * Call this after mutating source items in place, since such changes
+     * cannot be detected automatically.
+     */
+    refresh(): void {
+        this.#dirty = true;
+    }
+
     get #dirty() {
         return this.#isDirty;
     }

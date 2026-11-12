@@ -2,6 +2,20 @@ import { describe, expect, it, vi } from "vitest";
 import { createCollectionView, isCollectionView } from "./collection";
 
 describe("createCollectionView", () => {
+    it("re-applies the filter and notifies when refreshed after an in-place mutation", () => {
+        const items = [{ value: 1 }, { value: 2 }];
+        const onChange = vi.fn();
+        const view = createCollectionView(items, { filter: item => item.value > 1, onChange });
+        expect(view.size).toBe(1);
+
+        items[0]!.value = 5;
+        expect(view.size).toBe(1);
+
+        view.refresh();
+        expect(onChange).toHaveBeenCalledTimes(1);
+        expect(view.size).toBe(2);
+    });
+
     it("starts empty when no source items are supplied", () => {
         const view = createCollectionView<number>(undefined);
 
