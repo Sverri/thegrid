@@ -56,14 +56,17 @@ export function setCellContents({ cell, cellData, column, locale }: Data): void 
             break;
         }
 
-        case DataType.Decimal: {
-            if (typeof cellData === "number") {
+        case DataType.Decimal:
+        case DataType.Currency: {
+            const value = typeof cellData === "number" ? cellData : Number(cellData);
+            if (cellData !== "" && Number.isFinite(value)) {
                 const formatter = new Intl.NumberFormat(locale, {
                     maximumFractionDigits: 2,
                     minimumFractionDigits: 2,
                 });
-                cell.textContent = formatter.format(cellData);
+                cell.textContent = formatter.format(value);
             } else {
+                cell.textContent = String(cellData);
             }
             cell.style.textAlign = "right";
             break;
@@ -122,11 +125,22 @@ export function setCellContents({ cell, cellData, column, locale }: Data): void 
                 month: "2-digit",
                 year: "numeric",
             });
-            if (cellData instanceof Date) {
-                cell.textContent = formatter.format(cellData);
+            const date =
+                cellData instanceof Date
+                    ? cellData
+                    : typeof cellData === "string" || typeof cellData === "number"
+                      ? new Date(cellData)
+                      : undefined;
+            if (date && !Number.isNaN(date.getTime())) {
+                cell.textContent = formatter.format(date);
             } else {
-                cell.textContent = new Date(cellData as Date).toDateString();
+                cell.textContent = String(cellData);
             }
+            break;
+        }
+
+        default: {
+            cell.textContent = String(cellData);
             break;
         }
     }

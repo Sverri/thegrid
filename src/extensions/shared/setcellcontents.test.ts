@@ -90,6 +90,7 @@ describe("setCellContents", () => {
         });
         expect(integerCell.textContent).toBe("13");
 
+        decimalCell.textContent = "";
         setCellContents({
             cell: decimalCell,
             cellData: "12.345",
@@ -212,6 +213,28 @@ describe("setCellContents", () => {
             column: createTestColumn(DataType.Date),
             locale,
         });
-        expect(cell.textContent).toBe(new Date("2025-02-03T00:00:00Z").toDateString());
+        expect(cell.textContent).toBe("02/03/2025");
+    });
+
+    it("shows the raw value when it cannot be formatted", () => {
+        const render = (cellData: unknown, dataType: DataType) => {
+            const cell = document.createElement("div");
+            setCellContents({ cell, cellData, column: createTestColumn(dataType), locale });
+            return cell.textContent;
+        };
+
+        expect(render("n/a", DataType.Decimal)).toBe("n/a");
+        expect(render("not a date", DataType.Date)).toBe("not a date");
+    });
+
+    it("renders currency and custom values", () => {
+        const render = (cellData: unknown, dataType: DataType) => {
+            const cell = document.createElement("div");
+            setCellContents({ cell, cellData, column: createTestColumn(dataType), locale });
+            return cell.textContent;
+        };
+
+        expect(render(1234.5, DataType.Currency)).toBe("1,234.50");
+        expect(render("anything", DataType.Custom)).toBe("anything");
     });
 });
