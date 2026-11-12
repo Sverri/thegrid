@@ -143,6 +143,16 @@ describe("Selection", () => {
         expect(listener).toHaveBeenCalledTimes(2);
     });
 
+    it("keeps the current column when moving up", () => {
+        const grid = createTestGrid();
+        const selection = createSelection(grid);
+
+        selection.select(2, 2);
+        selection.moveSelectionUp();
+
+        expect(selection.range).toEqual(createRange(2, 1));
+    });
+
     it("clamps vertical movement and expansion to the loaded row range", () => {
         const grid = createTestGrid();
         const selection = createSelection(grid);

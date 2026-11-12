@@ -146,9 +146,8 @@ class Selection {
      * @param count The number of rows to move up.
      */
     moveSelectionUp(count = 1): void {
-        const { y2 } = this.#range;
-        const minY2 = 0;
-        this.select(minY2, Math.max(0, y2 - count));
+        const { x2, y2 } = this.#range;
+        this.select(x2, Math.max(0, y2 - count));
     }
 
     /**
