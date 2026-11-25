@@ -394,6 +394,25 @@ describe("Grid", () => {
             expect(grid.data.items).toBe(items);
         });
 
+        it("still sorts by a column that does not allow sorting, when sorted in code", () => {
+            const { grid, age } = createSortGrid();
+            age.allowSorting = false;
+
+            age.sortDirection = SortDirection.Ascending;
+
+            expect(names(grid)).toEqual(["Linus", "Ada", "Alan", "Grace"]);
+        });
+
+        it("marks the headers of columns that allow sorting", () => {
+            const { grid, name } = createSortGrid();
+            name.allowSorting = false;
+
+            grid.invalidate(true);
+            const sortable = [...grid.columnHeadersElement.children].map(cell => cell.classList.contains("sortable"));
+
+            expect(sortable).toEqual([true, false, true]);
+        });
+
         it("marks sorted column headers", () => {
             const { grid, team, age } = createSortGrid();
             team.sortDirection = SortDirection.Ascending;

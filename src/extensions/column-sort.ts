@@ -10,7 +10,9 @@ import { nextSortDirection } from "@grid/sort";
  * Ctrl (or Cmd on macOS) held keeps the other sorted columns, so the grid is
  * sorted by several columns, the left-most one first.
  *
- * Clicks on a resize handle do not sort.
+ * Clicks on a resize handle, or on a column with `allowSorting` set to false,
+ * do nothing. A plain click on a sortable column still clears the sorting
+ * of every other column, including ones that do not allow sorting.
  *
  * @param grid The grid whose column headers should be sortable.
  * @returns A function that removes the listener.
@@ -30,7 +32,7 @@ export function columnSortExtension(grid: Grid<any>): Disposer {
             const cell = event.target.closest<HTMLElement>(".thegrid-cell-column-header");
             const index = Number.parseInt(cell?.dataset["column"] ?? "", 10);
             const column = Number.isNaN(index) ? undefined : grid.columns.items.at(index);
-            if (!column) {
+            if (!column?.allowSorting) {
                 return;
             }
 

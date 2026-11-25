@@ -191,6 +191,7 @@ class Renderer {
                 cell.classList.add("column-selected");
             }
             cell.textContent = column.header;
+            cell.classList.toggle("sortable", column.allowSorting);
 
             if (column.sortDirection !== undefined) {
                 const ascending = column.sortDirection === SortDirection.Ascending;

@@ -20,6 +20,7 @@ describe("createColumn", () => {
         expect(column.visible).toBe(true);
         expect(column.readonly).toBe(false);
         expect(column.allowResize).toBe(true);
+        expect(column.allowSorting).toBe(true);
         expect(column.sortDirection).toBeUndefined();
     });
 
@@ -34,6 +35,7 @@ describe("createColumn", () => {
             visible: false,
             readonly: true,
             allowResize: false,
+            allowSorting: false,
             sortDirection: SortDirection.Descending,
         });
 
@@ -45,12 +47,15 @@ describe("createColumn", () => {
         expect(column.visible).toBe(false);
         expect(column.readonly).toBe(true);
         expect(column.allowResize).toBe(false);
+        expect(column.allowSorting).toBe(false);
         expect(column.sortDirection).toBe(SortDirection.Descending);
 
         column.readonly = false;
         expect(column.readonly).toBe(false);
         column.allowResize = true;
         expect(column.allowResize).toBe(true);
+        column.allowSorting = true;
+        expect(column.allowSorting).toBe(true);
     });
 
     it("clamps width assignments between the current bounds", () => {
@@ -94,9 +99,10 @@ describe("createColumn", () => {
         column.visible = false;
         column.readonly = true;
         column.allowResize = false;
+        column.allowSorting = false;
         column.sortDirection = SortDirection.Ascending;
 
-        expect(listener).toHaveBeenCalledTimes(10);
+        expect(listener).toHaveBeenCalledTimes(11);
     });
 
     it("keeps width valid when minimum or maximum changes", () => {

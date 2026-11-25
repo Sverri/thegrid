@@ -187,7 +187,10 @@
 
         &.thegrid-cell-column-header {
             border-bottom: none;
-            cursor: pointer;
+
+            &.sortable {
+                cursor: pointer;
+            }
 
             /* Sort indicator, kept clear of the header text and the resize handle */
             &.sorted-ascending,

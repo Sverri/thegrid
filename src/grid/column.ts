@@ -82,6 +82,15 @@ export interface ColumnOptions<T extends DataItem> {
     allowResize?: boolean;
 
     /**
+     * Whether the user can sort the grid by this column by clicking its
+     * header. When false, clicking the header does nothing. The column can
+     * still be sorted in code through `Column.sortDirection`.
+     *
+     * Defaults to true if not provided.
+     */
+    allowSorting?: boolean;
+
+    /**
      * The direction the grid is sorted by this column in, or `undefined` if it
      * is not sorted by it. The user changes it by clicking the column header.
      *
@@ -111,6 +120,7 @@ class Column<T extends DataItem> {
     #visible: boolean;
     #readonly: boolean;
     #allowResize: boolean;
+    #allowSorting: boolean;
     #sortDirection: SortDirection | undefined;
     #onChange = createEvent<() => void>();
 
@@ -124,6 +134,7 @@ class Column<T extends DataItem> {
         this.#visible = options.visible ?? true;
         this.#readonly = options.readonly ?? false;
         this.#allowResize = options.allowResize ?? true;
+        this.#allowSorting = options.allowSorting ?? true;
         this.#sortDirection = options.sortDirection;
 
         if (typeof this.#binding !== "string" || this.#binding.length === 0) {
@@ -268,6 +279,20 @@ class Column<T extends DataItem> {
     }
     set allowResize(value: boolean) {
         this.#allowResize = value;
+        this.#onChange.raise();
+    }
+
+    /**
+     * Whether the user can sort the grid by this column by clicking its header.
+     * Setting it to false does not clear {@link sortDirection}.
+     *
+     * Defaults to true if not provided.
+     */
+    get allowSorting() {
+        return this.#allowSorting;
+    }
+    set allowSorting(value: boolean) {
+        this.#allowSorting = value;
         this.#onChange.raise();
     }
 

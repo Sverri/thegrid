@@ -80,6 +80,30 @@ describe("columnSortExtension", () => {
         expect(directions(columns)).toEqual([SortDirection.Ascending, undefined, undefined]);
     });
 
+    it.each([{}, { ctrlKey: true }])("ignores clicks on columns that do not allow sorting (%o)", options => {
+        const { grid, columns, headers } = createGrid();
+        columns[0]!.sortDirection = SortDirection.Ascending;
+        columns[1]!.allowSorting = false;
+        columnSortExtension(grid as any);
+
+        click(headers[1]!, options);
+
+        expect(directions(columns)).toEqual([SortDirection.Ascending, undefined, undefined]);
+    });
+
+    it("clears the sorting of columns that do not allow sorting on a plain click", () => {
+        const { grid, columns, headers } = createGrid();
+        columns[0]!.allowSorting = false;
+        columns[0]!.sortDirection = SortDirection.Ascending;
+        columnSortExtension(grid as any);
+
+        click(headers[1]!, { ctrlKey: true });
+        expect(directions(columns)).toEqual([SortDirection.Ascending, SortDirection.Ascending, undefined]);
+
+        click(headers[1]!);
+        expect(directions(columns)).toEqual([undefined, SortDirection.Descending, undefined]);
+    });
+
     it("ignores clicks on the resize handle", () => {
         const { grid, columns, headers } = createGrid();
         columnSortExtension(grid as any);
