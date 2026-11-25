@@ -1,9 +1,9 @@
 /** @vitest-environment happy-dom */
 
 import { describe, expect, it, vi } from "vitest";
-import { createGrid } from "@grid/grid";
-import { createPoint } from "@structure/point";
-import { createRange } from "@structure/range";
+import { createGrid } from "./grid";
+import { createPoint } from "@core/point";
+import { createRange } from "@core/range";
 import { createSelection, isSelection } from "./selection";
 
 describe("Selection", () => {

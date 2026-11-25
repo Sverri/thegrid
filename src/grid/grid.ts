@@ -1,18 +1,18 @@
 import type { DataItem, Disposer } from "@shared/types";
-import { keyboardExtension } from "@extension/keyboard";
-import { mouseExtension } from "@extension/mouse";
-import { resizeObserverExtension } from "@extension/resizeobserver";
-import { expanderExtension } from "@extension/expander";
+import { keyboardExtension } from "@extensions/keyboard";
+import { mouseExtension } from "@extensions/mouse";
+import { resizeObserverExtension } from "@extensions/resize-observer";
+import { expanderExtension } from "@extensions/expander";
 import { Headers } from "@shared/enums";
-import { columnFromLeft, createColumn, type Column, type ColumnOptions } from "@structure/column";
-import { createEvent } from "@shared/event";
+import { columnFromLeft, createColumn, type Column, type ColumnOptions } from "./column";
+import { createEvent } from "@core/event";
 import { debounce } from "throttle-debounce";
-import { getElementScrollDimensions } from "@helpers/getelementscrolldimensions";
-import { createCollectionView, type CollectionView } from "@structure/collection";
-import { setupDomElements, teardownDomElements } from "./setup";
-import { createSelection, type Selection } from "@grid/selection";
-import { type Point } from "@structure/point";
-import { createRenderer, type Renderer } from "./renderer";
+import { getElementScrollDimensions } from "@render/scroll-dimensions";
+import { createCollectionView, type CollectionView } from "@core/collection";
+import { setupDomElements, teardownDomElements } from "@render/dom";
+import { createSelection, type Selection } from "./selection";
+import { type Point } from "@core/point";
+import { createRenderer, type Renderer } from "@render/renderer";
 
 const DEFAULT_CELL_SIZE = 50;
 

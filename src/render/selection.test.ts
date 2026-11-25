@@ -1,8 +1,8 @@
 /** @vitest-environment happy-dom */
 
 import { describe, expect, it } from "vitest";
-import { createRange } from "@structure/range";
-import { renderCellSelection } from "./renderselection";
+import { createRange } from "@core/range";
+import { renderCellSelection } from "./selection";
 
 describe("renderCellSelection", () => {
     it("adds the selection class to cells inside the current range", () => {

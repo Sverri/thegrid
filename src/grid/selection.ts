@@ -1,8 +1,8 @@
-import type { Grid } from "@grid/grid";
-import { createEvent, type Callback } from "@shared/event";
-import { isPoint, type Point } from "@structure/point";
-import { clampNumber } from "@helpers/numbers";
-import { createRange, isRange, rangeIdenticalTo, type Range } from "@structure/range";
+import type { Grid } from "./grid";
+import { createEvent, type Callback } from "@core/event";
+import { isPoint, type Point } from "@core/point";
+import { clampNumber } from "@core/numbers";
+import { createRange, isRange, rangeIdenticalTo, type Range } from "@core/range";
 
 /**
  * Represents the active selection within a grid.

@@ -2,8 +2,8 @@
 
 import { describe, expect, it } from "vitest";
 import { DataType } from "@shared/enums";
-import { createColumn } from "@structure/column";
-import { setCellContents } from "./setcellcontents";
+import { createColumn } from "@grid/column";
+import { setCellContents } from "./cell-contents";
 
 const locale = new Intl.Locale("en-US");
 

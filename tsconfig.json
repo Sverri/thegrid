@@ -29,11 +29,11 @@
 
     /* Paths */
     "paths": {
-      "@structure/*": ["./src/structures/*"],
-      "@helpers/*": ["./src/helpers/*"],
-      "@extension/*": ["./src/extensions/*"],
+      "@core/*": ["./src/core/*"],
       "@shared/*": ["./src/shared/*"],
-      "@grid/*": ["./src/grid/*"]
+      "@grid/*": ["./src/grid/*"],
+      "@render/*": ["./src/render/*"],
+      "@extensions/*": ["./src/extensions/*"]
     }
   },
   "include": ["src/**/*.ts", "app.ts", "*.config.ts", "e2e/**/*.ts"]

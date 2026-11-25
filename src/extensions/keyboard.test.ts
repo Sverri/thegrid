@@ -2,7 +2,7 @@
 
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { handleKeyDown, keyboardExtension } from "./keyboard";
-import { createPoint } from "@structure/point";
+import { createPoint } from "@core/point";
 
 function createGrid() {
     const selection = {

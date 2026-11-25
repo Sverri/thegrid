@@ -1,7 +1,7 @@
 /** @vitest-environment happy-dom */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { resizeObserverExtension } from "./resizeobserver";
+import { resizeObserverExtension } from "./resize-observer";
 
 class MockResizeObserver {
     static lastInstance: MockResizeObserver | undefined;

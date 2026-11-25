@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getElementScrollDimensions } from "./getelementscrolldimensions";
+import { getElementScrollDimensions } from "./scroll-dimensions";
 
 describe("getElementScrollDimensions", () => {
     it("derives scroll dimensions from a plain element-like object", () => {

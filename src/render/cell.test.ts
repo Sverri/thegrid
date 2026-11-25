@@ -2,7 +2,7 @@
 
 import { describe, expect, it } from "vitest";
 import { CellType } from "@shared/enums";
-import { createCell } from "./createcell";
+import { createCell } from "./cell";
 
 describe("createCell", () => {
     it("creates a standard cell with the expected dataset and inline styles", () => {

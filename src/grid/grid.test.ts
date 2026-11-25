@@ -2,7 +2,7 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DataType, Headers } from "@shared/enums";
-import { createPoint } from "@structure/point";
+import { createPoint } from "@core/point";
 import { createGrid, type GridOptions } from "./grid";
 
 class MockResizeObserver {

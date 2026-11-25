@@ -1,9 +1,9 @@
 import type { Grid } from "@grid/grid";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { getElementScrollDimensions, type ElementScrollDimensions } from "@helpers/getelementscrolldimensions";
-import { calculateRenderArea } from "./calculaterenderarea";
+import { getElementScrollDimensions, type ElementScrollDimensions } from "./scroll-dimensions";
+import { calculateRenderArea } from "./render-area";
 
-vi.mock("@helpers/getelementscrolldimensions", () => ({
+vi.mock("./scroll-dimensions", () => ({
     getElementScrollDimensions: vi.fn(),
 }));
 

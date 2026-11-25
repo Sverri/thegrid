@@ -1,6 +1,6 @@
 import type { Grid } from "@grid/grid";
 import type { Disposer } from "@shared/types";
-import { createRange, rangeIdenticalTo } from "@structure/range";
+import { createRange, rangeIdenticalTo } from "@core/range";
 
 interface CellCoordinates {
     row: number;

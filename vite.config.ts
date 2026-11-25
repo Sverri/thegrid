@@ -22,11 +22,11 @@ export default defineConfig({
     },
     resolve: {
         alias: {
-            "@structure": path.resolve(import.meta.dirname, "./src/structures"),
-            "@helpers": path.resolve(import.meta.dirname, "./src/helpers"),
-            "@extension": path.resolve(import.meta.dirname, "./src/extensions"),
+            "@core": path.resolve(import.meta.dirname, "./src/core"),
             "@shared": path.resolve(import.meta.dirname, "./src/shared"),
             "@grid": path.resolve(import.meta.dirname, "./src/grid"),
+            "@render": path.resolve(import.meta.dirname, "./src/render"),
+            "@extensions": path.resolve(import.meta.dirname, "./src/extensions"),
         },
     },
 });

@@ -1,8 +1,8 @@
 import type { Grid } from "@grid/grid";
 import type { RenderAhead } from "@shared/types";
-import { getElementScrollDimensions, type ElementScrollDimensions } from "@helpers/getelementscrolldimensions";
-import { createRange, type Range } from "@structure/range";
-import { columnFromLeft } from "@structure/column";
+import { getElementScrollDimensions, type ElementScrollDimensions } from "./scroll-dimensions";
+import { createRange, type Range } from "@core/range";
+import { columnFromLeft } from "@grid/column";
 
 function calculateColumns(
     grid: Pick<Grid<any>, "columns">,

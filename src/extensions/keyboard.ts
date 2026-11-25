@@ -1,7 +1,7 @@
 import type { Grid } from "@grid/grid";
 import type { Disposer } from "@shared/types";
-import { calculateRenderArea } from "@extension/shared/calculaterenderarea";
-import { createPoint } from "@structure/point";
+import { calculateRenderArea } from "@render/render-area";
+import { createPoint } from "@core/point";
 
 /**
  * The parts of a `KeyboardEvent` that {@link handleKeyDown} uses, so it can be

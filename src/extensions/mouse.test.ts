@@ -2,7 +2,7 @@
 
 import { describe, expect, it, vi } from "vitest";
 import { mouseExtension } from "./mouse";
-import { createRange } from "@structure/range";
+import { createRange } from "@core/range";
 
 function createGrid() {
     return {

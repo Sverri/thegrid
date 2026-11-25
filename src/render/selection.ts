@@ -1,4 +1,4 @@
-import { createRange, rangeContains, rangeIntersectsColumn, rangeIntersectsRow, type Range } from "@structure/range";
+import { createRange, rangeContains, rangeIntersectsColumn, rangeIntersectsRow, type Range } from "@core/range";
 
 /**
  * Applies the current selection styling to a single cell element.

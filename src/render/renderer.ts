@@ -1,14 +1,14 @@
-import type { Grid } from "./grid";
-import { rangeHorizontalIterator, rangeIterator, rangeVerticalIterator, type Range } from "@structure/range";
-import { createCell } from "@extension/shared/createcell";
+import type { Grid } from "@grid/grid";
+import { rangeHorizontalIterator, rangeIterator, rangeVerticalIterator, type Range } from "@core/range";
+import { createCell } from "./cell";
 import { CellType, Headers } from "@shared/enums";
-import { columnFromLeft } from "@structure/column";
-import { renderCellSelection } from "@extension/shared/renderselection";
-import { setCellContents } from "@extension/shared/setcellcontents";
-import { getElementScrollDimensions, type ElementScrollDimensions } from "@helpers/getelementscrolldimensions";
-import { calculateRenderArea } from "@extension/shared/calculaterenderarea";
-import type { Point } from "@structure/point";
-import { onNextFrame } from "@helpers/frame";
+import { columnFromLeft } from "@grid/column";
+import { renderCellSelection } from "./selection";
+import { setCellContents } from "./cell-contents";
+import { getElementScrollDimensions, type ElementScrollDimensions } from "./scroll-dimensions";
+import { calculateRenderArea } from "./render-area";
+import type { Point } from "@core/point";
+import { onNextFrame } from "./frame";
 
 const renderAhead = {
     columns: 1,

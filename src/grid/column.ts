@@ -1,7 +1,7 @@
 import type { DataItem } from "@shared/types";
 import { DataType } from "@shared/enums";
-import { clampNumber } from "@helpers/numbers";
-import { createEvent } from "@shared/event";
+import { clampNumber } from "@core/numbers";
+import { createEvent } from "@core/event";
 
 /**
  * Options that describe a column. Pass them to {@link createColumn}, or in

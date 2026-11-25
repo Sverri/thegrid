@@ -1,7 +1,7 @@
 /** @vitest-environment happy-dom */
 
 import { describe, expect, it } from "vitest";
-import { setupDomElements } from "./setup";
+import { setupDomElements } from "./dom";
 
 describe("setupDomElements", () => {
     it("creates the grid regions and configures the host element", () => {

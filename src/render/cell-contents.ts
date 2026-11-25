@@ -1,5 +1,5 @@
 import { DataType } from "@shared/enums";
-import type { Column } from "@structure/column";
+import type { Column } from "@grid/column";
 
 /**
  * The input to {@link setCellContents}.

@@ -1,5 +1,5 @@
-import type { Callback } from "@shared/event";
-import { createEvent } from "@shared/event";
+import type { Callback } from "./event";
+import { createEvent } from "./event";
 
 /**
  * Decides whether an item is included in the view.
