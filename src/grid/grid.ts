@@ -3,6 +3,7 @@ import { keyboardExtension } from "@extensions/keyboard";
 import { mouseExtension } from "@extensions/mouse";
 import { resizeObserverExtension } from "@extensions/resize-observer";
 import { expanderExtension } from "@extensions/expander";
+import { columnResizeExtension } from "@extensions/column-resize";
 import { Headers } from "@shared/enums";
 import { columnFromLeft, createColumn, type Column, type ColumnOptions } from "./column";
 import { createEvent } from "@core/event";
@@ -125,6 +126,7 @@ class Grid<T extends DataItem> {
     #showHeaders: Headers;
     #onInvalidate = createEvent<() => void>();
     #renderer: Renderer;
+    #columnCache = new WeakMap<ColumnOptions<T>, Column<T>>();
 
     constructor(hostElement: HTMLElement, options?: GridOptions<T>) {
         // Miscellaneous
@@ -150,13 +152,17 @@ class Grid<T extends DataItem> {
         // Each options object maps to one Column instance for its lifetime, so
         // changes made to a Column survive the view being rebuilt. Changing a
         // column refreshes the view (to re-apply `visible`) and re-renders.
-        const columnCache = new WeakMap<ColumnOptions<T>, Column<T>>();
+        // Columns without a `minWidth` cannot be made narrower than `cellSize`.
+        const columnCache = this.#columnCache;
         this.columns = createCollectionView<ColumnOptions<T>, Column<T>>(options?.columns, {
             filter: column => column.visible,
             mapper: options => {
                 let column = columnCache.get(options);
                 if (!column) {
-                    column = createColumn(options);
+                    column = createColumn({
+                        ...options,
+                        minWidth: options.minWidth ?? Math.min(this.#cellSize, options.maxWidth ?? Infinity),
+                    });
                     column.onChange.subscribe(() => this.columns.refresh());
                     columnCache.set(options, column);
                 }
@@ -192,6 +198,7 @@ class Grid<T extends DataItem> {
             mouseExtension(this),
             keyboardExtension(this),
             resizeObserverExtension(this),
+            columnResizeExtension(this),
         );
 
         // Get the show on the road!
@@ -223,13 +230,20 @@ class Grid<T extends DataItem> {
 
     /**
      * The height of every row, and the width of the row headers, in pixels.
-     * Changing it re-renders the grid.
+     * It is also the minimum width of columns that have no `minWidth` option.
+     * Changing it re-renders the grid, and widens such columns if needed.
      */
     get cellSize() {
         return this.#cellSize;
     }
     set cellSize(value: number) {
         this.#cellSize = value;
+        for (const options of this.columns.source) {
+            const column = this.#columnCache.get(options);
+            if (column && options.minWidth === undefined) {
+                column.minWidth = Math.min(value, column.maxWidth);
+            }
+        }
         this.hostElement.style.setProperty("--cell-size", `${value}px`);
         this.invalidate();
     }

@@ -160,6 +160,11 @@ class Renderer {
                 cell.classList.add("column-selected");
             }
             cell.textContent = column.header;
+
+            const resizer = document.createElement("div");
+            resizer.className = "thegrid-column-resizer";
+            cell.append(resizer);
+
             return cell;
         });
     }

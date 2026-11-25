@@ -248,7 +248,7 @@ createGrid<User>(hostElement, {
     columns: [
         { binding: "id", header: "Id", width: 100, dataType: DataType.Text },
         { binding: "name", header: "Name", width: 200, dataType: DataType.String },
-        { binding: "age", header: "Age", width: 100, dataType: DataType.Integer },
+        { binding: "age", header: "Age", width: 100, minWidth: 60, maxWidth: 160, dataType: DataType.Integer },
         { binding: "dob", header: "Date of birth", width: 400, dataType: DataType.Date },
         { binding: "salary", header: "Salary", width: 150, dataType: DataType.Decimal },
         { binding: "email", header: "Email address", width: 300, dataType: DataType.Email },

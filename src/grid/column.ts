@@ -43,7 +43,8 @@ export interface ColumnOptions<T extends DataItem> {
      *
      * Constrains the column from being resized smaller than this value.
      *
-     * Defaults to 1 pixel if not provided.
+     * In a grid, defaults to the grid's `cellSize` (or `maxWidth`, if that is
+     * smaller). A column made with {@link createColumn} alone defaults to 1 pixel.
      */
     minWidth?: number;
 

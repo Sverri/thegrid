@@ -58,6 +58,15 @@
         box-sizing: border-box;
     }
 
+    /* Keep the resize cursor while dragging, even when the pointer leaves the handle */
+    &.thegrid-resizing-column {
+        &,
+        * {
+            cursor: col-resize !important;
+            user-select: none;
+        }
+    }
+
     .thegrid-area-topleft {
         position: absolute;
         top: 0;
@@ -178,6 +187,20 @@
 
         &.thegrid-cell-column-header {
             border-bottom: none;
+        }
+
+        .thegrid-column-resizer {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 6px;
+            height: 100%;
+            cursor: col-resize;
+            touch-action: none;
+
+            &:hover {
+                background-color: var(--selection-header-border-color);
+            }
         }
 
         &.thegrid-cell-row-header {

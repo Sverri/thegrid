@@ -264,4 +264,37 @@ describe("Grid", () => {
         expect(grid.cellSize).toBe(40);
         expect(host.style.getPropertyValue("--cell-size")).toBe("40px");
     });
+
+    it("defaults a column's minWidth to the cell size", () => {
+        const { grid } = createTestGrid({
+            cellSize: 30,
+            columns: [{ binding: "name" }, { binding: "amount", minWidth: 10 }, { binding: "name", maxWidth: 20 }],
+        });
+        const [defaulted, explicit, capped] = grid.columns.items;
+
+        expect(defaulted?.minWidth).toBe(30);
+        expect(explicit?.minWidth).toBe(10);
+        expect(capped?.minWidth).toBe(20);
+
+        defaulted!.width = 5;
+        expect(defaulted?.width).toBe(30);
+    });
+
+    it("updates defaulted minWidths when the cell size changes", () => {
+        const { grid } = createTestGrid({
+            cellSize: 30,
+            columns: [
+                { binding: "name", width: 40 },
+                { binding: "amount", width: 40, minWidth: 10 },
+            ],
+        });
+
+        grid.cellSize = 60;
+        const [defaulted, explicit] = grid.columns.items;
+
+        expect(defaulted?.minWidth).toBe(60);
+        expect(defaulted?.width).toBe(60);
+        expect(explicit?.minWidth).toBe(10);
+        expect(explicit?.width).toBe(40);
+    });
 });
