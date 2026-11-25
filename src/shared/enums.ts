@@ -133,3 +133,23 @@ export const Headers = Object.freeze({
  * One of the {@link Headers} values.
  */
 export type Headers = (typeof Headers)[keyof typeof Headers];
+
+/**
+ * The direction a column is sorted in.
+ */
+export const SortDirection = Object.freeze({
+    /**
+     * Smallest first: A to Z, 0 to 9, oldest first, `false` before `true`.
+     */
+    Ascending: "SortDirection.Ascending",
+
+    /**
+     * Largest first: Z to A, 9 to 0, newest first, `true` before `false`.
+     */
+    Descending: "SortDirection.Descending",
+} as const);
+
+/**
+ * One of the {@link SortDirection} values.
+ */
+export type SortDirection = (typeof SortDirection)[keyof typeof SortDirection];

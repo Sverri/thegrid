@@ -1,7 +1,7 @@
 /** @vitest-environment happy-dom */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { DataType, Headers } from "@shared/enums";
+import { DataType, Headers, SortDirection } from "@shared/enums";
 import { createPoint } from "@core/point";
 import { createGrid, type GridOptions } from "./grid";
 
@@ -172,7 +172,7 @@ describe("Grid", () => {
 
     it("re-sorts the data after a cell is written", () => {
         const { grid } = createTestGrid({ columns: [{ binding: "name" }] });
-        grid.data.sorter = (a, b) => a.name.localeCompare(b.name);
+        grid.data.sorters = [(a, b) => a.name.localeCompare(b.name)];
         expect(grid.getCellData(0, 0)).toBe("Ada");
 
         expect(grid.setCellData(0, 0, "Zelda")).toBe(true);
@@ -282,6 +282,133 @@ describe("Grid", () => {
         grid.columns.items[1]!.allowResize = true;
         grid.invalidate(true);
         expect(handles(1)).toBe(1);
+    });
+
+    describe("column sorting", () => {
+        type Person = { name: string; team: string; age: number };
+
+        function createSortGrid(options: GridOptions<Person> = {}) {
+            const host = document.createElement("div");
+            const grid = createGrid<Person>(host, {
+                data: [
+                    { name: "Ada", team: "B", age: 36 },
+                    { name: "Grace", team: "A", age: 85 },
+                    { name: "Alan", team: "B", age: 41 },
+                    { name: "Linus", team: "A", age: 30 },
+                ],
+                columns: [{ binding: "team" }, { binding: "name" }, { binding: "age", dataType: DataType.Integer }],
+                ...options,
+            });
+            Object.defineProperties(grid.cellsElement, {
+                clientWidth: { configurable: true, value: 300 },
+                clientHeight: { configurable: true, value: 200 },
+            });
+            const [team, name, age] = grid.columns.items;
+            return { grid, team: team!, name: name!, age: age! };
+        }
+
+        const names = (grid: { data: { items: readonly Person[] } }) => grid.data.items.map(row => row.name);
+
+        it("sorts the data by a sorted column", () => {
+            const { grid, age } = createSortGrid();
+
+            age.sortDirection = SortDirection.Ascending;
+            expect(names(grid)).toEqual(["Linus", "Ada", "Alan", "Grace"]);
+
+            age.sortDirection = SortDirection.Descending;
+            expect(names(grid)).toEqual(["Grace", "Alan", "Ada", "Linus"]);
+
+            age.sortDirection = undefined;
+            expect(names(grid)).toEqual(["Ada", "Grace", "Alan", "Linus"]);
+        });
+
+        it("gives the left-most sorted column priority, whatever order they were sorted in", () => {
+            const { grid, team, age } = createSortGrid();
+
+            age.sortDirection = SortDirection.Descending;
+            team.sortDirection = SortDirection.Ascending;
+
+            expect(names(grid)).toEqual(["Grace", "Linus", "Alan", "Ada"]);
+        });
+
+        it("follows the column order when columns are reordered", () => {
+            const { grid, team, age } = createSortGrid();
+            age.sortDirection = SortDirection.Descending;
+            team.sortDirection = SortDirection.Ascending;
+
+            grid.columns.modify(options => options.toReversed());
+
+            expect(names(grid)).toEqual(["Grace", "Alan", "Ada", "Linus"]);
+        });
+
+        it("applies sort directions given in the column options", () => {
+            const { grid } = createSortGrid({
+                columns: [{ binding: "name", sortDirection: SortDirection.Descending }],
+            });
+
+            expect(names(grid)).toEqual(["Linus", "Grace", "Alan", "Ada"]);
+        });
+
+        it("takes precedence over the data sorters, which come back when the column sorting is cleared", () => {
+            const { grid, age } = createSortGrid();
+            const byName = (a: Person, b: Person) => a.name.localeCompare(b.name);
+            grid.data.sorters = [byName];
+            expect(names(grid)).toEqual(["Ada", "Alan", "Grace", "Linus"]);
+
+            age.sortDirection = SortDirection.Descending;
+            expect(names(grid)).toEqual(["Grace", "Alan", "Ada", "Linus"]);
+            expect(grid.data.sorters).toEqual([byName]);
+
+            age.sortDirection = undefined;
+            expect(names(grid)).toEqual(["Ada", "Alan", "Grace", "Linus"]);
+        });
+
+        it("ignores hidden columns", () => {
+            const { grid, age } = createSortGrid();
+            age.sortDirection = SortDirection.Ascending;
+
+            age.visible = false;
+            expect(names(grid)).toEqual(["Ada", "Grace", "Alan", "Linus"]);
+
+            age.visible = true;
+            expect(names(grid)).toEqual(["Linus", "Ada", "Alan", "Grace"]);
+        });
+
+        it("re-sorts when a sorted column's binding or data type changes", () => {
+            const { grid, team } = createSortGrid();
+            team.sortDirection = SortDirection.Ascending;
+            expect(names(grid)).toEqual(["Grace", "Linus", "Ada", "Alan"]);
+
+            team.binding = "age";
+            expect(names(grid)).toEqual(["Linus", "Ada", "Alan", "Grace"]);
+        });
+
+        it("does not re-sort for column changes that do not affect sorting", () => {
+            const { grid, age } = createSortGrid();
+            age.sortDirection = SortDirection.Ascending;
+            const items = grid.data.items;
+
+            age.width = 300;
+            age.header = "Years";
+
+            expect(grid.data.items).toBe(items);
+        });
+
+        it("marks sorted column headers", () => {
+            const { grid, team, age } = createSortGrid();
+            team.sortDirection = SortDirection.Ascending;
+            age.sortDirection = SortDirection.Descending;
+
+            grid.invalidate(true);
+            const [teamHeader, nameHeader, ageHeader] = grid.columnHeadersElement.children;
+
+            expect(teamHeader?.classList.contains("sorted-ascending")).toBe(true);
+            expect(teamHeader?.getAttribute("aria-sort")).toBe("ascending");
+            expect(nameHeader?.className).not.toMatch(/sorted/);
+            expect(nameHeader?.hasAttribute("aria-sort")).toBe(false);
+            expect(ageHeader?.classList.contains("sorted-descending")).toBe(true);
+            expect(ageHeader?.getAttribute("aria-sort")).toBe("descending");
+        });
     });
 
     describe("filler column", () => {

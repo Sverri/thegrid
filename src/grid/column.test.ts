@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { DataType } from "@shared/enums";
+import { DataType, SortDirection } from "@shared/enums";
 import { columnFromLeft, createColumn, isColumn } from "./column";
 
 type Row = {
@@ -20,6 +20,7 @@ describe("createColumn", () => {
         expect(column.visible).toBe(true);
         expect(column.readonly).toBe(false);
         expect(column.allowResize).toBe(true);
+        expect(column.sortDirection).toBeUndefined();
     });
 
     it("preserves custom settings and clamps the initial width", () => {
@@ -33,6 +34,7 @@ describe("createColumn", () => {
             visible: false,
             readonly: true,
             allowResize: false,
+            sortDirection: SortDirection.Descending,
         });
 
         expect(column.header).toBe("Amount");
@@ -43,6 +45,7 @@ describe("createColumn", () => {
         expect(column.visible).toBe(false);
         expect(column.readonly).toBe(true);
         expect(column.allowResize).toBe(false);
+        expect(column.sortDirection).toBe(SortDirection.Descending);
 
         column.readonly = false;
         expect(column.readonly).toBe(false);
@@ -91,8 +94,9 @@ describe("createColumn", () => {
         column.visible = false;
         column.readonly = true;
         column.allowResize = false;
+        column.sortDirection = SortDirection.Ascending;
 
-        expect(listener).toHaveBeenCalledTimes(9);
+        expect(listener).toHaveBeenCalledTimes(10);
     });
 
     it("keeps width valid when minimum or maximum changes", () => {

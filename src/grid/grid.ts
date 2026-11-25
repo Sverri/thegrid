@@ -4,6 +4,7 @@ import { mouseExtension } from "@extensions/mouse";
 import { resizeObserverExtension } from "@extensions/resize-observer";
 import { expanderExtension } from "@extensions/expander";
 import { columnResizeExtension } from "@extensions/column-resize";
+import { columnSortExtension } from "@extensions/column-sort";
 import { Headers } from "@shared/enums";
 import { columnFromLeft, createColumn, type Column, type ColumnOptions } from "./column";
 import { createEvent } from "@core/event";
@@ -14,6 +15,7 @@ import { setupDomElements, teardownDomElements } from "@render/dom";
 import { createSelection, type Selection } from "./selection";
 import { type Point } from "@core/point";
 import { createRenderer, type Renderer } from "@render/renderer";
+import { createColumnSorter, type ColumnSortSpec } from "./sort";
 
 const DEFAULT_CELL_SIZE = 50;
 
@@ -108,7 +110,8 @@ class Grid<T extends DataItem> {
     readonly rowHeadersElement: HTMLDivElement;
 
     /**
-     * The rows. Set its `filter` and `sorter` to change which rows are shown, and in what order.
+     * The rows. Set its `filter` and `sorters` to change which rows are shown, and in what order.
+     * While the user has sorted by column headers, those columns decide the order instead of `sorters`.
      */
     readonly data: CollectionView<T>;
 
@@ -137,6 +140,8 @@ class Grid<T extends DataItem> {
     #onInvalidate = createEvent<() => void>();
     #renderer: Renderer;
     #columnCache = new WeakMap<ColumnOptions<T>, Column<T>>();
+    #collator: Intl.Collator;
+    #appliedSort: readonly (ColumnSortSpec<T> & { column: Column<T> })[] = [];
 
     constructor(hostElement: HTMLElement, options?: GridOptions<T>) {
         // Miscellaneous
@@ -145,6 +150,7 @@ class Grid<T extends DataItem> {
         this.#showHeaderSelection = options?.showHeaderSelection ?? Headers.Both;
         this.#showFillerColumn = options?.showFillerColumn ?? true;
         this.locale = new Intl.Locale(options?.locale ?? "en-US");
+        this.#collator = new Intl.Collator(this.locale, { numeric: true });
 
         // DOM elements
         const { cellsElement, columnHeadersElement, rowHeadersElement } = setupDomElements(hostElement, this.#cellSize);
@@ -164,6 +170,7 @@ class Grid<T extends DataItem> {
         // changes made to a Column survive the view being rebuilt. Changing a
         // column refreshes the view (to re-apply `visible`) and re-renders.
         // Columns without a `minWidth` cannot be made narrower than `cellSize`.
+        // Sorted columns (left-most first) replace the developer's `data.sorters`.
         const columnCache = this.#columnCache;
         this.columns = createCollectionView<ColumnOptions<T>, Column<T>>(options?.columns, {
             filter: column => column.visible,
@@ -179,8 +186,12 @@ class Grid<T extends DataItem> {
                 }
                 return column;
             },
-            onChange: () => this.invalidate(),
+            onChange: () => {
+                this.#updateSorting();
+                this.invalidate();
+            },
         });
+        this.#updateSorting();
 
         // Selection
         this.selection = createSelection(this, {
@@ -210,6 +221,7 @@ class Grid<T extends DataItem> {
             keyboardExtension(this),
             resizeObserverExtension(this),
             columnResizeExtension(this),
+            columnSortExtension(this),
         );
 
         // Get the show on the road!
@@ -237,6 +249,39 @@ class Grid<T extends DataItem> {
     set showHeaderSelection(value: Headers) {
         this.#showHeaderSelection = value;
         this.invalidate();
+    }
+
+    /**
+     * Re-sorts the data when the sorted columns, their order, or how they sort have changed.
+     *
+     * Columns change for other reasons too (such as every step of a resize), so
+     * the data is only marked for re-sorting when the sorting actually differs.
+     */
+    #updateSorting() {
+        const sort = this.columns.items
+            .filter(column => column.sortDirection !== undefined)
+            .map(column => ({
+                column,
+                binding: column.binding,
+                dataType: column.dataType,
+                sortDirection: column.sortDirection!,
+            }));
+        const unchanged =
+            sort.length === this.#appliedSort.length &&
+            sort.every((entry, i) => {
+                const applied = this.#appliedSort[i]!;
+                return (
+                    entry.column === applied.column &&
+                    entry.binding === applied.binding &&
+                    entry.dataType === applied.dataType &&
+                    entry.sortDirection === applied.sortDirection
+                );
+            });
+        if (unchanged) {
+            return;
+        }
+        this.#appliedSort = sort;
+        this.data.overrideSorters = sort.map(entry => createColumnSorter(entry, this.#collator));
     }
 
     /**

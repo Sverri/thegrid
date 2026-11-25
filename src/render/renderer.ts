@@ -1,7 +1,7 @@
 import type { Grid } from "@grid/grid";
 import { rangeHorizontalIterator, rangeIterator, rangeVerticalIterator, type Range } from "@core/range";
 import { createCell } from "./cell";
-import { CellType, Headers } from "@shared/enums";
+import { CellType, Headers, SortDirection } from "@shared/enums";
 import { columnFromLeft } from "@grid/column";
 import { renderCellSelection } from "./selection";
 import { setCellContents } from "./cell-contents";
@@ -191,6 +191,12 @@ class Renderer {
                 cell.classList.add("column-selected");
             }
             cell.textContent = column.header;
+
+            if (column.sortDirection !== undefined) {
+                const ascending = column.sortDirection === SortDirection.Ascending;
+                cell.classList.add(ascending ? "sorted-ascending" : "sorted-descending");
+                cell.setAttribute("aria-sort", ascending ? "ascending" : "descending");
+            }
 
             if (column.allowResize) {
                 const resizer = document.createElement("div");

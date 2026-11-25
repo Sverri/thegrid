@@ -1,5 +1,5 @@
 import type { DataItem } from "@shared/types";
-import { DataType } from "@shared/enums";
+import { DataType, SortDirection } from "@shared/enums";
 import { clampNumber } from "@core/numbers";
 import { createEvent } from "@core/event";
 
@@ -80,6 +80,17 @@ export interface ColumnOptions<T extends DataItem> {
      * Defaults to true if not provided.
      */
     allowResize?: boolean;
+
+    /**
+     * The direction the grid is sorted by this column in, or `undefined` if it
+     * is not sorted by it. The user changes it by clicking the column header.
+     *
+     * When several columns are sorted, the left-most one has the highest
+     * priority. Any column sorting replaces the `sorters` of the grid's `data`.
+     *
+     * Defaults to `undefined` if not provided.
+     */
+    sortDirection?: SortDirection;
 }
 
 /**
@@ -100,6 +111,7 @@ class Column<T extends DataItem> {
     #visible: boolean;
     #readonly: boolean;
     #allowResize: boolean;
+    #sortDirection: SortDirection | undefined;
     #onChange = createEvent<() => void>();
 
     constructor(options: ColumnOptions<T>) {
@@ -112,6 +124,7 @@ class Column<T extends DataItem> {
         this.#visible = options.visible ?? true;
         this.#readonly = options.readonly ?? false;
         this.#allowResize = options.allowResize ?? true;
+        this.#sortDirection = options.sortDirection;
 
         if (typeof this.#binding !== "string" || this.#binding.length === 0) {
             throw new Error("The binding must be a non-empty string");
@@ -255,6 +268,20 @@ class Column<T extends DataItem> {
     }
     set allowResize(value: boolean) {
         this.#allowResize = value;
+        this.#onChange.raise();
+    }
+
+    /**
+     * The direction the grid is sorted by this column in, or `undefined` if it
+     * is not sorted by it.
+     *
+     * When several columns are sorted, the left-most one has the highest priority.
+     */
+    get sortDirection() {
+        return this.#sortDirection;
+    }
+    set sortDirection(value: SortDirection | undefined) {
+        this.#sortDirection = value;
         this.#onChange.raise();
     }
 

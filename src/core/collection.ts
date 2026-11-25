@@ -13,7 +13,7 @@ type Filter<T> = (item: T) => boolean;
  *
  * @returns A negative number if `a` comes first, a positive number if `b` comes first, or `0` to keep their order.
  */
-type Sorter<T> = (a: T, b: T) => number;
+export type Sorter<T> = (a: T, b: T) => number;
 
 /**
  * Converts a source item into a view item.
@@ -38,9 +38,10 @@ export interface CollectionViewOptions<SourceItem, ViewItem = SourceItem> {
     filter?: Filter<ViewItem>;
 
     /**
-     * Orders the active view after filtering.
+     * Orders the active view after filtering. The first sorter that does not
+     * return `0` decides the order of two items, so later sorters break ties.
      */
-    sorter?: Sorter<ViewItem>;
+    sorters?: readonly Sorter<ViewItem>[];
 
     /**
      * Subscribed to {@link CollectionView.onChange}.
@@ -65,7 +66,8 @@ class CollectionView<SourceItem, ViewItem = SourceItem> {
     #items: readonly ViewItem[];
     #mapper: Mapper<SourceItem, ViewItem> | undefined;
     #filter: Filter<ViewItem> | undefined;
-    #sorter: Sorter<ViewItem> | undefined;
+    #sorters: readonly Sorter<ViewItem>[] = Object.freeze([]);
+    #overrideSorters: readonly Sorter<ViewItem>[] = Object.freeze([]);
     #onChange = createEvent<() => void>();
     #isDirty = true;
 
@@ -82,8 +84,8 @@ class CollectionView<SourceItem, ViewItem = SourceItem> {
         if (options?.filter) {
             this.#filter = options.filter;
         }
-        if (options?.sorter) {
-            this.#sorter = options.sorter;
+        if (options?.sorters) {
+            this.#sorters = Object.freeze([...options.sorters]);
         }
         if (options?.onChange) {
             this.#onChange.subscribe(options?.onChange);
@@ -112,13 +114,31 @@ class CollectionView<SourceItem, ViewItem = SourceItem> {
     }
 
     /**
-     * Comparator used to order active items.
+     * Comparators used to order active items. The first one that does not
+     * return `0` decides the order of two items, so later ones break ties.
+     *
+     * Ignored while {@link overrideSorters} is not empty. Returned as a frozen copy.
      */
-    get sorter(): Sorter<ViewItem> | undefined {
-        return this.#sorter;
+    get sorters(): readonly Sorter<ViewItem>[] {
+        return this.#sorters;
     }
-    set sorter(value: Sorter<ViewItem> | undefined) {
-        this.#sorter = value;
+    set sorters(value: readonly Sorter<ViewItem>[]) {
+        this.#sorters = Object.freeze([...value]);
+        this.#dirty = true;
+    }
+
+    /**
+     * Comparators that, while not empty, are used instead of {@link sorters}.
+     * Emptying it brings the order from `sorters` back.
+     *
+     * A grid sets this on its `data` view when the user sorts by column headers,
+     * so that sorting takes precedence over the developer's `sorters`.
+     */
+    get overrideSorters(): readonly Sorter<ViewItem>[] {
+        return this.#overrideSorters;
+    }
+    set overrideSorters(value: readonly Sorter<ViewItem>[]) {
+        this.#overrideSorters = Object.freeze([...value]);
         this.#dirty = true;
     }
 
@@ -213,10 +233,19 @@ class CollectionView<SourceItem, ViewItem = SourceItem> {
         if (this.#filter) {
             items = items.filter(this.#filter);
         }
-        if (this.#sorter) {
-            items = items.toSorted(this.#sorter);
+        const sorters = this.#overrideSorters.length > 0 ? this.#overrideSorters : this.#sorters;
+        if (sorters.length > 0) {
+            items = items.toSorted((a, b) => {
+                for (const sorter of sorters) {
+                    const result = sorter(a, b);
+                    if (result !== 0) {
+                        return result;
+                    }
+                }
+                return 0;
+            });
         }
-        // Without a mapper, filter or sorter this is the (already frozen) source array itself
+        // Without a mapper, filter or sorters this is the (already frozen) source array itself
         this.#items = Object.freeze(items);
         this.#dirty = false;
     }

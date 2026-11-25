@@ -17,7 +17,7 @@ describe("createCollectionView", () => {
     });
 
     it("returns the same items array until the view changes", () => {
-        const view = createCollectionView([3, 1, 2], { sorter: (a, b) => a - b });
+        const view = createCollectionView([3, 1, 2], { sorters: [(a, b) => a - b] });
         const items = view.items;
 
         expect(view.items).toBe(items);
@@ -50,7 +50,7 @@ describe("createCollectionView", () => {
     it("derives active items by filtering and sorting source items", () => {
         const view = createCollectionView([3, 1, 2], {
             filter: item => item > 1,
-            sorter: (a, b) => (a - b) as -1 | 0 | 1,
+            sorters: [(a, b) => a - b],
         });
 
         expect(view.source).toEqual([3, 1, 2]);
@@ -78,7 +78,7 @@ describe("createCollectionView", () => {
         const view = createCollectionView([3, 1, 2], {
             mapper: item => ({ value: item, label: `Item ${item}` }),
             filter: item => item.value > 1,
-            sorter: (a, b) => (b.value - a.value) as -1 | 0 | 1,
+            sorters: [(a, b) => b.value - a.value],
         });
 
         expect(view.items).toEqual([
@@ -116,12 +116,12 @@ describe("createCollectionView", () => {
     it("replaces source data and allows filters and sorters to be cleared", () => {
         const view = createCollectionView([3, 1, 2], {
             filter: item => item > 1,
-            sorter: (a, b) => (a - b) as -1 | 0 | 1,
+            sorters: [(a, b) => a - b],
         });
 
         view.source = [4, 2];
         view.filter = undefined;
-        view.sorter = undefined;
+        view.sorters = [];
 
         expect(view.items).toEqual([4, 2]);
     });
@@ -146,22 +146,68 @@ describe("createCollectionView", () => {
         expect(observable.items).toEqual([1]);
         expect("source" in observable).toBe(false);
         expect("filter" in observable).toBe(false);
-        expect("sorter" in observable).toBe(false);
+        expect("sorters" in observable).toBe(false);
+        expect("overrideSorters" in observable).toBe(false);
         expect("raise" in observable.onChange).toBe(false);
 
         view.source = [2];
         expect(observable.items).toEqual([2]);
     });
 
-    it("returns the exact same filter and sorter, when getters are used", () => {
+    it("returns the same filter, and frozen copies of the sorters, when getters are used", () => {
         const view = createCollectionView<number>([]);
-        const sorter = (): -1 | 0 | 1 => 0;
+        const sorter = () => 0;
         const filter = (_item: any) => true;
-        view.sorter = sorter;
+        const sorters = [sorter];
+        view.sorters = sorters;
+        view.overrideSorters = sorters;
         view.filter = filter;
+        sorters.push(() => 1);
 
-        expect(view.sorter).toStrictEqual(sorter);
+        expect(view.sorters).toEqual([sorter]);
+        expect(Object.isFrozen(view.sorters)).toBe(true);
+        expect(view.overrideSorters).toEqual([sorter]);
+        expect(Object.isFrozen(view.overrideSorters)).toBe(true);
         expect(view.filter).toStrictEqual(filter);
+    });
+
+    it("uses later sorters to break ties", () => {
+        const view = createCollectionView(["bb", "a", "ab", "b"], {
+            sorters: [(a, b) => a.length - b.length, (a, b) => a.localeCompare(b)],
+        });
+
+        expect(view.items).toEqual(["a", "b", "ab", "bb"]);
+    });
+
+    it("keeps the source order for items that every sorter considers equal", () => {
+        const view = createCollectionView([{ id: 1 }, { id: 2 }, { id: 3 }], { sorters: [() => 0] });
+
+        expect(view.items.map(item => item.id)).toEqual([1, 2, 3]);
+    });
+
+    it("uses override sorters instead of sorters while they are set", () => {
+        const view = createCollectionView([2, 3, 1], { sorters: [(a, b) => a - b] });
+        const listener = vi.fn();
+        view.onChange.subscribe(listener);
+        expect(view.items).toEqual([1, 2, 3]);
+
+        view.overrideSorters = [(a, b) => b - a];
+        expect(listener).toHaveBeenCalledTimes(1);
+        expect(view.items).toEqual([3, 2, 1]);
+
+        view.overrideSorters = [];
+        expect(view.items).toEqual([1, 2, 3]);
+        expect(view.sorters).toHaveLength(1);
+    });
+
+    it("uses override sorters without any sorters", () => {
+        const view = createCollectionView([2, 3, 1]);
+
+        view.overrideSorters = [(a, b) => a - b];
+        expect(view.items).toEqual([1, 2, 3]);
+
+        view.overrideSorters = [];
+        expect(view.items).toEqual([2, 3, 1]);
     });
 
     it("recognizes collection views and rejects unrelated values", () => {

@@ -68,7 +68,7 @@ const grid = createGrid(hostElement!, {
 
 const collator = new Intl.Collator("en", { numeric: true });
 grid.data.filter = item => item.id % 2 === 0;
-grid.data.sorter = (a, b) => collator.compare(a.name!, b.name!);
+grid.data.sorters = [(a, b) => collator.compare(a.name!, b.name!)];
 grid.selection.select(1, 1);
 
 // Cell size slider

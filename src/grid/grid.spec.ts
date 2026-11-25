@@ -80,3 +80,55 @@ test("fills the space after the last column with an inert filler column", async 
     await page.mouse.up();
     await expect.poll(async () => (await filler.boundingBox())?.width).toBe(viewportWidth - 250);
 });
+
+test("sorts by clicking column headers, and by several columns with Ctrl", async ({ page }) => {
+    await page.goto("e2e/test.html");
+
+    const header = (name: string) => page.locator(".thegrid-cell-column-header", { hasText: name });
+    const cell = (column: number) =>
+        page.locator(`.thegrid-area-cells .thegrid-cell[data-column="${column}"][data-row="0"]`);
+
+    await header("Age").click();
+    await expect(header("Age")).toHaveAttribute("aria-sort", "ascending");
+    await expect(cell(2)).toHaveText("18");
+
+    await header("Age").click();
+    await expect(header("Age")).toHaveAttribute("aria-sort", "descending");
+    await expect(cell(2)).toHaveText("103");
+
+    // Ctrl-clicking Id adds it, and as the left-most sorted column it decides the order
+    await header("Id").click({ modifiers: ["Control"] });
+    await expect(header("Id")).toHaveAttribute("aria-sort", "ascending");
+    await expect(header("Age")).toHaveAttribute("aria-sort", "descending");
+    await expect(cell(0)).toHaveText("1");
+
+    // A plain click sorts by that column only
+    await header("Name").click();
+    await expect(page.locator("[aria-sort]")).toHaveCount(1);
+    await expect(cell(1)).toHaveText("Angel Larkin");
+
+    await header("Name").click();
+    await header("Name").click();
+    await expect(page.locator("[aria-sort]")).toHaveCount(0);
+    await expect(cell(1)).toHaveText("Solon Walker");
+});
+
+test("resizing a column does not sort it", async ({ page }) => {
+    await page.goto("e2e/test.html");
+
+    const handle = page.locator(".thegrid-cell-column-header", { hasText: "Name" }).locator(".thegrid-column-resizer");
+    const box = (await handle.boundingBox())!;
+    const x = box.x + box.width / 2;
+    const y = box.y + box.height / 2;
+
+    // A press and release on the handle without moving
+    await page.mouse.click(x, y);
+    // A full drag
+    await page.mouse.move(x, y);
+    await page.mouse.down();
+    await page.mouse.move(x + 40, y, { steps: 3 });
+    await page.mouse.up();
+
+    await expect(page.locator(".thegrid-cell-column-header", { hasText: "Name" })).toHaveCSS("width", "240px");
+    await expect(page.locator("[aria-sort]")).toHaveCount(0);
+});
