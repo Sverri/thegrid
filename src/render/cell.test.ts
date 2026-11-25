@@ -61,4 +61,13 @@ describe("createCell", () => {
         expect(rowHeader.classList.contains("thegrid-cell-row-header")).toBe(true);
         expect(topLeft.classList.contains("thegrid-cell-top-left")).toBe(true);
     });
+
+    it("creates filler cells without coordinates", () => {
+        const filler = createCell({ type: CellType.Filler, width: 80, height: 20, left: 100, top: 40 });
+
+        expect(filler.classList.contains("thegrid-cell-filler")).toBe(true);
+        expect(filler.dataset["column"]).toBeUndefined();
+        expect(filler.dataset["row"]).toBeUndefined();
+        expect(filler.style.transform).toBe("translate(100px, 40px)");
+    });
 });

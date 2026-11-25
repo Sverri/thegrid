@@ -21,6 +21,11 @@ export const CellType = Object.freeze({
      * A header cell for a row.
      */
     RowHeader: Symbol("CellType.RowHeader"),
+
+    /**
+     * An empty, inert cell in the filler column that fills the space after the last column.
+     */
+    Filler: Symbol("CellType.Filler"),
 } as const);
 
 /**

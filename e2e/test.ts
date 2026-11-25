@@ -1,4 +1,4 @@
-import { createGrid, DataType, Headers } from "../src/index";
+import { createGrid, DataType, Headers, type ColumnOptions } from "../src/index";
 
 interface User {
     id: number;
@@ -240,20 +240,25 @@ if (!hostElement) {
     throw new Error("Could not find the test grid host element");
 }
 
+const columns: ColumnOptions<User>[] = [
+    { binding: "id", header: "Id", width: 100, dataType: DataType.Text },
+    { binding: "name", header: "Name", width: 200, dataType: DataType.String },
+    { binding: "age", header: "Age", width: 100, minWidth: 60, maxWidth: 160, dataType: DataType.Integer },
+    { binding: "dob", header: "Date of birth", width: 400, dataType: DataType.Date },
+    { binding: "salary", header: "Salary", width: 150, dataType: DataType.Decimal },
+    { binding: "email", header: "Email address", width: 300, dataType: DataType.Email },
+    { binding: "website", header: "Website", width: 300, dataType: DataType.URL },
+    { binding: "postcode", header: "Post code", width: 150, dataType: DataType.String },
+    { binding: "country", header: "Country", width: 250 },
+];
+
+// `?columns=N` shows only the first N columns
+const columnCount = Number(new URLSearchParams(location.search).get("columns") ?? Infinity);
+
 createGrid<User>(hostElement, {
     cellSize: 50,
     showHeaders: Headers.Both,
     showHeaderSelection: Headers.Both,
     data: users,
-    columns: [
-        { binding: "id", header: "Id", width: 100, dataType: DataType.Text },
-        { binding: "name", header: "Name", width: 200, dataType: DataType.String },
-        { binding: "age", header: "Age", width: 100, minWidth: 60, maxWidth: 160, dataType: DataType.Integer },
-        { binding: "dob", header: "Date of birth", width: 400, dataType: DataType.Date },
-        { binding: "salary", header: "Salary", width: 150, dataType: DataType.Decimal },
-        { binding: "email", header: "Email address", width: 300, dataType: DataType.Email },
-        { binding: "website", header: "Website", width: 300, dataType: DataType.URL },
-        { binding: "postcode", header: "Post code", width: 150, dataType: DataType.String },
-        { binding: "country", header: "Country", width: 250 },
-    ],
+    columns: columns.slice(0, columnCount),
 });

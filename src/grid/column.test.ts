@@ -19,6 +19,7 @@ describe("createColumn", () => {
         expect(column.maxWidth).toBe(999999);
         expect(column.visible).toBe(true);
         expect(column.readonly).toBe(false);
+        expect(column.allowResize).toBe(true);
     });
 
     it("preserves custom settings and clamps the initial width", () => {
@@ -31,6 +32,7 @@ describe("createColumn", () => {
             maxWidth: 300,
             visible: false,
             readonly: true,
+            allowResize: false,
         });
 
         expect(column.header).toBe("Amount");
@@ -40,9 +42,12 @@ describe("createColumn", () => {
         expect(column.maxWidth).toBe(300);
         expect(column.visible).toBe(false);
         expect(column.readonly).toBe(true);
+        expect(column.allowResize).toBe(false);
 
         column.readonly = false;
         expect(column.readonly).toBe(false);
+        column.allowResize = true;
+        expect(column.allowResize).toBe(true);
     });
 
     it("clamps width assignments between the current bounds", () => {
@@ -85,8 +90,9 @@ describe("createColumn", () => {
         column.maxWidth = 500;
         column.visible = false;
         column.readonly = true;
+        column.allowResize = false;
 
-        expect(listener).toHaveBeenCalledTimes(8);
+        expect(listener).toHaveBeenCalledTimes(9);
     });
 
     it("keeps width valid when minimum or maximum changes", () => {

@@ -71,6 +71,15 @@ export interface ColumnOptions<T extends DataItem> {
      * Defaults to false if not provided.
      */
     readonly?: boolean;
+
+    /**
+     * Whether the user can resize the column by dragging the edge of its
+     * header. When false, the header has no resize handle. The width can
+     * still be changed in code through `Column.width`.
+     *
+     * Defaults to true if not provided.
+     */
+    allowResize?: boolean;
 }
 
 /**
@@ -90,6 +99,7 @@ class Column<T extends DataItem> {
     #maxWidth: number;
     #visible: boolean;
     #readonly: boolean;
+    #allowResize: boolean;
     #onChange = createEvent<() => void>();
 
     constructor(options: ColumnOptions<T>) {
@@ -101,6 +111,7 @@ class Column<T extends DataItem> {
         this.#width = clampNumber(this.#minWidth, options.width ?? 100, this.#maxWidth);
         this.#visible = options.visible ?? true;
         this.#readonly = options.readonly ?? false;
+        this.#allowResize = options.allowResize ?? true;
 
         if (typeof this.#binding !== "string" || this.#binding.length === 0) {
             throw new Error("The binding must be a non-empty string");
@@ -230,6 +241,20 @@ class Column<T extends DataItem> {
     }
     set readonly(value: boolean) {
         this.#readonly = value;
+        this.#onChange.raise();
+    }
+
+    /**
+     * Whether the user can resize the column by dragging the edge of its header.
+     * Setting it to false also stops a resize that is in progress.
+     *
+     * Defaults to true if not provided.
+     */
+    get allowResize() {
+        return this.#allowResize;
+    }
+    set allowResize(value: boolean) {
+        this.#allowResize = value;
         this.#onChange.raise();
     }
 

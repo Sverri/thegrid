@@ -36,6 +36,7 @@ class Renderer {
         const dimensions = getElementScrollDimensions(cellsElement);
         const renderArea = calculateRenderArea(this.#grid, renderAhead);
         this.#renderCells(renderArea);
+        this.#renderFillerCells(renderArea);
         this.#renderColumnHeaders(renderArea, dimensions);
         this.#renderRowHeaders(renderArea, dimensions);
     }
@@ -58,7 +59,7 @@ class Renderer {
         this.#removeSelectionFromCells();
 
         for (const cell of cellsElement.children) {
-            if (cell instanceof HTMLElement) {
+            if (cell instanceof HTMLElement && cell.dataset["column"] !== undefined) {
                 const x = Number(cell.dataset["column"]);
                 const y = Number(cell.dataset["row"]);
                 renderCellSelection(cell, selection.range, x, y);
@@ -126,6 +127,36 @@ class Renderer {
         });
     }
 
+    /**
+     * Where the filler column starts (the total width of the columns), or
+     * `undefined` when there is no filler column to show.
+     */
+    #fillerLeft(): number | undefined {
+        const { showFillerColumn, columns } = this.#grid;
+        const last = columns.items.at(-1);
+        if (!showFillerColumn || !last) {
+            return undefined;
+        }
+        return columnFromLeft(columns.items, columns.items.length - 1) + last.width;
+    }
+
+    #renderFillerCells(range: Range) {
+        const { cellsElement, cellSize } = this.#grid;
+        const left = this.#fillerLeft();
+        if (left === undefined || range.top === -1) {
+            return;
+        }
+        const width = cellsElement.clientWidth - left;
+        if (width <= 0) {
+            return;
+        }
+        for (const { y } of rangeVerticalIterator(range)) {
+            const cell = createCell({ type: CellType.Filler, width, height: cellSize, top: y * cellSize, left });
+            cell.classList.add(y % 2 === 0 ? "row-even" : "row-odd");
+            cellsElement.append(cell);
+        }
+    }
+
     #renderColumnHeaders(range: Range, { scrollLeft }: ElementScrollDimensions) {
         const { showHeaders, hostElement } = this.#grid;
         const renderColumnHeaders = showHeaders == Headers.Columns || showHeaders == Headers.Both;
@@ -161,12 +192,26 @@ class Renderer {
             }
             cell.textContent = column.header;
 
-            const resizer = document.createElement("div");
-            resizer.className = "thegrid-column-resizer";
-            cell.append(resizer);
+            if (column.allowResize) {
+                const resizer = document.createElement("div");
+                resizer.className = "thegrid-column-resizer";
+                cell.append(resizer);
+            }
 
             return cell;
         });
+
+        // The header region also spans the cells' vertical scrollbar, so its filler is measured separately
+        const fillerLeft = this.#fillerLeft();
+        if (fillerLeft !== undefined) {
+            const left = fillerLeft - scrollLeft;
+            const width = columnHeadersElement.clientWidth - left;
+            if (width > 0) {
+                columnHeadersElement.append(
+                    createCell({ type: CellType.Filler, width, height: cellSize, top: 0, left }),
+                );
+            }
+        }
     }
 
     #renderRowHeaders(range: Range, { scrollTop }: ElementScrollDimensions) {

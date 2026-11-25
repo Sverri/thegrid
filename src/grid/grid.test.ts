@@ -265,6 +265,112 @@ describe("Grid", () => {
         expect(host.style.getPropertyValue("--cell-size")).toBe("40px");
     });
 
+    it("renders resize handles only for columns that allow resizing", () => {
+        const { grid } = createTestGrid({
+            columns: [
+                { binding: "name", header: "Name" },
+                { binding: "amount", header: "Amount", allowResize: false },
+            ],
+        });
+
+        grid.invalidate(true);
+        const handles = (index: number) =>
+            grid.columnHeadersElement.querySelectorAll(`[data-column="${index}"] .thegrid-column-resizer`).length;
+        expect(handles(0)).toBe(1);
+        expect(handles(1)).toBe(0);
+
+        grid.columns.items[1]!.allowResize = true;
+        grid.invalidate(true);
+        expect(handles(1)).toBe(1);
+    });
+
+    describe("filler column", () => {
+        function createNarrowGrid(options: GridOptions<Row> = {}) {
+            const result = createTestGrid({
+                columns: [
+                    { binding: "name", width: 60 },
+                    { binding: "amount", width: 60 },
+                ],
+                ...options,
+            });
+            // The header region also spans the cells' 20px vertical scrollbar
+            Object.defineProperty(result.grid.columnHeadersElement, "clientWidth", { value: 200 });
+            return result;
+        }
+
+        const fillers = (element: HTMLElement) => [...element.querySelectorAll<HTMLElement>(".thegrid-cell-filler")];
+
+        it("fills the space after the last column in every rendered row", () => {
+            const { grid } = createNarrowGrid();
+
+            grid.invalidate(true);
+            const cells = fillers(grid.cellsElement);
+
+            expect(cells).toHaveLength(2);
+            expect(cells.map(cell => cell.style.width)).toEqual(["60px", "60px"]);
+            expect(cells.map(cell => cell.style.transform)).toEqual([
+                "translate(120px, 0px)",
+                "translate(120px, 50px)",
+            ]);
+            expect(cells.map(cell => cell.classList.contains("row-even"))).toEqual([true, false]);
+        });
+
+        it("fills the column header region, including the space above the scrollbar", () => {
+            const { grid } = createNarrowGrid();
+
+            grid.invalidate(true);
+            const [header, ...rest] = fillers(grid.columnHeadersElement);
+
+            expect(rest).toHaveLength(0);
+            expect(header?.style.width).toBe("80px");
+            expect(header?.style.transform).toBe("translate(120px, 0px)");
+        });
+
+        it("has inert cells that are not part of any column or row", () => {
+            const { grid } = createNarrowGrid();
+
+            grid.invalidate(true);
+
+            for (const cell of [...fillers(grid.cellsElement), ...fillers(grid.columnHeadersElement)]) {
+                expect(cell.dataset["column"]).toBeUndefined();
+                expect(cell.dataset["row"]).toBeUndefined();
+                expect(cell.textContent).toBe("");
+                expect(cell.querySelector(".thegrid-column-resizer")).toBeNull();
+            }
+            expect(grid.columns.items).toHaveLength(2);
+        });
+
+        it("is not rendered when the columns fill the grid", () => {
+            const { grid } = createTestGrid();
+
+            grid.invalidate(true);
+
+            expect(fillers(grid.cellsElement)).toHaveLength(0);
+        });
+
+        it("is not rendered without columns", () => {
+            const { grid } = createNarrowGrid({ columns: [] });
+
+            grid.invalidate(true);
+
+            expect(fillers(grid.cellsElement)).toHaveLength(0);
+            expect(fillers(grid.columnHeadersElement)).toHaveLength(0);
+        });
+
+        it("can be turned off, initially or later", () => {
+            const { grid } = createNarrowGrid({ showFillerColumn: false });
+            expect(grid.showFillerColumn).toBe(false);
+
+            grid.invalidate(true);
+            expect(fillers(grid.cellsElement)).toHaveLength(0);
+            expect(fillers(grid.columnHeadersElement)).toHaveLength(0);
+
+            grid.showFillerColumn = true;
+            grid.invalidate(true);
+            expect(fillers(grid.cellsElement)).toHaveLength(2);
+        });
+    });
+
     it("defaults a column's minWidth to the cell size", () => {
         const { grid } = createTestGrid({
             cellSize: 30,

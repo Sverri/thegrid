@@ -59,6 +59,15 @@ export interface GridOptions<T extends DataItem> {
     cellSize?: number;
 
     /**
+     * Whether to show an empty filler column after the last column. It
+     * stretches to fill the space the columns leave empty, and its cells
+     * cannot be selected, resized or edited. It is not part of `columns`.
+     *
+     * **Default:** `true`
+     */
+    showFillerColumn?: boolean;
+
+    /**
      * Locale
      *
      * You can either provide a simple locale like "en-UK", "de" or "pl", or,
@@ -124,6 +133,7 @@ class Grid<T extends DataItem> {
     #cellSize: number;
     #showHeaderSelection: Headers;
     #showHeaders: Headers;
+    #showFillerColumn: boolean;
     #onInvalidate = createEvent<() => void>();
     #renderer: Renderer;
     #columnCache = new WeakMap<ColumnOptions<T>, Column<T>>();
@@ -133,6 +143,7 @@ class Grid<T extends DataItem> {
         this.#cellSize = options?.cellSize ?? DEFAULT_CELL_SIZE;
         this.#showHeaders = options?.showHeaders ?? Headers.Both;
         this.#showHeaderSelection = options?.showHeaderSelection ?? Headers.Both;
+        this.#showFillerColumn = options?.showFillerColumn ?? true;
         this.locale = new Intl.Locale(options?.locale ?? "en-US");
 
         // DOM elements
@@ -225,6 +236,18 @@ class Grid<T extends DataItem> {
     }
     set showHeaderSelection(value: Headers) {
         this.#showHeaderSelection = value;
+        this.invalidate();
+    }
+
+    /**
+     * Whether an empty filler column fills the space after the last column.
+     * Changing it re-renders the grid.
+     */
+    get showFillerColumn() {
+        return this.#showFillerColumn;
+    }
+    set showFillerColumn(value: boolean) {
+        this.#showFillerColumn = value;
         this.invalidate();
     }
 

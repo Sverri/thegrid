@@ -2,10 +2,16 @@
 
 import { describe, expect, it, vi } from "vitest";
 import { columnResizeExtension } from "./column-resize";
-import { createColumn } from "@grid/column";
+import { createColumn, type ColumnOptions } from "@grid/column";
 
-function createGrid() {
-    const column = createColumn({ binding: "name", width: 100, minWidth: 50, maxWidth: 200 });
+function createGrid(options: Partial<ColumnOptions<{ name: string }>> = {}) {
+    const column = createColumn<{ name: string }>({
+        binding: "name",
+        width: 100,
+        minWidth: 50,
+        maxWidth: 200,
+        ...options,
+    });
     const columnHeadersElement = document.createElement("div");
     const hostElement = document.createElement("div");
     hostElement.append(columnHeadersElement);
@@ -141,6 +147,34 @@ describe("columnResizeExtension", () => {
 
         expect(column.width).toBe(100);
         expect(grid.hostElement.classList.contains("thegrid-resizing-column")).toBe(false);
+    });
+
+    it("ignores columns that do not allow resizing", () => {
+        const { grid, column, handle } = createGrid({ allowResize: false });
+        columnResizeExtension(grid as any);
+
+        dispatchPointerEvent(handle, "pointerdown", { button: 0, clientX: 100 });
+        dispatchPointerEvent(grid.columnHeadersElement, "pointermove", { clientX: 150 });
+
+        expect(column.width).toBe(100);
+        expect(grid.hostElement.classList.contains("thegrid-resizing-column")).toBe(false);
+    });
+
+    it("stops resizing when the column stops allowing it mid-drag", () => {
+        const { grid, column, handle } = createGrid();
+        columnResizeExtension(grid as any);
+
+        dispatchPointerEvent(handle, "pointerdown", { button: 0, clientX: 100 });
+        dispatchPointerEvent(grid.columnHeadersElement, "pointermove", { clientX: 120 });
+        column.allowResize = false;
+        dispatchPointerEvent(grid.columnHeadersElement, "pointermove", { clientX: 150 });
+
+        expect(column.width).toBe(120);
+        expect(grid.hostElement.classList.contains("thegrid-resizing-column")).toBe(false);
+
+        column.allowResize = true;
+        dispatchPointerEvent(grid.columnHeadersElement, "pointermove", { clientX: 180 });
+        expect(column.width).toBe(120);
     });
 
     it("removes its listeners and ends an active resize when disposed", () => {

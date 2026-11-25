@@ -20,14 +20,17 @@ interface CellSpecs {
     height: number;
 
     /**
-     * The column index, stored in `data-column`.
+     * The column index, stored in `data-column`. Omit it for cells that are
+     * not part of a column (such as filler cells), so that the mouse and
+     * resize handling ignore them.
      */
-    columnIndex: number;
+    columnIndex?: number;
 
     /**
-     * The row index, stored in `data-row`.
+     * The row index, stored in `data-row`. Omit it for cells that are not
+     * part of a row.
      */
-    rowIndex: number;
+    rowIndex?: number;
 
     /**
      * The vertical offset in pixels within the parent region.
@@ -51,8 +54,8 @@ interface CellSpecs {
  * @param specs.type The kind of cell being rendered.
  * @param specs.width The cell width in pixels.
  * @param specs.height The cell height in pixels.
- * @param specs.columnIndex The logical column index for the cell.
- * @param specs.rowIndex The logical row index for the cell.
+ * @param specs.columnIndex The logical column index for the cell, if it has one.
+ * @param specs.rowIndex The logical row index for the cell, if it has one.
  * @param specs.top The vertical offset in pixels.
  * @param specs.left The horizontal offset in pixels.
  * @returns A configured HTML div element ready to be appended to the grid.
@@ -60,13 +63,18 @@ interface CellSpecs {
 export function createCell({ type, width, height, columnIndex, rowIndex, left, top }: CellSpecs) {
     const cell = document.createElement("div");
     cell.className = "thegrid-cell";
-    cell.dataset["column"] = String(columnIndex);
-    cell.dataset["row"] = String(rowIndex);
+    if (columnIndex !== undefined) {
+        cell.dataset["column"] = String(columnIndex);
+    }
+    if (rowIndex !== undefined) {
+        cell.dataset["row"] = String(rowIndex);
+    }
     cell.style.transform = `translate(${left}px, ${top}px)`;
     cell.style.width = `${width}px`;
     cell.style.height = `${height}px`;
     cell.classList.toggle("thegrid-cell-column-header", type === CellType.ColumnHeader);
     cell.classList.toggle("thegrid-cell-row-header", type === CellType.RowHeader);
     cell.classList.toggle("thegrid-cell-top-left", type === CellType.TopLeft);
+    cell.classList.toggle("thegrid-cell-filler", type === CellType.Filler);
     return cell;
 }

@@ -48,7 +48,7 @@ const grid = createGrid(hostElement!, {
     showHeaders: Headers.Both,
     showHeaderSelection: Headers.Both,
     columns: [
-        { binding: "id", dataType: DataType.Text, header: "Id", width: 100, maxWidth: 150 },
+        { binding: "id", dataType: DataType.Text, header: "Id", width: 100, maxWidth: 150, allowResize: false },
         { binding: "subscribed", dataType: DataType.Boolean, header: "Subscribed", width: 115, readonly: true },
         { binding: "name", dataType: DataType.String, header: "Name", width: 200 },
         { binding: "age", dataType: DataType.Integer, header: "Age", width: 100 },

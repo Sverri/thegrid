@@ -211,6 +211,16 @@
             border: none;
         }
 
+        /* Inert: events pass through to the region behind it, which ignores them */
+        &.thegrid-cell-filler {
+            border-right: none;
+            pointer-events: none;
+
+            .thegrid-area-columnheaders & {
+                border-bottom: none;
+            }
+        }
+
         &.column-selected {
             background-color: var(--selection-header-bg-color);
             border-bottom: 2px var(--selection-header-border-color) solid;

@@ -14,7 +14,8 @@ const RESIZING_CLASS = "thegrid-resizing-column";
 /**
  * Lets the user resize columns by dragging the handle at the right edge of a column header.
  *
- * The new width goes through `Column.width`, so it is clamped to the column's
+ * Columns with `allowResize` set to false are left alone, even if a handle
+ * is somehow present. The new width goes through `Column.width`, so it is clamped to the column's
  * `minWidth` and `maxWidth`. Each change re-renders the grid immediately, so the
  * column follows the pointer. The pointer is captured by the column headers
  * element, because the header cells (and their handles) are rebuilt on every render.
@@ -45,7 +46,7 @@ export function columnResizeExtension(grid: Grid<any>): Disposer {
                 return;
             }
             const column = grid.columns.items.at(Number.parseInt(cell.dataset["column"] ?? "", 10));
-            if (!column) {
+            if (!column?.allowResize) {
                 return;
             }
 
@@ -64,6 +65,11 @@ export function columnResizeExtension(grid: Grid<any>): Disposer {
                 return;
             }
             const { column, startX, startWidth } = state;
+            if (!column.allowResize) {
+                // Turned off mid-drag
+                end();
+                return;
+            }
             const previousWidth = column.width;
             column.width = startWidth + (event.clientX - startX);
             if (column.width !== previousWidth) {
